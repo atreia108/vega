@@ -29,8 +29,12 @@
  * 
  */
 
-package atreia108.vega.core;
+package atreia108.vega.types;
 
-public class EntityManager {
+import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.DataElement;
 
+public interface IEncodeable<T extends DataElement> {
+	public byte[] encode(EncoderFactory encoder, T element);
+	public void decode(T element, byte[] data);
 }

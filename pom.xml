@@ -18,6 +18,13 @@
 		<maven.compiler.target>8</maven.compiler.target>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>sonatype</id>
+			<name>Sonatype</name>
+			<url>https://oss.sonatype.org/content/repositories/releases</url>
+		</repository>
+	</repositories>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -46,6 +53,11 @@
 			<groupId>org.dom4j</groupId>
 			<artifactId>dom4j</artifactId>
 			<version>2.1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.badlogicgames.ashley</groupId>
+			<artifactId>ashley</artifactId>
+			<version>1.7.3</version>
 		</dependency>
 	</dependencies>
 

@@ -29,8 +29,11 @@
  * 
  */
 
-package atreia108.vega.core;
+package atreia108.vega.utils;
 
-public class EntityManager {
-
+public enum HlaMessagePattern {
+	PUBLISH_ONLY,
+	SUBSCRIBE_ONLY,
+	PUBLISH_SUBSCRIBE,
+	NONE
 }

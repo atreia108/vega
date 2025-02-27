@@ -31,6 +31,16 @@
 
 package atreia108.vega.core;
 
-public class EntityManager {
-
+public abstract class ASimulation {
+	
+	
+	private void update() {
+		while (true) {
+			try {
+				Thread.sleep(null);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 }

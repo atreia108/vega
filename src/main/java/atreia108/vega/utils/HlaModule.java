@@ -29,8 +29,10 @@
  * 
  */
 
-package atreia108.vega.core;
+package atreia108.vega.utils;
 
-public class EntityManager {
-
+public class HlaModule {
+	public void publishObjectClass(HlaObjectClass objectClass) {
+		
+	}
 }
