@@ -31,10 +31,10 @@
 
 package atreia108.vega.types;
 
-import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.DataElement;
+import hla.rti1516e.encoding.EncoderFactory;
 
 public interface IEncodeable<T extends DataElement> {
-	public byte[] encode(EncoderFactory encoder, T element);
-	public void decode(T element, byte[] data);
+	public byte[] encode(T target, EncoderFactory encoder);
+	public void decode(T source, byte[] dataStream);
 }

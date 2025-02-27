@@ -31,8 +31,10 @@
 
 package atreia108.vega.types;
 
+import hla.rti1516e.encoding.DecoderException;
 import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.HLAfixedArray;
+import hla.rti1516e.encoding.HLAfixedRecord;
 import hla.rti1516e.encoding.HLAfloat64LE;
 
 public class Vector3 implements IEncodeable<HLAfixedArray<HLAfloat64LE>> {
@@ -47,7 +49,7 @@ public class Vector3 implements IEncodeable<HLAfixedArray<HLAfloat64LE>> {
 	public static final Vector3 NEGATIVE_INFINITY = new Vector3(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
 	public static final Vector3 ONE = new Vector3(1, 1, 1);
 	public static final Vector3 POSITIVE_INFINITY = new Vector3(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
-	public static final Vector3	RIGHT = new Vector3(1, 0, 0);
+	public static final Vector3 RIGHT = new Vector3(1, 0, 0);
 	public static final Vector3 UP = new Vector3(0, 1, 0);
 	public static final Vector3 ZERO = new Vector3(0, 0, 0);
 	
@@ -77,21 +79,30 @@ public class Vector3 implements IEncodeable<HLAfixedArray<HLAfloat64LE>> {
 		z = newZ;
 	}
 	
-	public byte[] encode(EncoderFactory encoder, HLAfixedArray<HLAfloat64LE> hlaVec3) {
-		hlaVec3.get(0).setValue(x);
-		hlaVec3.get(1).setValue(y);
-		hlaVec3.get(2).setValue(z);
-		return hlaVec3.toByteArray();
+	public HLAfixedArray<HLAfloat64LE> getHlaRepresentation(EncoderFactory encoder) {
+		HLAfixedArray<HLAfloat64LE> vec3Record = encoder.createHLAfixedArray(
+				encoder.createHLAfloat64LE(x),
+				encoder.createHLAfloat64LE(y),
+				encoder.createHLAfloat64LE(z)
+				);
+		return vec3Record;
 	}
 	
-	public void decode(HLAfixedArray<HLAfloat64LE> hlaVec3, byte[] encodedVector3) {
+	public byte[] encode(HLAfixedArray<HLAfloat64LE> vector3, EncoderFactory encoder) {
+		vector3.get(0).setValue(x);
+		vector3.get(1).setValue(y);
+		vector3.get(2).setValue(z);
+		return vector3.toByteArray();
+	}
+	
+	public void decode(HLAfixedArray<HLAfloat64LE> vector3, byte[] dataStream) {
 		try {
-			hlaVec3.decode(encodedVector3);
-			HLAfloat64LE newX = hlaVec3.get(0);
-			HLAfloat64LE newY = hlaVec3.get(1);
-			HLAfloat64LE newZ = hlaVec3.get(2);
-			set(newX.getValue(), newY.getValue(), newZ.getValue());
-		} catch (Exception e) {
+			vector3.decode(dataStream);
+			double newX = vector3.get(0).getValue();
+			double newY = vector3.get(1).getValue();
+			double newZ = vector3.get(2).getValue();
+			set(newX, newY, newZ);
+		} catch (DecoderException e) {
 			e.printStackTrace();
 		}
 	}
