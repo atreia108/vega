@@ -31,4 +31,37 @@
 
 package atreia108.vega.utils;
 
-public class HlaInteractionClass {}
+import java.util.HashSet;
+import java.util.Set;
+
+public class HlaInteractionClass {
+	private String className;
+	HlaMessagePattern messagePattern;
+	private Set<String> parameterSet;
+	
+	public HlaInteractionClass(String className, HlaMessagePattern messagePattern) {
+		parameterSet = new HashSet<String>();
+		this.className = className;
+		this.messagePattern = messagePattern;
+	}
+	
+	public String getName() { return className; }
+	
+	public void registerParameter(String parameterName) {
+		parameterSet.add(parameterName);
+	}
+	
+	public boolean isPublishable() {
+		if (messagePattern == HlaMessagePattern.PUBLISH_ONLY || messagePattern == HlaMessagePattern.PUBLISH_SUBSCRIBE)
+			return true;
+		else return false;
+	}
+	
+	public boolean isSubscribeable() {
+		if (messagePattern == HlaMessagePattern.SUBSCRIBE_ONLY || messagePattern == HlaMessagePattern.PUBLISH_SUBSCRIBE)
+			return true;
+		else return false;
+	}
+	
+	public Set<String> getParameterSet() { return parameterSet; }
+}

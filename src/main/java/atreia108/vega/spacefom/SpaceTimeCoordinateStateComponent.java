@@ -42,6 +42,10 @@ public class SpaceTimeCoordinateStateComponent extends AComponentData implements
 		rotationalState.add(attitudeQuaternion);
 		rotationalState.add(angularVelocityField);
 		
+		state.add(timeField);
+		state.add(translationalState);
+		state.add(rotationalState);
+		
 		return state.toByteArray();
 	}
 

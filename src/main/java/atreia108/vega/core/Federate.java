@@ -35,10 +35,12 @@ import java.net.URL;
 import java.util.Set;
 
 import atreia108.vega.utils.HlaConfigParser;
+import atreia108.vega.utils.HlaInteractionClass;
 import atreia108.vega.utils.HlaObjectClass;
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.CallbackModel;
+import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.NullFederateAmbassador;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.RTIambassador;
@@ -57,6 +59,7 @@ public class Federate extends NullFederateAmbassador {
 	private URL[] foms;
 
 	private Set<HlaObjectClass> federateObjectClasses;
+	private Set<HlaInteractionClass> federateInteractionClasses;
 
 	public Federate() {
 		try {
@@ -69,6 +72,7 @@ public class Federate extends NullFederateAmbassador {
 		init();
 		joinFederation();
 		initObjectClasses();
+		initInteractionClasses();
 	}
 
 	private void init() {
@@ -79,6 +83,7 @@ public class Federate extends NullFederateAmbassador {
 		federateType = configParser.getRtiConfig().get("FederateType");
 		foms = configParser.getFomsUrlPath();
 		federateObjectClasses = configParser.getObjectClasses();
+		federateInteractionClasses = configParser.getInteractionClasses();
 	}
 
 	private void joinFederation() {
@@ -105,8 +110,8 @@ public class Federate extends NullFederateAmbassador {
 	private void initObjectClasses() {
 		for (HlaObjectClass objectClass : federateObjectClasses) {
 			try {
-				String objectClassName = objectClass.getName();
-				ObjectClassHandle classHandle = rtiAmbassador.getObjectClassHandle(objectClassName);
+				String className = objectClass.getName();
+				ObjectClassHandle classHandle = rtiAmbassador.getObjectClassHandle(className);
 				AttributeHandleSet publishableSetHandle = rtiAmbassador.getAttributeHandleSetFactory().create();
 				AttributeHandleSet subscribeableSetHandle = rtiAmbassador.getAttributeHandleSetFactory().create();
 				Set<String> publishableAttributes = objectClass.getPublishedAttributes();
@@ -129,12 +134,28 @@ public class Federate extends NullFederateAmbassador {
 						e.printStackTrace();
 					}
 				});
-				
+
 				if (!publishableSetHandle.isEmpty())
 					rtiAmbassador.publishObjectClassAttributes(classHandle, publishableSetHandle);
-				
+
 				if (!subscribeableSetHandle.isEmpty())
 					rtiAmbassador.subscribeObjectClassAttributes(classHandle, subscribeableSetHandle);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void initInteractionClasses() {
+		for (HlaInteractionClass interactionClass : federateInteractionClasses) {
+			try {
+				String className = interactionClass.getName();
+				InteractionClassHandle classHandle = rtiAmbassador.getInteractionClassHandle(className);
+				
+				if (interactionClass.isPublishable())
+					rtiAmbassador.publishInteractionClass(classHandle);
+				if (interactionClass.isSubscribeable())
+					rtiAmbassador.subscribeInteractionClass(classHandle);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

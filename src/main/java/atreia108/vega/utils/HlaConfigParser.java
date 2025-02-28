@@ -32,6 +32,7 @@
 package atreia108.vega.utils;
 
 import java.io.File;
+import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,17 +53,19 @@ public class HlaConfigParser {
 	private Map<String, String> simConfig;
 	private Set<String>	fomModules;
 	private Set<HlaObjectClass> objectClasses;
-	// private Set<HLAInteractionClass> interactionClasses;
+	private Set<HlaInteractionClass> interactionClasses;
 	
 	public HlaConfigParser() {
 		rtiConfig = new HashMap<String, String>();
 		fomModules = new HashSet<String>();
 		simConfig = new HashMap<String, String>();
 		objectClasses = new HashSet<HlaObjectClass>();
+		interactionClasses = new HashSet<HlaInteractionClass>();
 		initParser();
 		createRtiConfig();
 		createSimConfig();
 		createObjectClasses();
+		createInteractionClasses();
 	}
 	
 	private void initParser() {
@@ -122,6 +125,28 @@ public class HlaConfigParser {
 		}
 	}
 	
+	public void createInteractionClasses() {
+		Element interactions = root.element("Interactions");
+		for (Iterator<Element> iterator = interactions.elementIterator(); iterator.hasNext();) {
+			Element interaction = iterator.next();
+			String className = interaction.attributeValue("Class");
+			String publishQuery = interaction.attributeValue("Publish");
+			String subscribeQuery = interaction.attributeValue("Subscribe");
+			boolean toBePublished = (publishQuery.equals("True")) ? true : false;
+			boolean toBeSubscribed = (subscribeQuery.equals("True")) ? true : false;
+			HlaMessagePattern publishSubscribeFlags = evaluateMessagingPattern(toBePublished, toBeSubscribed);
+			HlaInteractionClass interactionClass = new HlaInteractionClass(className, publishSubscribeFlags);
+			
+			for (Iterator<Element> parameterIterator = interaction.elementIterator(); parameterIterator.hasNext();) {
+				Element parameter = parameterIterator.next();
+				String parameterName = parameter.attributeValue("Name");
+				interactionClass.registerParameter(parameterName);
+			}
+			
+			interactionClasses.add(interactionClass);
+		}
+	}
+	
 	private HlaMessagePattern evaluateMessagingPattern(boolean publish, boolean subscribe) {
 		if (publish && subscribe) return HlaMessagePattern.PUBLISH_SUBSCRIBE;
 		if (publish && !subscribe) return HlaMessagePattern.PUBLISH_ONLY;
@@ -132,6 +157,8 @@ public class HlaConfigParser {
 	public Map<String, String> getRtiConfig() { return rtiConfig; }
 	
 	public Set<HlaObjectClass> getObjectClasses() { return objectClasses; }
+	
+	public Set<HlaInteractionClass> getInteractionClasses() { return interactionClasses; }
 	
 	public URL[] getFomsUrlPath() {
 		URL[] foms = new URL[fomModules.size()];

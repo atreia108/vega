@@ -57,6 +57,7 @@ public class HlaObjectClass {
 			if (pattern == HlaMessagePattern.SUBSCRIBE_ONLY || pattern == HlaMessagePattern.PUBLISH_SUBSCRIBE)
 				subscriptionSet.add(attribute); 
 			});
+		
 		return subscriptionSet;
 	}
 	
@@ -66,6 +67,7 @@ public class HlaObjectClass {
 			if (pattern == HlaMessagePattern.PUBLISH_ONLY || pattern == HlaMessagePattern.PUBLISH_SUBSCRIBE)
 				publicationSet.add(attribute);
 		});
+		
 		return publicationSet;
 	}
 	
