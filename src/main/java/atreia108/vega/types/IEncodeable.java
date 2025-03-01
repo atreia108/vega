@@ -36,5 +36,5 @@ import hla.rti1516e.encoding.EncoderFactory;
 
 public interface IEncodeable<T extends DataElement> {
 	public byte[] encode(T target, EncoderFactory encoder);
-	public void decode(T source, byte[] dataStream);
+	public void decode(T source, byte[] data);
 }

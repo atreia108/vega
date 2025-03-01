@@ -31,8 +31,18 @@
 
 package atreia108.vega.core;
 
+import com.badlogic.ashley.core.PooledEngine;
+
 public abstract class ASimulation {
+	private World world;
+	private PooledEngine engine;
 	
+	private HlaFederateAmbassador federateAmbassador;
+	
+	public ASimulation() {
+		engine = new PooledEngine();
+		world = new World(engine);
+	}
 	
 	private void update() {
 		while (true) {

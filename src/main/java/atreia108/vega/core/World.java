@@ -31,12 +31,48 @@
 
 package atreia108.vega.core;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+
+import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.PooledEngine;
+
+import hla.rti1516e.ObjectInstanceHandle;
+
 public class World {
-	private EntityManager entityManager;
+	private PooledEngine engine;
 	
-	public World() {
-		entityManager = new EntityManager();
+	private BidiMap<Entity, ObjectInstanceHandle> entityMap;
+	
+	public World(PooledEngine engine) {
+		entityMap = new DualHashBidiMap<Entity, ObjectInstanceHandle>();
+		this.engine = engine;
 	}
 	
-	public EntityManager getEntityManager() { return entityManager; }
+	public Entity createEntity() {
+		Entity entity = engine.createEntity();
+		
+		// TODO
+		return entity;
+	}
+	
+	public void destroyEntity(Entity entity) {
+		// TODO
+		engine.removeEntity(entity);
+	}
+	
+	public PooledEngine getEngine() { return engine; }
+	
+	public Set<Entity> getAllEntities() {
+		Set<Entity> entitySet = new HashSet<Entity>();
+		
+		entityMap.forEach((Entity e, ObjectInstanceHandle h) -> {
+			entitySet.add(e);
+		});
+		
+		return entitySet;
+	}
 }

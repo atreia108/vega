@@ -31,11 +31,11 @@
 
 package atreia108.simulation.outpost;
 
-import atreia108.vega.core.Federate;
+import atreia108.vega.core.HlaFederateAmbassador;
 
 public class Outpost {
 	public void go() {
-		new Federate();
+		new HlaFederateAmbassador();
 		System.out.println("Hello, World!");
 		while (true) {}
 	}

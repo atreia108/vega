@@ -38,6 +38,9 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import atreia108.vega.core.HlaMessagePattern;
+import atreia108.vega.core.HlaObjectClass;
+
 public class ObjectClassTests {
 	private HlaObjectClass testEntityClass;
 	private Set<String> subscribedSet;

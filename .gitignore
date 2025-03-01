@@ -22,7 +22,6 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
-/target/
 
 .metadata
 bin/
@@ -60,12 +59,6 @@ local.properties
 # sbteclipse plugin
 .target
 
-# Tern plugin
-.tern-project
-
-# TeXlipse plugin
-.texlipse
-
 # STS (Spring Tool Suite)
 .springBeans
 
@@ -83,7 +76,7 @@ local.properties
 
 # Uncomment this line if you wish to ignore the project description file.
 # Typically, this file would be tracked if it contains build/dependency configurations:
-.project
+#.project
 
 target/
 pom.xml.tag
@@ -99,12 +92,15 @@ buildNumber.properties
 
 # Eclipse m2e generated files
 # Eclipse Core
-.project
+# .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
-# HLA and project-specific files to be ignored 
-foms/
-libraries/
-settings/
+# Vega project-specific items to ignore
+foms/SISO_SpaceFOM_datatypes.xml
+foms/SISO_SpaceFOM_entity.xml
+foms/SISO_SpaceFOM_environment.xml
+foms/SISO_SpaceFOM_management.xml
+foms/SISO_SpaceFOM_switches.xml
+libraries/*.jar
 src/main/java/atreia108/vega/legacy
