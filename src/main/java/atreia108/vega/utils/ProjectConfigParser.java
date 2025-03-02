@@ -163,6 +163,8 @@ public class ProjectConfigParser {
 	
 	public Map<String, String> getRtiConfig() { return rtiConfig; }
 	
+	public Map<String, String> getSimConfig() { return simConfig; }
+	
 	public Set<HlaObjectClass> getObjectClasses() { return objectClasses; }
 	
 	public Set<HlaInteractionClass> getInteractionClasses() { return interactionClasses; }
@@ -181,6 +183,4 @@ public class ProjectConfigParser {
 		}
 		return foms;
 	}
-	
-	public Document getProjectConfig() { return projectConfig; }
 }

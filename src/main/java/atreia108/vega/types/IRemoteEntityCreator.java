@@ -39,4 +39,4 @@ import java.util.function.Supplier;
 
 import com.badlogic.ashley.core.Entity;
 
-public interface IEntityCreator extends Supplier<Entity> {}
+public interface IRemoteEntityCreator extends Supplier<Entity> {}

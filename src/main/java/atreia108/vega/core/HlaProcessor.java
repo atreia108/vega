@@ -35,7 +35,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import atreia108.vega.types.IEntityCreator;
+import atreia108.vega.types.IRemoteEntityCreator;
+import hla.rti1516e.InteractionClassHandle;
+import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.encoding.EncoderFactory;
 
@@ -43,12 +45,16 @@ public class HlaProcessor {
 	private RTIambassador rtiAmbassador;
 	private EncoderFactory encoderFactory;
 	
-	private Map<String, IEntityCreator> remoteEntites;
+	private Map<String, IRemoteEntityCreator> remoteEntityCreationPatterns;
+	private Map<String, ObjectClassHandle> objectClassHandles;
+	private Map<String, InteractionClassHandle> interactionClassHandles;
 	
 	public HlaProcessor(RTIambassador rtiAmbassador, EncoderFactory encoderFactory) {
 		this.rtiAmbassador = rtiAmbassador;
 		this.encoderFactory = encoderFactory;
-		remoteEntites = new HashMap<String, IEntityCreator>();
+		remoteEntityCreationPatterns = new HashMap<String, IRemoteEntityCreator>();
+		objectClassHandles = new HashMap<String, ObjectClassHandle>();
+		interactionClassHandles = new HashMap<String, InteractionClassHandle>();
 	}
 	
 	public void publishObjectClass(HlaObjectClass objectClass) {
@@ -59,11 +65,11 @@ public class HlaProcessor {
 		
 	}
 	
-	public void publishObjectClasses(Set<HlaObjectClass> objectClasses) {
+	public void createObjectClasses(Set<HlaObjectClass> objectClasses) {
 		
 	}
 	
-	public void publishInteractionClasses(Set<HlaInteractionClass> interactionClasses) {
+	public void createInteractionClasses(Set<HlaInteractionClass> interactionClasses) {
 		
 	}
 }

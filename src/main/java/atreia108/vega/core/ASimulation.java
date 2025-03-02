@@ -33,24 +33,41 @@ package atreia108.vega.core;
 
 import com.badlogic.ashley.core.PooledEngine;
 
+import atreia108.vega.utils.ProjectConfigParser;
+
 public abstract class ASimulation {
-	private World world;
+	protected ProjectConfigParser configParser;
 	private PooledEngine engine;
-	
-	private HlaFederateAmbassador federateAmbassador;
+	private long FRAME_RATE_MS;
 	
 	public ASimulation() {
+		configParser = new ProjectConfigParser();
 		engine = new PooledEngine();
-		world = new World(engine);
+		
+		initSimulation();
 	}
 	
-	private void update() {
+	private void initSimulation() {
+		String frameRateParameter = configParser.getSimConfig().get("FrameRate");
+		FRAME_RATE_MS = (long) Math.ceil((1/Double.valueOf(frameRateParameter)) * 1000);
+	}
+	
+	protected void update() {
 		while (true) {
 			try {
-				Thread.sleep(null);
+				engine.update(1.0f);
+				Thread.sleep(FRAME_RATE_MS);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public ProjectConfigParser getConfigParser() {
+		return configParser;
+	}
+	
+	public PooledEngine getEngine() {
+		return engine;
 	}
 }

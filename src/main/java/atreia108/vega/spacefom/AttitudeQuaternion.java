@@ -1,5 +1,7 @@
-package atreia108.vega.types;
+package atreia108.vega.spacefom;
 
+import atreia108.vega.types.IConvertable;
+import atreia108.vega.types.Vector3;
 import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.HLAfixedArray;
 import hla.rti1516e.encoding.HLAfixedRecord;

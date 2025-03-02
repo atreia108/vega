@@ -44,12 +44,14 @@ import hla.rti1516e.ObjectInstanceHandle;
 
 public class World {
 	private PooledEngine engine;
-	
 	private BidiMap<Entity, ObjectInstanceHandle> entityMap;
 	
-	public World(PooledEngine engine) {
+	private HlaProcessor hlaProcessor;
+	
+	public World(ASimulation simulation, HlaFederateAmbassador federateAmbassador) {
 		entityMap = new DualHashBidiMap<Entity, ObjectInstanceHandle>();
-		this.engine = engine;
+		hlaProcessor = federateAmbassador.getHlaProcessor();
+		engine = simulation.getEngine();
 	}
 	
 	public Entity createEntity() {

@@ -32,15 +32,12 @@
 package atreia108.vega.core;
 
 import java.net.URL;
+import java.util.Map;
 import java.util.Set;
 
 import atreia108.vega.utils.ProjectConfigParser;
-import hla.rti1516e.AttributeHandle;
-import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.CallbackModel;
-import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.NullFederateAmbassador;
-import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.RtiFactory;
 import hla.rti1516e.RtiFactoryFactory;
@@ -50,47 +47,49 @@ import hla.rti1516e.exceptions.FederationExecutionAlreadyExists;
 import hla.rti1516e.exceptions.FederationExecutionDoesNotExist;
 
 public class HlaFederateAmbassador extends NullFederateAmbassador {
+	private ProjectConfigParser configParser;
+	
 	private String hostName;
 	private String portNumber;
-	private RTIambassador rtiAmbassador;
-	private EncoderFactory encoderFactory;
 	private String federationName;
 	private String federateType;
-	private URL[] foms;
+	private URL[] fomModules;
 	
-	HlaProcessor processor;
+	protected RTIambassador rtiAmbassador;
+	protected EncoderFactory encoderFactory;
 
-	private Set<HlaObjectClass> federateObjectClasses;
-	private Set<HlaInteractionClass> federateInteractionClasses;
+	protected Set<HlaObjectClass> objectClasses;
+	protected Set<HlaInteractionClass> interactionClasses;
+	
+	protected HlaProcessor processor;
 
-	public HlaFederateAmbassador() {
+	public HlaFederateAmbassador(ASimulation simulation) {
 		try {
 			RtiFactory rtiFactory = RtiFactoryFactory.getRtiFactory();
 			rtiAmbassador = rtiFactory.getRtiAmbassador();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		init();
-		joinFederation();
-		initObjectClasses();
-		initInteractionClasses();
+		
+		this.configParser = simulation.getConfigParser();
+		
+		initFederate();
 	}
 
-	private void init() {
-		ProjectConfigParser configParser = new ProjectConfigParser();
-		hostName = configParser.getRtiConfig().get("Host");
-		portNumber = configParser.getRtiConfig().get("Port");
-		federationName = configParser.getRtiConfig().get("Federation");
-		federateType = configParser.getRtiConfig().get("FederateType");
-		foms = configParser.getFomsUrlPath();
-		federateObjectClasses = configParser.getObjectClasses();
-		federateInteractionClasses = configParser.getInteractionClasses();
+	private void initFederate() {
+		Map<String, String> rtiConfiguration = configParser.getRtiConfig();
+		hostName = rtiConfiguration.get("Host");
+		portNumber = rtiConfiguration.get("Port");
+		federationName = rtiConfiguration.get("Federation");
+		federateType = rtiConfiguration.get("FederateType");
+		fomModules = configParser.getFomsUrlPath();
+		objectClasses = configParser.getObjectClasses();
+		interactionClasses = configParser.getInteractionClasses();
 		
 		processor = new HlaProcessor(rtiAmbassador, encoderFactory);
 	}
-
-	private void joinFederation() {
+	
+	public void beginExecution() {
 		try {
 			rtiAmbassador.connect(this, CallbackModel.HLA_IMMEDIATE,
 					"crcHost=" + hostName + "\n" + "crcPort=" + portNumber);
@@ -100,15 +99,19 @@ public class HlaFederateAmbassador extends NullFederateAmbassador {
 			} catch (FederationExecutionDoesNotExist e) {}
 
 			try {
-				rtiAmbassador.createFederationExecution(federationName, foms);
+				rtiAmbassador.createFederationExecution(federationName, fomModules);
 			} catch (FederationExecutionAlreadyExists e) {}
 
 			rtiAmbassador.joinFederationExecution(federateType, federationName);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		processor.createObjectClasses(objectClasses);
+		processor.createInteractionClasses(interactionClasses);
 	}
 
+	/*
 	private void initObjectClasses() {
 		for (HlaObjectClass objectClass : federateObjectClasses) {
 			try {
@@ -147,7 +150,8 @@ public class HlaFederateAmbassador extends NullFederateAmbassador {
 			}
 		}
 	}
-
+	 */
+	
 	public void objectInstanceNameReservationFailed(String objectName) {
 		
 	}
@@ -156,6 +160,7 @@ public class HlaFederateAmbassador extends NullFederateAmbassador {
 		
 	}
 	
+	/*
 	private void initInteractionClasses() {
 		for (HlaInteractionClass interactionClass : federateInteractionClasses) {
 			try {
@@ -171,8 +176,11 @@ public class HlaFederateAmbassador extends NullFederateAmbassador {
 			}
 		}
 	}
+	*/
 	
 	public RTIambassador getRtiAmbassador() { return rtiAmbassador; }
 	
 	public EncoderFactory getEncoderFactory() { return encoderFactory; }
+	
+	public HlaProcessor getHlaProcessor() { return processor; }
 }
