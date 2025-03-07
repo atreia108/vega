@@ -40,41 +40,69 @@ import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.PooledEngine;
 
+import atreia108.vega.types.IComponent;
+import atreia108.vega.types.IRemoteEntityFactory;
 import hla.rti1516e.ObjectInstanceHandle;
 
 public class World {
 	private PooledEngine engine;
-	private BidiMap<Entity, ObjectInstanceHandle> entityMap;
 	
-	private HlaProcessor hlaProcessor;
+	private HlaTaskProcessor processor;
 	
-	public World(ASimulation simulation, HlaFederateAmbassador federateAmbassador) {
-		entityMap = new DualHashBidiMap<Entity, ObjectInstanceHandle>();
-		hlaProcessor = federateAmbassador.getHlaProcessor();
-		engine = simulation.getEngine();
+	public World(HlaFederateAmbassador federateAmbassador) {
+		processor = federateAmbassador.getHlaProcessor();
+		engine = new PooledEngine();
 	}
 	
 	public Entity createEntity() {
-		Entity entity = engine.createEntity();
-		
-		// TODO
-		return entity;
+		return engine.createEntity();
 	}
 	
 	public void destroyEntity(Entity entity) {
-		// TODO
 		engine.removeEntity(entity);
 	}
 	
-	public PooledEngine getEngine() { return engine; }
-	
-	public Set<Entity> getAllEntities() {
-		Set<Entity> entitySet = new HashSet<Entity>();
-		
-		entityMap.forEach((Entity e, ObjectInstanceHandle h) -> {
-			entitySet.add(e);
-		});
-		
-		return entitySet;
+	// TODO
+	public boolean registerEntityAsManaged(Entity entity) {
+		return false;
 	}
+	
+	// TODO
+	public boolean deregisterManagedEntity(Entity entity) {
+		return false;
+	}
+	
+	public void registerRemoteEntity(String objectClassName, IRemoteEntityFactory creationPattern) {
+		processor.registerRemoteEntity(objectClassName, creationPattern);
+	}
+	
+	public <T extends IComponent> T createComponent(Class<T> componentType) {
+		T component = engine.createComponent(componentType);
+		return component;
+	}
+	
+	public boolean removeComponent(Entity entity, Class<? extends IComponent> componentType) {
+		if (getComponent(entity, componentType) != null) {
+			entity.remove(componentType);
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public IComponent getComponent(Entity entity, Class <? extends IComponent> componentType) {
+		IComponent component = entity.getComponent(componentType);
+		return component;
+	}
+	
+	public boolean addComponent(Entity entity, Class <? extends IComponent> componentType) {
+		IComponent component = engine.createComponent(componentType);
+		entity.add(component);
+		if (getComponent(entity, componentType) != null)
+			return true;
+		else 
+			return false;
+	}
+	
+	public PooledEngine getEngine() { return engine; }
 }

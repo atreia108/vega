@@ -29,47 +29,15 @@
  * 
  */
 
-package atreia108.vega.core;
+package atreia108.vega.types;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+/*
+ * @author Hridyanshu Aatreya
+ */
 
-import atreia108.vega.types.IRemoteEntityCreator;
-import hla.rti1516e.InteractionClassHandle;
-import hla.rti1516e.ObjectClassHandle;
-import hla.rti1516e.RTIambassador;
-import hla.rti1516e.encoding.EncoderFactory;
+import java.util.function.Supplier;
 
-public class HlaProcessor {
-	private RTIambassador rtiAmbassador;
-	private EncoderFactory encoderFactory;
-	
-	private Map<String, IRemoteEntityCreator> remoteEntityCreationPatterns;
-	private Map<String, ObjectClassHandle> objectClassHandles;
-	private Map<String, InteractionClassHandle> interactionClassHandles;
-	
-	public HlaProcessor(RTIambassador rtiAmbassador, EncoderFactory encoderFactory) {
-		this.rtiAmbassador = rtiAmbassador;
-		this.encoderFactory = encoderFactory;
-		remoteEntityCreationPatterns = new HashMap<String, IRemoteEntityCreator>();
-		objectClassHandles = new HashMap<String, ObjectClassHandle>();
-		interactionClassHandles = new HashMap<String, InteractionClassHandle>();
-	}
-	
-	public void publishObjectClass(HlaObjectClass objectClass) {
-		
-	}
-	
-	public void publishInteractionClass(HlaInteractionClass interactionClass) {
-		
-	}
-	
-	public void createObjectClasses(Set<HlaObjectClass> objectClasses) {
-		
-	}
-	
-	public void createInteractionClasses(Set<HlaInteractionClass> interactionClasses) {
-		
-	}
-}
+import com.badlogic.ashley.core.Entity;
+
+@FunctionalInterface
+public interface IRemoteEntityFactory extends Supplier<Entity> {}

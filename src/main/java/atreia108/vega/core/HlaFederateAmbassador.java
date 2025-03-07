@@ -46,6 +46,16 @@ import hla.rti1516e.exceptions.FederatesCurrentlyJoined;
 import hla.rti1516e.exceptions.FederationExecutionAlreadyExists;
 import hla.rti1516e.exceptions.FederationExecutionDoesNotExist;
 
+/**
+ * A simple federate ambassador that sets up and connects to an HLA federation execution. This is a good
+ * starting point for building more complex federate ambassadors like the 
+ * {@link atreia108.spacefom#SpaceFomLateJoinerFederateAmbassador SpaceFomLateJoinerFederateAmbassador} 
+ * that follow a specific execution pattern
+ * and possibly override existing functionality offered by this implementation.
+ * @author Hridyanshu Aatreya
+ * @since 0.1
+ */
+
 public class HlaFederateAmbassador extends NullFederateAmbassador {
 	private ProjectConfigParser configParser;
 	
@@ -61,7 +71,7 @@ public class HlaFederateAmbassador extends NullFederateAmbassador {
 	protected Set<HlaObjectClass> objectClasses;
 	protected Set<HlaInteractionClass> interactionClasses;
 	
-	protected HlaProcessor processor;
+	protected HlaTaskProcessor processor;
 
 	public HlaFederateAmbassador(ASimulation simulation) {
 		try {
@@ -86,7 +96,7 @@ public class HlaFederateAmbassador extends NullFederateAmbassador {
 		objectClasses = configParser.getObjectClasses();
 		interactionClasses = configParser.getInteractionClasses();
 		
-		processor = new HlaProcessor(rtiAmbassador, encoderFactory);
+		processor = new HlaTaskProcessor(rtiAmbassador, encoderFactory);
 	}
 	
 	public void beginExecution() {
@@ -109,48 +119,11 @@ public class HlaFederateAmbassador extends NullFederateAmbassador {
 		
 		processor.createObjectClasses(objectClasses);
 		processor.createInteractionClasses(interactionClasses);
+		// rtiAmbassador.requestAttributeValueUpdate(null, null, null);
+		// FEDERATENAME::entityId
+		// Outpost::50
+		
 	}
-
-	/*
-	private void initObjectClasses() {
-		for (HlaObjectClass objectClass : federateObjectClasses) {
-			try {
-				String className = objectClass.getName();
-				ObjectClassHandle classHandle = rtiAmbassador.getObjectClassHandle(className);
-				AttributeHandleSet publishableSetHandle = rtiAmbassador.getAttributeHandleSetFactory().create();
-				AttributeHandleSet subscribeableSetHandle = rtiAmbassador.getAttributeHandleSetFactory().create();
-				Set<String> publishableAttributes = objectClass.getPublishedAttributes();
-				Set<String> subscribableAttributes = objectClass.getSubscribedAttributes();
-
-				publishableAttributes.forEach(attribute -> {
-					try {
-						AttributeHandle attributeHandle = rtiAmbassador.getAttributeHandle(classHandle, attribute);
-						publishableSetHandle.add(attributeHandle);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				});
-
-				subscribableAttributes.forEach(attribute -> {
-					try {
-						AttributeHandle attributeHandle = rtiAmbassador.getAttributeHandle(classHandle, attribute);
-						subscribeableSetHandle.add(attributeHandle);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				});
-
-				if (!publishableSetHandle.isEmpty())
-					rtiAmbassador.publishObjectClassAttributes(classHandle, publishableSetHandle);
-
-				if (!subscribeableSetHandle.isEmpty())
-					rtiAmbassador.subscribeObjectClassAttributes(classHandle, subscribeableSetHandle);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	 */
 	
 	public void objectInstanceNameReservationFailed(String objectName) {
 		
@@ -160,27 +133,9 @@ public class HlaFederateAmbassador extends NullFederateAmbassador {
 		
 	}
 	
-	/*
-	private void initInteractionClasses() {
-		for (HlaInteractionClass interactionClass : federateInteractionClasses) {
-			try {
-				String className = interactionClass.getName();
-				InteractionClassHandle classHandle = rtiAmbassador.getInteractionClassHandle(className);
-				
-				if (interactionClass.isPublishable())
-					rtiAmbassador.publishInteractionClass(classHandle);
-				if (interactionClass.isSubscribeable())
-					rtiAmbassador.subscribeInteractionClass(classHandle);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	*/
-	
 	public RTIambassador getRtiAmbassador() { return rtiAmbassador; }
 	
 	public EncoderFactory getEncoderFactory() { return encoderFactory; }
 	
-	public HlaProcessor getHlaProcessor() { return processor; }
+	public HlaTaskProcessor getHlaProcessor() { return processor; }
 }

@@ -35,6 +35,13 @@ import com.badlogic.ashley.core.PooledEngine;
 
 import atreia108.vega.utils.ProjectConfigParser;
 
+/**
+ * A base abstract class designed to be extended when creating a new simulation
+ * using the Vega framework.
+ * @author Hridyanshu Aatreya
+ * @since 0.1
+ */
+
 public abstract class ASimulation {
 	protected ProjectConfigParser configParser;
 	private PooledEngine engine;
@@ -43,7 +50,6 @@ public abstract class ASimulation {
 	public ASimulation() {
 		configParser = new ProjectConfigParser();
 		engine = new PooledEngine();
-		
 		initSimulation();
 	}
 	
@@ -52,10 +58,14 @@ public abstract class ASimulation {
 		FRAME_RATE_MS = (long) Math.ceil((1/Double.valueOf(frameRateParameter)) * 1000);
 	}
 	
+	/**
+	 * The main loop where the Entity Component System simulation and HLA update jobs are run at the frame rate specified in the project configuration.
+	 */
 	protected void update() {
 		while (true) {
 			try {
 				engine.update(1.0f);
+				// TODO -Receive HLA updates post-engine update
 				Thread.sleep(FRAME_RATE_MS);
 			} catch (InterruptedException e) {
 				e.printStackTrace();

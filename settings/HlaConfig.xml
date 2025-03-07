@@ -15,11 +15,11 @@
 			<Attribute Name="parent_reference_frame" Publish="True" Subscribe="True" />
 			<Attribute Name="state" Publish="True" Subscribe="True" />
 			<Attribute Name="center_of_mass" Publish="True" Subscribe="False" />
-			<Attribute Name="acceleration" Publish="True" Subscribe="False" />
+			<Attribute Name="acceleration" Publish="False" Subscribe="True" />
 		</Entity>
 	</Entities>
 	<Interactions>
-		<Interaction Class="HLAinteractionRoot.ModeTransitionRequest" Publish="True" Subscribe="True">
+		<Interaction Class="HLAinteractionRoot.ModeTransitionRequest" Publish="True" Subscribe="False">
 			<Parameter Name="execution_mode" />
 		</Interaction>
 	</Interactions>
