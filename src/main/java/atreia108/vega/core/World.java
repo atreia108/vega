@@ -31,7 +31,8 @@
 
 package atreia108.vega.core;
 
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections4.BidiMap;
@@ -40,69 +41,201 @@ import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.PooledEngine;
 
-import atreia108.vega.types.IComponent;
-import atreia108.vega.types.IRemoteEntityFactory;
+import hla.rti1516e.AttributeHandle;
+import hla.rti1516e.AttributeHandleSet;
+import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
+import hla.rti1516e.RTIambassador;
 
-public class World {
-	private PooledEngine engine;
+public class World
+{
+	protected String name;
+	protected PooledEngine worldEngine;
 	
-	private HlaTaskProcessor processor;
+	protected Object entityReserverSemaphore;
+	protected boolean entityReservationStatus;
 	
-	public World(HlaFederateAmbassador federateAmbassador) {
-		processor = federateAmbassador.getHlaProcessor();
-		engine = new PooledEngine();
+	private RTIambassador rtiAmbassador;
+	private Map<String, ObjectClassHandle> entityClassHandles;
+	private BidiMap<Entity, ObjectInstanceHandle> entityObjectInstances;
+	private BidiMap<String, Entity> entityNames;
+	private Set<EntityClass> entityClasses;
+	
+	public World(SimulationBase simulation)
+	{
+		entityReserverSemaphore = new Object();
+		worldEngine = new PooledEngine();
+		entityClassHandles = new HashMap<String, ObjectClassHandle>();
+		entityObjectInstances = new DualHashBidiMap<Entity, ObjectInstanceHandle>();
+		entityNames = new DualHashBidiMap<String, Entity>();
+		
+		ConfigurationParser parser = simulation.getParser();
+		rtiAmbassador = simulation.getRtiAmbassador();
+		name = parser.getRtiParameters().get("FederateType");
+		entityClasses = parser.getObjectClasses();
 	}
 	
-	public Entity createEntity() {
-		return engine.createEntity();
-	}
-	
-	public void destroyEntity(Entity entity) {
-		engine.removeEntity(entity);
-	}
-	
-	// TODO
-	public boolean registerEntityAsManaged(Entity entity) {
-		return false;
-	}
-	
-	// TODO
-	public boolean deregisterManagedEntity(Entity entity) {
-		return false;
-	}
-	
-	public void registerRemoteEntity(String objectClassName, IRemoteEntityFactory creationPattern) {
-		processor.registerRemoteEntity(objectClassName, creationPattern);
-	}
-	
-	public <T extends IComponent> T createComponent(Class<T> componentType) {
-		T component = engine.createComponent(componentType);
-		return component;
-	}
-	
-	public boolean removeComponent(Entity entity, Class<? extends IComponent> componentType) {
-		if (getComponent(entity, componentType) != null) {
-			entity.remove(componentType);
+	public <T extends IComponent> boolean addComponent(Entity entity, Class<T> componentType)
+	{
+		IComponent component = worldEngine.createComponent(componentType);
+		entity.add(component);
+		if (getComponent(entity, componentType) != null)
 			return true;
-		} else {
-			return false;
+		
+		return false;
+	}
+	
+	public void addObjectClassHandle(String objectClassName, ObjectClassHandle objectClassHandle)
+	{
+		entityClassHandles.put(objectClassName, objectClassHandle);
+	}
+	
+	public Entity createEntity(String entityName, String entityClassName)
+	{
+		ObjectInstanceHandle entityHandle = registerObjectInstance(entityName, entityClassName);
+		Entity entity = null;
+		if (entityHandle != null)
+		{
+			entity = worldEngine.createEntity();
+			entityObjectInstances.put(entity, entityHandle);
+			entityNames.put(entityName, entity);
+			worldEngine.addEntity(entity);
+		}
+		
+		return entity;
+	}
+	
+	public void createEntityClasses()
+	{
+		for (EntityClass entityClass : entityClasses)
+		{
+			try
+			{
+				String className = entityClass.getName();
+				ObjectClassHandle classHandle = rtiAmbassador.getObjectClassHandle(className);
+				AttributeHandleSet publishableSetHandle = rtiAmbassador.getAttributeHandleSetFactory().create();
+				AttributeHandleSet subscribeableSetHandle = rtiAmbassador.getAttributeHandleSetFactory().create();
+				Set<String> publishableAttributes = entityClass.getPublishedAttributes();
+				Set<String> subscribeableAttributes = entityClass.getSubscribedAttributes();
+				
+				publishableAttributes.forEach((String attribute) -> {
+					try
+					{
+						AttributeHandle attributeHandle = rtiAmbassador.getAttributeHandle(classHandle, attribute);
+						publishableSetHandle.add(attributeHandle);
+					}
+					catch (Exception e)
+					{
+						e.printStackTrace();
+					}
+				});
+				
+				subscribeableAttributes.forEach((String attribute) ->
+				{
+					try
+					{
+						AttributeHandle attributeHandle = rtiAmbassador.getAttributeHandle(classHandle, attribute);
+						subscribeableSetHandle.add(attributeHandle);
+					}
+					catch (Exception e)
+					{
+						e.printStackTrace();
+					}
+				});
+				
+				if (!publishableSetHandle.isEmpty())
+					rtiAmbassador.publishObjectClassAttributes(classHandle, publishableSetHandle);
+				
+				if (!subscribeableSetHandle.isEmpty())
+					rtiAmbassador.subscribeObjectClassAttributes(classHandle, subscribeableSetHandle);
+				
+				addObjectClassHandle(className, classHandle);
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
 		}
 	}
 	
-	public IComponent getComponent(Entity entity, Class <? extends IComponent> componentType) {
+	public void destroyEntity(Entity entity)
+	{
+		worldEngine.removeEntity(entity);
+	}
+	
+	public <T extends IComponent> IComponent getComponent(Entity entity, Class<T> componentType)
+	{
 		IComponent component = entity.getComponent(componentType);
 		return component;
 	}
 	
-	public boolean addComponent(Entity entity, Class <? extends IComponent> componentType) {
-		IComponent component = engine.createComponent(componentType);
-		entity.add(component);
-		if (getComponent(entity, componentType) != null)
-			return true;
-		else 
-			return false;
+	public BidiMap<String, Entity> getEntityNames() { return entityNames; }
+	
+	public String getName(Entity entity)
+	{
+		return entityNames.getKey(entity);
 	}
 	
-	public PooledEngine getEngine() { return engine; }
+	// TODO
+	public void update()
+	{
+		worldEngine.update(1.0f);
+	}
+	
+	public void notifyEntityNameReservationStatus(boolean status)
+	{
+		entityReservationStatus = status;
+		synchronized (entityReserverSemaphore)
+		{
+			entityReserverSemaphore.notify();
+		}
+	}
+	
+	private ObjectInstanceHandle registerObjectInstance(String entityName, String entityClassName)
+	{
+		ObjectClassHandle classHandle = entityClassHandles.get(entityClassName);
+		ObjectInstanceHandle instanceHandle = null;
+		
+		try
+		{
+			synchronized (entityReserverSemaphore)
+			{
+				rtiAmbassador.reserveObjectInstanceName(entityName);
+				awaitEntityReservation();
+			}
+			
+			if (!entityReservationStatus)
+			{
+				System.out.println("[INFO] Failed to register entity with name <" + entityName + ">");
+			}
+			
+			instanceHandle = rtiAmbassador.registerObjectInstance(classHandle, entityName);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return instanceHandle;
+	}
+	
+	private void awaitEntityReservation()
+	{
+		try
+		{
+			synchronized (entityReserverSemaphore) 
+			{
+				entityReserverSemaphore.wait();
+			}
+		}
+		catch (InterruptedException e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	public void setEntityClasses(Set<EntityClass> entityClasses)
+	{
+		this.entityClasses = entityClasses;
+	}
 }

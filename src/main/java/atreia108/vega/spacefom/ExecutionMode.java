@@ -29,15 +29,31 @@
  * 
  */
 
-package atreia108.vega.types;
+package atreia108.vega.spacefom;
 
-/*
- * @author Hridyanshu Aatreya
- */
-
-import java.util.function.Supplier;
-
-import com.badlogic.ashley.core.Entity;
-
-@FunctionalInterface
-public interface IRemoteEntityFactory extends Supplier<Entity> {}
+public enum ExecutionMode
+{	
+	EXEC_MODE_RUNNING ((short) 2),
+	EXEC_MODE_SHUTDOWN((short) 3);
+	
+	private short modeValue;
+	
+	private ExecutionMode(short modeValue) {
+		this.modeValue = modeValue;
+	}
+	
+	public static ExecutionMode getMode(short value)
+	{
+		for (ExecutionMode execMode : ExecutionMode.values())
+		{
+			if (execMode.modeValue == value) return execMode;
+		}
+		
+		return null;
+	}
+	
+	public short getModeValue()
+	{
+		return this.modeValue;
+	}
+}

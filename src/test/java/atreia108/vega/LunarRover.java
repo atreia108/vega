@@ -29,51 +29,47 @@
  * 
  */
 
-package atreia108.vega.types;
+package atreia108.vega;
 
-import atreia108.vega.core.IConvertable;
-import hla.rti1516e.encoding.EncoderFactory;
-import hla.rti1516e.encoding.HLAfixedArray;
-import hla.rti1516e.encoding.HLAfloat64LE;
+import com.badlogic.ashley.core.Entity;
 
-public class Vector3 implements IConvertable<HLAfixedArray<HLAfloat64LE>>
+import atreia108.vega.core.SimulationBase;
+import atreia108.vega.hla1516e.FederateAmbassadorBase;
+import atreia108.vega.spacefom.SpaceFomFederateAmbassador;
+
+public class LunarRover extends SimulationBase
 {
-	public double x;
-	public double y;
-	public double z;
+	FederateAmbassadorBase federateAmbassador;
+	SpaceFomFederateAmbassador federateAmbassador2;
 	
-	public static final Vector3 BACK = new Vector3(0, 0, -1);
-	public static final Vector3 DOWN = new Vector3(0, -1, 0);
-	public static final Vector3 FORWARD = new Vector3(0, 0, 1);
-	public static final Vector3 LEFT = new Vector3(-1, 0, 0);
-	public static final Vector3 NEGATIVE_INFINITY = new Vector3(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
-	public static final Vector3 ONE = new Vector3(1, 1, 1);
-	public static final Vector3 POSITIVE_INFINITY = new Vector3(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
-	public static final Vector3 RIGHT = new Vector3(1, 0, 0);
-	public static final Vector3 UP = new Vector3(0, 1, 0);
-	public static final Vector3 ZERO = new Vector3(0, 0, 0);
+	Entity lunarRover;
+	Entity lunarRover2;
+	Entity lunarRover3;
+	Entity lunarRover4;
 	
-	public Vector3(double x, double y, double z)
+	public LunarRover()
 	{
-		this.x = x;
-		this.y = y;
-		this.z = z;
+		federateAmbassador = new FederateAmbassadorBase(this);
+		federateAmbassador.initialize();
+		// federateAmbassador2 = new SpaceFomFederateAmbassador(this);
+		// federateAmbassador2.initialize();
 	}
 	
-	public double magnitude()
+	public void initialize()
 	{
-		return (x*x) + (y*y) + (z*z);
-	}
-	
-	public HLAfixedArray<HLAfloat64LE> convert(EncoderFactory encoder)
-	{
-		HLAfixedArray<HLAfloat64LE> convertedVector = encoder.createHLAfixedArray
-		(
-				encoder.createHLAfloat64LE(x),
-				encoder.createHLAfloat64LE(y),
-				encoder.createHLAfloat64LE(z)
-		);
+		lunarRover = world.createEntity("LunarRover", "HLAobjectRoot.PhysicalEntity");
+		lunarRover2 = world.createEntity("LunarRover2", "HLAobjectRoot.PhysicalEntity");
+		lunarRover3 = world.createEntity("LunarRover3", "HLAobjectRoot.PhysicalEntity");
+		lunarRover4 = world.createEntity("LunarRover4", "HLAobjectRoot.PhysicalEntity");
 		
-		return convertedVector;
+		System.out.println(world.getName(lunarRover));
+		System.out.println(world.getName(lunarRover2));
+		System.out.println(world.getName(lunarRover3));
+		System.out.println(world.getName(lunarRover4));
+	}
+	
+	public static void main(String[] args)
+	{
+		new LunarRover();
 	}
 }

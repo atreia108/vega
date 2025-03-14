@@ -31,37 +31,10 @@
 
 package atreia108.vega.core;
 
-import java.util.HashSet;
-import java.util.Set;
+import hla.rti1516e.encoding.DataElement;
+import hla.rti1516e.encoding.EncoderFactory;
 
-public class HlaInteractionClass {
-	private String className;
-	HlaMessagePattern messagePattern;
-	private Set<String> parameterSet;
-	
-	public HlaInteractionClass(String className, HlaMessagePattern messagePattern) {
-		parameterSet = new HashSet<String>();
-		this.className = className;
-		this.messagePattern = messagePattern;
-	}
-	
-	public String getName() { return className; }
-	
-	public void registerParameter(String parameterName) {
-		parameterSet.add(parameterName);
-	}
-	
-	public boolean isPublishable() {
-		if (messagePattern == HlaMessagePattern.PUBLISH_ONLY || messagePattern == HlaMessagePattern.PUBLISH_SUBSCRIBE)
-			return true;
-		else return false;
-	}
-	
-	public boolean isSubscribeable() {
-		if (messagePattern == HlaMessagePattern.SUBSCRIBE_ONLY || messagePattern == HlaMessagePattern.PUBLISH_SUBSCRIBE)
-			return true;
-		else return false;
-	}
-	
-	public Set<String> getParameterSet() { return parameterSet; }
+public interface IConvertable<T extends DataElement>
+{
+	public T convert(EncoderFactory encoder);
 }

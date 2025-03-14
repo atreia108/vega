@@ -33,35 +33,43 @@ package atreia108.vega.core;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
-public class HlaObjectClass {
-	private String className;
+import atreia108.vega.hla1516e.HlaMessagePattern;
+
+public class EntityClass
+{
+	private String name;
 	private Map<String, HlaMessagePattern> attributeMap;
+	private Map<String, Class<?>> attributeComponentMap;
 	
-	public HlaObjectClass(String className) {
+	public EntityClass(String name)
+	{
 		attributeMap = new HashMap<String, HlaMessagePattern>();
-		this.className = className;
+		attributeComponentMap = new HashMap<String, Class<?>>();
+		this.name = name;
 	}
 	
-	public String getName() { return className; }
-	
-	public void registerAttribute(String attributeName, HlaMessagePattern messagePattern) {
-		attributeMap.put(attributeName, messagePattern);
-	}
-	
-	public Set<String> getSubscribedAttributes() {
-		Set<String> subscriptionSet = new HashSet<String>();
-		attributeMap.forEach((String attribute, HlaMessagePattern pattern) -> { 
-			if (pattern == HlaMessagePattern.SUBSCRIBE_ONLY || pattern == HlaMessagePattern.PUBLISH_SUBSCRIBE)
-				subscriptionSet.add(attribute); 
-			});
+	public Set<Class<?>> getComponentTypes()
+	{
+		Set<Class<?>> componentTypeSet = new HashSet<Class<?>>();
 		
-		return subscriptionSet;
+		for (Iterator<Entry<String, Class<?>>> iterator = attributeComponentMap.entrySet().iterator(); iterator.hasNext();)
+		{
+			Class<?> componentType = iterator.next().getValue();
+			componentTypeSet.add(componentType);
+		}
+		
+		return componentTypeSet;
 	}
 	
-	public Set<String> getPublishedAttributes() {
+	public String getName() { return name; }
+	
+	public Set<String> getPublishedAttributes()
+	{
 		Set<String> publicationSet = new HashSet<String>();
 		attributeMap.forEach((String attribute, HlaMessagePattern pattern) -> {
 			if (pattern == HlaMessagePattern.PUBLISH_ONLY || pattern == HlaMessagePattern.PUBLISH_SUBSCRIBE)
@@ -71,7 +79,20 @@ public class HlaObjectClass {
 		return publicationSet;
 	}
 	
-	public Map<String, HlaMessagePattern> getAllAttributes() {
-		return attributeMap;
+	public Set<String> getSubscribedAttributes()
+	{
+		Set<String> subscriptionSet = new HashSet<String>();
+		attributeMap.forEach((String attribute, HlaMessagePattern pattern) -> { 
+			if (pattern == HlaMessagePattern.SUBSCRIBE_ONLY || pattern == HlaMessagePattern.PUBLISH_SUBSCRIBE)
+				subscriptionSet.add(attribute); 
+			});
+		
+		return subscriptionSet;
+	}
+	
+	public void registerAttribute(String attributeName, HlaMessagePattern messageModel, Class<?> component)
+	{
+		attributeMap.put(attributeName, messageModel);
+		attributeComponentMap.put(attributeName, component);
 	}
 }

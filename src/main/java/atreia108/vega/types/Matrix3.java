@@ -29,11 +29,12 @@
  * 
  */
 
-package atreia108.vega.core;
+package atreia108.vega.types;
 
-public enum HlaMessagePattern {
-	PUBLISH_ONLY,
-	SUBSCRIBE_ONLY,
-	PUBLISH_SUBSCRIBE,
-	NONE
+public class Matrix3
+{
+	public Matrix3()
+	{
+		
+	}
 }

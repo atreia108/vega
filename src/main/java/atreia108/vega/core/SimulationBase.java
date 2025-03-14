@@ -29,51 +29,72 @@
  * 
  */
 
-package atreia108.vega.types;
+package atreia108.vega.core;
 
-import atreia108.vega.core.IConvertable;
+import hla.rti1516e.RTIambassador;
+import hla.rti1516e.RtiFactoryFactory;
 import hla.rti1516e.encoding.EncoderFactory;
-import hla.rti1516e.encoding.HLAfixedArray;
-import hla.rti1516e.encoding.HLAfloat64LE;
 
-public class Vector3 implements IConvertable<HLAfixedArray<HLAfloat64LE>>
+public abstract class SimulationBase implements Runnable
 {
-	public double x;
-	public double y;
-	public double z;
-	
-	public static final Vector3 BACK = new Vector3(0, 0, -1);
-	public static final Vector3 DOWN = new Vector3(0, -1, 0);
-	public static final Vector3 FORWARD = new Vector3(0, 0, 1);
-	public static final Vector3 LEFT = new Vector3(-1, 0, 0);
-	public static final Vector3 NEGATIVE_INFINITY = new Vector3(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
-	public static final Vector3 ONE = new Vector3(1, 1, 1);
-	public static final Vector3 POSITIVE_INFINITY = new Vector3(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
-	public static final Vector3 RIGHT = new Vector3(1, 0, 0);
-	public static final Vector3 UP = new Vector3(0, 1, 0);
-	public static final Vector3 ZERO = new Vector3(0, 0, 0);
-	
-	public Vector3(double x, double y, double z)
+	protected World world;
+
+	protected RTIambassador rtiAmbassador;
+	protected EncoderFactory encoder;
+	protected ConfigurationParser parser;
+
+	Thread simulationLoopThread;
+
+	public SimulationBase()
 	{
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
-	
-	public double magnitude()
-	{
-		return (x*x) + (y*y) + (z*z);
-	}
-	
-	public HLAfixedArray<HLAfloat64LE> convert(EncoderFactory encoder)
-	{
-		HLAfixedArray<HLAfloat64LE> convertedVector = encoder.createHLAfixedArray
-		(
-				encoder.createHLAfloat64LE(x),
-				encoder.createHLAfloat64LE(y),
-				encoder.createHLAfloat64LE(z)
-		);
+		simulationLoopThread = new Thread(this);
+		parser = new ConfigurationParser();
 		
-		return convertedVector;
+		try
+		{
+			rtiAmbassador = RtiFactoryFactory.getRtiFactory().getRtiAmbassador();
+			encoder = RtiFactoryFactory.getRtiFactory().getEncoderFactory();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		world = new World(this);
 	}
+	
+	public abstract void initialize();
+
+	public EncoderFactory getEncoder() { return encoder; }
+
+	public World getWorld() { return world; }
+
+	public RTIambassador getRtiAmbassador() { return rtiAmbassador; }
+
+	public ConfigurationParser getParser() { return parser; }
+
+	public void run()
+	{
+		System.out.println("[INFO] Simulation loop is now running");
+		try
+		{
+			while (true)
+			{
+				world.update();
+				// TODO
+				Thread.sleep(17);
+			}
+		}
+		catch (InterruptedException e)
+		{
+			System.out.println("[INFO] Simulation loop was terminated prematurely.");
+		}
+	}
+
+	public void play() 
+	{
+		simulationLoopThread.start();
+	}
+	
+	public void pause() { simulationLoopThread.interrupt(); }
 }
