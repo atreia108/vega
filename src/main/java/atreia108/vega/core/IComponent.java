@@ -39,5 +39,6 @@ import hla.rti1516e.encoding.EncoderFactory;
 public interface IComponent extends Component, Poolable
 {
 	public byte[] encode(EncoderFactory encoder);
+	
 	public void decode(EncoderFactory encoder);
 }

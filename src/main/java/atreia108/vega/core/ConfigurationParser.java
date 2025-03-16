@@ -144,9 +144,9 @@ public class ConfigurationParser
 					boolean publishFlag = componentElement.attributeValue("Publish").equals("True");
 					boolean subscribeFlag = componentElement.attributeValue("Subscribe").equals("True");
 					HlaMessagePattern publishSubscribeFlags = getPublishSubscribeFlags(publishFlag, subscribeFlag);
-					Class<?> componentClass = Class.forName(componentName);
+					// Class<?> componentClass = Class.forName(componentName);
 					
-					objectClass.registerAttribute(fomAttributeName, publishSubscribeFlags, componentClass);
+					objectClass.registerAttribute(fomAttributeName, publishSubscribeFlags, componentName);
 				}
 				catch (Exception e)
 				{

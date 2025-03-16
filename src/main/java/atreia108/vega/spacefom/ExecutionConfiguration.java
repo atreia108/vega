@@ -31,75 +31,50 @@
 
 package atreia108.vega.spacefom;
 
+import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.HLAinteger64BE;
+import hla.rti1516e.encoding.HLAunicodeString;
 
 public class ExecutionConfiguration
 {
+	private ObjectInstanceHandle objectInstance;
 	protected EncoderFactory encoder;
 	
 	private String rootFrameName;
-	private ExecutionMode currentExecutionMode;
-	private ExecutionMode nextExecutionMode;
-	private double nextModeScenarioTime;
 	private long leastCommonTimeStep;
 	
-	public ExecutionConfiguration(String rootFrameName, ExecutionMode currentExecutionMode, ExecutionMode nextExecutionMode, double nextModeScenarioTime, long leastCommonTimeStep, EncoderFactory encoder)
+	public ExecutionConfiguration(ObjectInstanceHandle objectInstance, EncoderFactory encoder) 
 	{
-		this.rootFrameName = rootFrameName;
-		this.currentExecutionMode = currentExecutionMode;
-		this.nextExecutionMode = nextExecutionMode;
-		this.nextModeScenarioTime = nextModeScenarioTime;
-		this.leastCommonTimeStep = leastCommonTimeStep;
+		this.objectInstance = objectInstance;
 		this.encoder = encoder;
 	}
-
-	public String getRootFrameName()
+	
+	public long getLeastCommonTimeStep() { return leastCommonTimeStep; }
+	
+	public String getRootFrameName() { return rootFrameName; }
+	
+	public ObjectInstanceHandle getObjectInstanceHandle() { return objectInstance; }
+	
+	public void setRootFrameName(Object frameName)
 	{
-		return rootFrameName;
+		HLAunicodeString encodedFrameName = encoder.createHLAunicodeString();
+		try
+		{
+			encodedFrameName.decode((byte[]) frameName);
+			rootFrameName = encodedFrameName.getValue();
+		}
+		catch (Exception e) { e.printStackTrace(); }
 	}
-
-	public void setRootFrameName(String rootFrameName)
+	
+	public void setLeastCommonTimeStep(Object lcts)
 	{
-		this.rootFrameName = rootFrameName;
-	}
-
-	public ExecutionMode getCurrentExecutionMode()
-	{
-		return currentExecutionMode;
-	}
-
-	public void setCurrentExecutionMode(ExecutionMode currentExecutionMode)
-	{
-		this.currentExecutionMode = currentExecutionMode;
-	}
-
-	public ExecutionMode getNextExecutionMode()
-	{
-		return nextExecutionMode;
-	}
-
-	public void setNextExecutionMode(ExecutionMode nextExecutionMode)
-	{
-		this.nextExecutionMode = nextExecutionMode;
-	}
-
-	public double getNextModeScenarioTime()
-	{
-		return nextModeScenarioTime;
-	}
-
-	public void setNextModeScenarioTime(double nextModeScenarioTime)
-	{
-		this.nextModeScenarioTime = nextModeScenarioTime;
-	}
-
-	public long getLeastCommonTimeStep()
-	{
-		return leastCommonTimeStep;
-	}
-
-	public void setLeastCommonTimeStep(long leastCommonTimeStep)
-	{
-		this.leastCommonTimeStep = leastCommonTimeStep;
+		HLAinteger64BE encodedLcts = encoder.createHLAinteger64BE();
+		try
+		{
+			encodedLcts.decode((byte[]) lcts);
+			leastCommonTimeStep = encodedLcts.getValue();
+		}
+		catch (Exception e) { e.printStackTrace(); }
 	}
 }

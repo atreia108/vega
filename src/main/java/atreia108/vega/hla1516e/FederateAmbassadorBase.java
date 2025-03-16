@@ -33,13 +33,20 @@ package atreia108.vega.hla1516e;
 
 import java.net.URL;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
+
+import com.badlogic.ashley.core.Entity;
 
 import atreia108.vega.core.EntityClass;
+import atreia108.vega.core.IComponent;
 import atreia108.vega.core.SimulationBase;
 import atreia108.vega.core.World;
 import hla.rti1516e.CallbackModel;
 import hla.rti1516e.NullFederateAmbassador;
+import hla.rti1516e.ObjectClassHandle;
+import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.exceptions.FederatesCurrentlyJoined;
@@ -50,28 +57,66 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 {
 	protected SimulationBase simulation;
 	protected World world;
-	
+
 	protected RTIambassador rtiAmbassador;
 	protected EncoderFactory encoder;
-	
+
 	protected String hostName;
 	protected String port;
 	protected String federationName;
 	protected String federateType;
 	protected URL[] fomModules;
-	
+
 	protected Set<EntityClass> objectClasses;
-	
+
 	public FederateAmbassadorBase(SimulationBase simulation)
 	{
 		this.simulation = simulation;
 		world = simulation.getWorld();
 		rtiAmbassador = simulation.getRtiAmbassador();
 		encoder = simulation.getEncoder();
-		
+
 		unpackRtiSettings();
 	}
-	
+
+	protected <T extends IComponent> void discoverEntityInstance(String entityName, ObjectInstanceHandle entityHandle,
+			ObjectClassHandle entityClassHandle)
+	{
+		String entityClassName = world.getEntityClassHandles().getKey(entityClassHandle);
+
+		if (entityClassName != null)
+		{
+			Stream<EntityClass> entityClassStream = world.getEntityClasses().stream()
+					.filter(entityClass -> entityClass.getName().equals(entityClassName));
+			Optional<EntityClass> entityClassEntry = entityClassStream.findAny();
+			EntityClass entityClass = entityClassEntry.get();
+
+			Entity remoteEntity = world.createRemoteEntity(entityName, entityHandle);
+
+			for (String componentName : entityClass.getComponentTypes())
+			{
+				try
+				{
+					// N.B. This cast is technically "safe" and there are no immediately dangerous implications.
+					// To be resolved at a later date when a more elegant solution comes to mind.
+					Class<T> componentClass = (Class<T>) Class.forName(componentName);
+					world.addComponent(remoteEntity, componentClass);
+					
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	public void discoverObjectInstance(ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass,
+			String objectName)
+	{
+		discoverEntityInstance(objectName, theObject, theObjectClass);
+	}
+
 	// TODO
 	public void initialize()
 	{
@@ -81,46 +126,60 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 			try
 			{
 				rtiAmbassador.destroyFederationExecution(federationName);
+			} catch (FederatesCurrentlyJoined e)
+			{
+			} catch (FederationExecutionDoesNotExist e)
+			{
 			}
-			catch (FederatesCurrentlyJoined e) {}
-			catch (FederationExecutionDoesNotExist e) {}
-			
+
 			try
 			{
 				rtiAmbassador.createFederationExecution(federationName, fomModules);
+			} catch (FederationExecutionAlreadyExists e)
+			{
 			}
-			catch (FederationExecutionAlreadyExists e) {}
-			
+
 			rtiAmbassador.joinFederationExecution(federateType, federationName);
-		}
-		catch (Exception e)
+		} catch (Exception e)
 		{
 			e.printStackTrace();
 		}
-		
+
 		world.createEntityClasses();
 		simulation.initialize();
 		simulation.play();
 	}
-	
-	public String getFederationName() { return federationName; }
-	
-	public String getFederateType() { return federateType; }
-	
-	public String getHostName() { return hostName; }
-	
-	public String getPort() { return port; }
-	
+
+	public String getFederationName()
+	{
+		return federationName;
+	}
+
+	public String getFederateType()
+	{
+		return federateType;
+	}
+
+	public String getHostName()
+	{
+		return hostName;
+	}
+
+	public String getPort()
+	{
+		return port;
+	}
+
 	public void objectInstanceNameReservationFailed(String objectName)
 	{
 		world.notifyEntityNameReservationStatus(false);
 	}
-	
+
 	public void objectInstanceNameReservationSucceeded(String objectName)
 	{
 		world.notifyEntityNameReservationStatus(true);
 	}
-	
+
 	private void unpackRtiSettings()
 	{
 		Map<String, String> rtiSettings = simulation.getParser().getRtiParameters();

@@ -31,8 +31,6 @@
 
 package atreia108.vega.core;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections4.BidiMap;
@@ -56,7 +54,7 @@ public class World
 	protected boolean entityReservationStatus;
 	
 	private RTIambassador rtiAmbassador;
-	private Map<String, ObjectClassHandle> entityClassHandles;
+	private BidiMap<String, ObjectClassHandle> entityClassHandles;
 	private BidiMap<Entity, ObjectInstanceHandle> entityObjectInstances;
 	private BidiMap<String, Entity> entityNames;
 	private Set<EntityClass> entityClasses;
@@ -65,7 +63,7 @@ public class World
 	{
 		entityReserverSemaphore = new Object();
 		worldEngine = new PooledEngine();
-		entityClassHandles = new HashMap<String, ObjectClassHandle>();
+		entityClassHandles = new DualHashBidiMap<String, ObjectClassHandle>();
 		entityObjectInstances = new DualHashBidiMap<Entity, ObjectInstanceHandle>();
 		entityNames = new DualHashBidiMap<String, Entity>();
 		
@@ -158,6 +156,14 @@ public class World
 		}
 	}
 	
+	public Entity createRemoteEntity(String entityName, ObjectInstanceHandle entityHandle)
+	{
+		Entity remoteEntity = worldEngine.createEntity();
+		entityObjectInstances.put(remoteEntity, entityHandle);
+		entityNames.put(entityName, remoteEntity);
+		return remoteEntity;
+	}
+	
 	public void destroyEntity(Entity entity)
 	{
 		worldEngine.removeEntity(entity);
@@ -170,6 +176,10 @@ public class World
 	}
 	
 	public BidiMap<String, Entity> getEntityNames() { return entityNames; }
+	
+	public Set<EntityClass> getEntityClasses() { return entityClasses; }
+	
+	public BidiMap<String, ObjectClassHandle> getEntityClassHandles() { return entityClassHandles; }
 	
 	public String getName(Entity entity)
 	{

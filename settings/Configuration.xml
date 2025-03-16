@@ -1,5 +1,5 @@
 <Project>
-	<RtiConfiguration Host="localhost" Port="8989" Federation="SEE 2025" FederateType="Outpost">
+	<RtiConfiguration Host="localhost" Port="8989" Federation="SEE 2025" FederateType="LunarRover">
 		<FomModules>
 			<Fom FilePath="foms/SISO_SpaceFOM_datatypes.xml" />
 			<Fom FilePath="foms/SISO_SpaceFOM_entity.xml" />

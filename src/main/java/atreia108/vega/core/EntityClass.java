@@ -44,22 +44,22 @@ public class EntityClass
 {
 	private String name;
 	private Map<String, HlaMessagePattern> attributeMap;
-	private Map<String, Class<?>> attributeComponentMap;
+	private Map<String, String> attributeComponentMap;
 	
 	public EntityClass(String name)
 	{
 		attributeMap = new HashMap<String, HlaMessagePattern>();
-		attributeComponentMap = new HashMap<String, Class<?>>();
+		attributeComponentMap = new HashMap<String, String>();
 		this.name = name;
 	}
 	
-	public Set<Class<?>> getComponentTypes()
+	public Set<String> getComponentTypes()
 	{
-		Set<Class<?>> componentTypeSet = new HashSet<Class<?>>();
+		Set<String> componentTypeSet = new HashSet<String>();
 		
-		for (Iterator<Entry<String, Class<?>>> iterator = attributeComponentMap.entrySet().iterator(); iterator.hasNext();)
+		for (Iterator<Entry<String, String>> iterator = attributeComponentMap.entrySet().iterator(); iterator.hasNext();)
 		{
-			Class<?> componentType = iterator.next().getValue();
+			String componentType = iterator.next().getValue();
 			componentTypeSet.add(componentType);
 		}
 		
@@ -71,7 +71,8 @@ public class EntityClass
 	public Set<String> getPublishedAttributes()
 	{
 		Set<String> publicationSet = new HashSet<String>();
-		attributeMap.forEach((String attribute, HlaMessagePattern pattern) -> {
+		attributeMap.forEach((String attribute, HlaMessagePattern pattern) ->
+		{
 			if (pattern == HlaMessagePattern.PUBLISH_ONLY || pattern == HlaMessagePattern.PUBLISH_SUBSCRIBE)
 				publicationSet.add(attribute);
 		});
@@ -90,7 +91,7 @@ public class EntityClass
 		return subscriptionSet;
 	}
 	
-	public void registerAttribute(String attributeName, HlaMessagePattern messageModel, Class<?> component)
+	public void registerAttribute(String attributeName, HlaMessagePattern messageModel, String component)
 	{
 		attributeMap.put(attributeName, messageModel);
 		attributeComponentMap.put(attributeName, component);
