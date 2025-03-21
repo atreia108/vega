@@ -40,19 +40,29 @@ import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.CallbackModel;
 import hla.rti1516e.InteractionClassHandle;
+import hla.rti1516e.LogicalTime;
+import hla.rti1516e.LogicalTimeFactoryFactory;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.OrderType;
+import hla.rti1516e.TimeQueryReturn;
 import hla.rti1516e.TransportationTypeHandle;
 import hla.rti1516e.exceptions.FederateInternalError;
+import hla.rti1516e.time.HLAinteger64Time;
+import hla.rti1516e.time.HLAinteger64TimeFactory;
 
 public class SpaceFomFederateAmbassador extends FederateAmbassadorBase
 {
 	protected CountDownLatch exCODiscoveryLatch;
 
 	protected ExecutionConfiguration exCO;
-	protected AttributeHandle rootFrameName;
 	protected AttributeHandle leastCommonTimeStep;
+	protected AttributeHandle rootFrameName;
+	
+	protected HLAinteger64Time currentTime;
+	protected HLAinteger64Time lookAheadTime;
+	
+	protected HLAinteger64TimeFactory timeFactory;
 
 	public SpaceFomFederateAmbassador(SimulationBase simulation)
 	{
@@ -64,6 +74,8 @@ public class SpaceFomFederateAmbassador extends FederateAmbassadorBase
 	{
 		try
 		{
+			timeFactory = LogicalTimeFactoryFactory.getLogicalTimeFactory(HLAinteger64TimeFactory.class);
+			
 			connect();
 			createExCO();
 			createMTR();
@@ -75,22 +87,68 @@ public class SpaceFomFederateAmbassador extends FederateAmbassadorBase
 
 			exCODiscoveryLatch = new CountDownLatch(1);
 			exCODiscoveryLatch.await();
-			System.out.println("[INFO] Received ExCO values");
+			System.out.println("[INFO] Received ExCO attribute update");
+			
+			lookAheadTime = timeFactory.makeTime(exCO.getLeastCommonTimeStep());
+			System.out.println("Least Common Time Step: " + lookAheadTime.getValue());
+			System.out.println("Root Frame Name: " + exCO.getRootFrameName());
 			
 			System.out.println("[INFO] Initializing internal simulation objects");
 			world.createEntityClasses();
 			simulation.initialize();
 			System.out.println("[INFO] Simulation objects initialized without incident");
 			
-			while (true) {}
+			System.out.println("[INFO] Setting up HLA time management");
+			rtiAmbassador.enableTimeConstrained();
+			exCODiscoveryLatch = new CountDownLatch(1);
+			exCODiscoveryLatch.await();
 			
-			// System.out.println("[INFO] Setting up HLA time management");
+			rtiAmbassador.enableTimeRegulation(timeFactory.makeInterval(1000000));
+			exCODiscoveryLatch = new CountDownLatch(1);
+			exCODiscoveryLatch.await();
+			
+			System.out.println("[INFO] HLA time management successfully enabled");
+			
+			System.out.println("[INFO] Computing HLA Logical Time Boundary to advance time");
+			TimeQueryReturn queriedGALT = rtiAmbassador.queryGALT();
+			HLAinteger64Time galt = (HLAinteger64Time) queriedGALT.time;
+			long lcts = exCO.getLeastCommonTimeStep();
+			long computedTime = (long) ((Math.floor((galt.getValue()/lcts)) + 1) * lcts);
+			System.out.println(computedTime);
+			HLAinteger64Time hltb = timeFactory.makeTime(computedTime);
+			
+			rtiAmbassador.timeAdvanceRequest(hltb);
+			exCODiscoveryLatch = new CountDownLatch(1);
+			exCODiscoveryLatch.await();
+			
+			simulation.play();
+			
+			while (true)
+			{
+				// Wait for time advance grant
+				rtiAmbassador.timeAdvanceRequest(calculateNextTimeStep());
+				exCODiscoveryLatch = new CountDownLatch(1);
+				exCODiscoveryLatch.await();
+				
+				// TODO
+				// Job System updates here
+			}
+			
 		} catch (Exception e)
 		{
 			e.printStackTrace();
 		}
 	}
 
+	protected HLAinteger64Time calculateNextTimeStep()
+	{
+		long presentTime = currentTime.getValue();
+		long timeStep = lookAheadTime.getValue();
+		long predictedNext = presentTime + timeStep;
+		HLAinteger64Time nextTimeStep = timeFactory.makeTime(predictedNext);
+		return nextTimeStep;
+	}
+	
 	protected void connect()
 	{
 		try
@@ -116,7 +174,8 @@ public class SpaceFomFederateAmbassador extends FederateAmbassadorBase
 			exCOAttributeHandleSet.add(leastCommonTimeStep);
 
 			rtiAmbassador.subscribeObjectClassAttributes(exCOClass, exCOAttributeHandleSet);
-		} catch (Exception e)
+		}
+		catch (Exception e)
 		{
 			e.printStackTrace();
 		}
@@ -160,7 +219,6 @@ public class SpaceFomFederateAmbassador extends FederateAmbassadorBase
 			byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport,
 			SupplementalReflectInfo reflectInfo) throws FederateInternalError
 	{
-		System.out.println("NOW I AM REFLECT!");
 		try
 		{
 			ObjectClassHandle objectType = rtiAmbassador.getKnownObjectClassHandle(theObject);
@@ -180,5 +238,30 @@ public class SpaceFomFederateAmbassador extends FederateAmbassadorBase
 		{
 			e.printStackTrace();
 		}
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public void timeAdvanceGrant(LogicalTime theTime) throws FederateInternalError
+	{
+		// TODO
+		System.out.println("[INFO] Federate Ambassador was granted request to advance time");
+		currentTime = (HLAinteger64Time) theTime;
+		exCODiscoveryLatch.countDown();
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public void timeConstrainedEnabled(LogicalTime time) throws FederateInternalError
+	{
+		// TODO
+		System.out.println("[INFO] Time constraining enabled for Federate Ambassador");
+		exCODiscoveryLatch.countDown();
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public void timeRegulationEnabled(LogicalTime time) throws FederateInternalError
+	{
+		// TODO
+		System.out.println("[INFO] Time regulation enabled for Federate Ambassador");
+		exCODiscoveryLatch.countDown();
 	}
 }

@@ -179,6 +179,7 @@ public class ConfigurationParser
 		simulationParameters.put("FrameRate", frameRate);
 	}
 	
+	/*
 	public static void main(String[] args)
 	{
 		ConfigurationParser parser = new ConfigurationParser();
@@ -199,4 +200,5 @@ public class ConfigurationParser
 			System.out.println(fom.toString());
 		}
 	}
+	*/
 }

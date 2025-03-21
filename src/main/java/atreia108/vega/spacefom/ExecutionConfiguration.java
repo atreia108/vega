@@ -35,6 +35,7 @@ import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.HLAinteger64BE;
 import hla.rti1516e.encoding.HLAunicodeString;
+import hla.rti1516e.time.HLAinteger64Time;
 
 public class ExecutionConfiguration
 {

@@ -31,23 +31,14 @@
 
 package atreia108.vega;
 
-import java.util.Optional;
-import java.util.stream.Stream;
-
-import org.apache.commons.collections4.BidiMap;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
-
 import com.badlogic.ashley.core.Entity;
 
-import atreia108.vega.core.EntityClass;
 import atreia108.vega.core.SimulationBase;
-import atreia108.vega.hla1516e.FederateAmbassadorBase;
 import atreia108.vega.spacefom.SpaceFomFederateAmbassador;
 
 public class LunarRover extends SimulationBase
 {
-	FederateAmbassadorBase federateAmbassador;
-	SpaceFomFederateAmbassador federateAmbassador2;
+	SpaceFomFederateAmbassador federateAmbassador;
 	
 	Entity lunarRover;
 	Entity lunarRover2;
@@ -56,10 +47,8 @@ public class LunarRover extends SimulationBase
 	
 	public LunarRover()
 	{
-		// federateAmbassador = new FederateAmbassadorBase(this);
-		// federateAmbassador.initialize();
-		federateAmbassador2 = new SpaceFomFederateAmbassador(this);
-		federateAmbassador2.initialize();
+		federateAmbassador = new SpaceFomFederateAmbassador(this);
+		federateAmbassador.initialize();
 	}
 	
 	public void initialize()
@@ -68,11 +57,6 @@ public class LunarRover extends SimulationBase
 		lunarRover2 = world.createEntity("LunarRover2", "HLAobjectRoot.PhysicalEntity");
 		lunarRover3 = world.createEntity("LunarRover3", "HLAobjectRoot.PhysicalEntity");
 		lunarRover4 = world.createEntity("LunarRover4", "HLAobjectRoot.PhysicalEntity");
-		
-		System.out.println(world.getName(lunarRover));
-		System.out.println(world.getName(lunarRover2));
-		System.out.println(world.getName(lunarRover3));
-		System.out.println(world.getName(lunarRover4));
 	}
 	
 	public static void main(String[] args)

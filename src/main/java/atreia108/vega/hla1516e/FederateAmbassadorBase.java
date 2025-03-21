@@ -126,24 +126,19 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 			try
 			{
 				rtiAmbassador.destroyFederationExecution(federationName);
-			} catch (FederatesCurrentlyJoined e)
-			{
-			} catch (FederationExecutionDoesNotExist e)
-			{
 			}
+			catch (FederatesCurrentlyJoined e) {}
+			catch (FederationExecutionDoesNotExist e) {}
 
 			try
 			{
 				rtiAmbassador.createFederationExecution(federationName, fomModules);
-			} catch (FederationExecutionAlreadyExists e)
-			{
 			}
+			catch (FederationExecutionAlreadyExists e) {}
 
 			rtiAmbassador.joinFederationExecution(federateType, federationName);
-		} catch (Exception e)
-		{
-			e.printStackTrace();
 		}
+		catch (Exception e) { e.printStackTrace(); }
 
 		world.createEntityClasses();
 		simulation.initialize();
