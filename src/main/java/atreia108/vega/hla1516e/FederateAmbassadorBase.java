@@ -33,14 +33,9 @@ package atreia108.vega.hla1516e;
 
 import java.net.URL;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
-
-import com.badlogic.ashley.core.Entity;
 
 import atreia108.vega.core.EntityClass;
-import atreia108.vega.core.IComponent;
 import atreia108.vega.core.SimulationBase;
 import atreia108.vega.core.World;
 import hla.rti1516e.CallbackModel;
@@ -79,6 +74,8 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 		unpackRtiSettings();
 	}
 
+	// TODO - Add remote entity support in near future
+	/*
 	protected <T extends IComponent> void discoverEntityInstance(String entityName, ObjectInstanceHandle entityHandle,
 			ObjectClassHandle entityClassHandle)
 	{
@@ -110,11 +107,12 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 			}
 		}
 	}
-
+	*/
+	
 	public void discoverObjectInstance(ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass,
 			String objectName)
 	{
-		discoverEntityInstance(objectName, theObject, theObjectClass);
+		// discoverEntityInstance(objectName, theObject, theObjectClass);
 	}
 
 	// TODO

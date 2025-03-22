@@ -29,12 +29,33 @@
  * 
  */
 
-package atreia108.vega.types;
+package atreia108.vega.spacefom.types;
 
-public class Matrix3
+import atreia108.vega.core.IConvertable;
+import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.HLAfixedRecord;
+import hla.rti1516e.encoding.HLAfloat64LE;
+
+public class AttitudeQuaternion implements IConvertable<HLAfixedRecord>
 {
-	public Matrix3()
+	public double scalar;
+	public double vector;
+	
+	public AttitudeQuaternion(double scalar, double vector)
 	{
+		this.scalar = scalar;
+		this.vector = vector;
+	}
+	
+	public HLAfixedRecord convert(EncoderFactory encoder)
+	{
+		HLAfixedRecord target = encoder.createHLAfixedRecord();
+		HLAfloat64LE encodedScalar = encoder.createHLAfloat64LE(scalar);
+		HLAfloat64LE encodedVector = encoder.createHLAfloat64LE(vector);
 		
+		target.add(encodedScalar);
+		target.add(encodedVector);
+		
+		return target;
 	}
 }

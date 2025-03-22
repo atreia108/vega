@@ -31,19 +31,25 @@
 
 package atreia108.vega.core;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 
+import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.PooledEngine;
+import com.badlogic.ashley.utils.ImmutableArray;
 
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
+import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.RTIambassador;
+import hla.rti1516e.encoding.EncoderFactory;
 
 public class World
 {
@@ -54,6 +60,7 @@ public class World
 	protected boolean entityReservationStatus;
 	
 	private RTIambassador rtiAmbassador;
+	private EncoderFactory encoder;
 	private BidiMap<String, ObjectClassHandle> entityClassHandles;
 	private BidiMap<Entity, ObjectInstanceHandle> entityObjectInstances;
 	private BidiMap<String, Entity> entityNames;
@@ -62,13 +69,14 @@ public class World
 	public World(SimulationBase simulation)
 	{
 		entityReserverSemaphore = new Object();
-		worldEngine = new PooledEngine();
+		worldEngine = new PooledEngine(10000, 20000, 75, 100);
 		entityClassHandles = new DualHashBidiMap<String, ObjectClassHandle>();
 		entityObjectInstances = new DualHashBidiMap<Entity, ObjectInstanceHandle>();
 		entityNames = new DualHashBidiMap<String, Entity>();
 		
 		ConfigurationParser parser = simulation.getParser();
 		rtiAmbassador = simulation.getRtiAmbassador();
+		encoder = simulation.getEncoder();
 		name = parser.getRtiParameters().get("FederateType");
 		entityClasses = parser.getObjectClasses();
 	}
@@ -86,6 +94,27 @@ public class World
 	public void addObjectClassHandle(String objectClassName, ObjectClassHandle objectClassHandle)
 	{
 		entityClassHandles.put(objectClassName, objectClassHandle);
+	}
+	
+	public EntitySystem addSystem(EntitySystem system)
+	{
+		worldEngine.addSystem(system);
+		return system;
+	}
+	
+	private void awaitEntityReservation()
+	{
+		try
+		{
+			synchronized (entityReserverSemaphore) 
+			{
+				entityReserverSemaphore.wait();
+			}
+		}
+		catch (InterruptedException e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	public Entity createEntity(String entityName, String entityClassName)
@@ -164,15 +193,52 @@ public class World
 		return remoteEntity;
 	}
 	
+	public void destroySystem(EntitySystem system)
+	{
+		worldEngine.removeSystem(system);
+	}
+	
 	public void destroyEntity(Entity entity)
 	{
 		worldEngine.removeEntity(entity);
 	}
 	
-	public <T extends IComponent> IComponent getComponent(Entity entity, Class<T> componentType)
+	public ArrayList<IComponent> getAllComponents(Entity entity)
 	{
-		IComponent component = entity.getComponent(componentType);
+		ImmutableArray<Component> components = entity.getComponents();
+		ArrayList<IComponent> requestedComponents = new ArrayList<IComponent>();
+		
+		for (Component c : components)
+			requestedComponents.add((IComponent) c);
+		
+		return requestedComponents;
+	}
+	
+	public <T extends IComponent> T getComponent(Entity entity, Class<T> componentType)
+	{
+		T component = entity.getComponent(componentType);
 		return component;
+	}
+	
+	public EntityClass getEntityClass(String entityClassName)
+	{
+		EntityClass entityClass = entityClasses.stream().filter(e -> e.getName().equals(entityClassName)).findAny().get();
+		return entityClass;
+	}
+	
+	public String getEntityName(Entity entity)
+	{
+		return entityNames.getKey(entity);
+	}
+	
+	public ObjectInstanceHandle getEntityObjectInstanceHandle(Entity entity)
+	{
+		return entityObjectInstances.get(entity);
+	}
+	
+	public ObjectClassHandle getEntityObjectClassHandle(String entityName)
+	{
+		return entityClassHandles.get(entityName);
 	}
 	
 	public BidiMap<String, Entity> getEntityNames() { return entityNames; }
@@ -229,16 +295,32 @@ public class World
 		return instanceHandle;
 	}
 	
-	private void awaitEntityReservation()
+	public void sendEntityUpdate(Entity entity)
 	{
 		try
 		{
-			synchronized (entityReserverSemaphore) 
+			ObjectInstanceHandle entityInstanceHandle = getEntityObjectInstanceHandle(entity);
+			ObjectClassHandle entityObjectClass = rtiAmbassador.getKnownObjectClassHandle(entityInstanceHandle);
+			
+			String entityObjectClassName = rtiAmbassador.getObjectClassName(entityObjectClass);
+			EntityClass entityClass = getEntityClass(entityObjectClassName);
+			
+			ArrayList<IComponent> components = getAllComponents(entity);
+			AttributeHandleValueMap attributeValueMap = rtiAmbassador.getAttributeHandleValueMapFactory().create(entityClass.getComponentCount());
+			
+			for (IComponent component : components)
 			{
-				entityReserverSemaphore.wait();
+				String componentName = component.getClass().getName();
+				// System.out.println("Component Name: " +  componentName);
+				String attributeName = entityClass.getAttributeEquivalent(componentName);
+				// System.out.println("Attribute Name: " + attributeName);
+				AttributeHandle attributeHandle = rtiAmbassador.getAttributeHandle(entityObjectClass, attributeName);
+				attributeValueMap.put(attributeHandle, component.encode(encoder));
 			}
+			
+			rtiAmbassador.updateAttributeValues(entityInstanceHandle, attributeValueMap, null);
 		}
-		catch (InterruptedException e)
+		catch (Exception e)
 		{
 			e.printStackTrace();
 		}

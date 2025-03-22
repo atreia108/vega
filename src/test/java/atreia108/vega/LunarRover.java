@@ -32,18 +32,20 @@
 package atreia108.vega;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.systems.IteratingSystem;
 
 import atreia108.vega.core.SimulationBase;
 import atreia108.vega.spacefom.SpaceFomFederateAmbassador;
+import atreia108.vega.spacefom.components.CenterOfMassComponent;
+import atreia108.vega.spacefom.components.NameComponent;
+import atreia108.vega.spacefom.components.ReferenceFrameComponent;
+import atreia108.vega.spacefom.components.SpaceTimeCoordinateStateComponent;
 
 public class LunarRover extends SimulationBase
 {
-	SpaceFomFederateAmbassador federateAmbassador;
+	private SpaceFomFederateAmbassador federateAmbassador;
 	
-	Entity lunarRover;
-	Entity lunarRover2;
-	Entity lunarRover3;
-	Entity lunarRover4;
+	private Entity lunarRover;
 	
 	public LunarRover()
 	{
@@ -54,9 +56,19 @@ public class LunarRover extends SimulationBase
 	public void initialize()
 	{
 		lunarRover = world.createEntity("LunarRover", "HLAobjectRoot.PhysicalEntity");
-		lunarRover2 = world.createEntity("LunarRover2", "HLAobjectRoot.PhysicalEntity");
-		lunarRover3 = world.createEntity("LunarRover3", "HLAobjectRoot.PhysicalEntity");
-		lunarRover4 = world.createEntity("LunarRover4", "HLAobjectRoot.PhysicalEntity");
+		world.addComponent(lunarRover, NameComponent.class);
+		world.addComponent(lunarRover, ReferenceFrameComponent.class);
+		world.addComponent(lunarRover, SpaceTimeCoordinateStateComponent.class);
+		world.addComponent(lunarRover, CenterOfMassComponent.class);
+		
+		NameComponent entityName = world.getComponent(lunarRover, NameComponent.class);
+		entityName.name = "LunarRover";
+		
+		ReferenceFrameComponent parentReferenceFrame = world.getComponent(lunarRover, ReferenceFrameComponent.class);
+		parentReferenceFrame.frameName = "SeeLunarSouthPoleBaseLocalFixed";
+		
+		IteratingSystem movementSystem = new MovementSystem(world);
+		world.addSystem(movementSystem);
 	}
 	
 	public static void main(String[] args)

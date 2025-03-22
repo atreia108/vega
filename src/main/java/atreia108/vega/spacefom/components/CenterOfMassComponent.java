@@ -29,81 +29,51 @@
  * 
  */
 
-package atreia108.vega.core;
+package atreia108.vega.spacefom.components;
 
-import hla.rti1516e.RTIambassador;
-import hla.rti1516e.RtiFactoryFactory;
+import atreia108.vega.core.IComponent;
+import atreia108.vega.spacefom.types.Vector3;
+import hla.rti1516e.encoding.DecoderException;
 import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.HLAfixedArray;
+import hla.rti1516e.encoding.HLAfloat64LE;
 
-public abstract class SimulationBase implements Runnable
+public class CenterOfMassComponent implements IComponent
 {
-	protected World world;
-
-	protected RTIambassador rtiAmbassador;
-	protected EncoderFactory encoder;
-	protected ConfigurationParser parser;
-
-	Thread simulationLoopThread;
-	private long FRAME_RATE;
-
-	public SimulationBase()
+	public Vector3 position = new Vector3(0, 0, 0);
+	
+	public void reset()
 	{
-		simulationLoopThread = new Thread(this);
-		parser = new ConfigurationParser();
+		position.x = 0;
+		position.y = 0;
+		position.z = 0;
+	}
+	
+	public byte[] encode(EncoderFactory encoder)
+	{
+		HLAfixedArray<HLAfloat64LE> target = position.convert(encoder);
+		return target.toByteArray();
+	}
+	
+	public void decode(byte[] data, EncoderFactory encoder)
+	{
+		HLAfixedArray<HLAfloat64LE> decodedVector = encoder.createHLAfixedArray
+		(
+				encoder.createHLAfloat64LE(),
+				encoder.createHLAfloat64LE(),
+				encoder.createHLAfloat64LE()
+		);
 		
 		try
 		{
-			rtiAmbassador = RtiFactoryFactory.getRtiFactory().getRtiAmbassador();
-			encoder = RtiFactoryFactory.getRtiFactory().getEncoderFactory();
+			decodedVector.decode(data);
+			position.x = decodedVector.get(0).getValue();
+			position.y = decodedVector.get(1).getValue();
+			position.z = decodedVector.get(2).getValue();
 		}
-		catch (Exception e)
+		catch (DecoderException e)
 		{
 			e.printStackTrace();
 		}
-		
-		world = new World(this);
-		calculateFrameRate();
 	}
-	
-	private void calculateFrameRate()
-	{
-		String frameRateParameter = parser.getSimulationConfiguration().get("FrameRate");
-		FRAME_RATE = (long) Math.ceil((1/Double.valueOf(frameRateParameter)) * 1000);
-	}
-	
-	public long getSimulationFrameRate() { return FRAME_RATE; }
-	
-	public abstract void initialize();
-
-	public EncoderFactory getEncoder() { return encoder; }
-
-	public World getWorld() { return world; }
-
-	public RTIambassador getRtiAmbassador() { return rtiAmbassador; }
-
-	public ConfigurationParser getParser() { return parser; }
-
-	public void run()
-	{
-		System.out.println("[INFO] Simulation loop is now running");
-		try
-		{
-			while (true)
-			{
-				world.update();
-				Thread.sleep(FRAME_RATE);
-			}
-		}
-		catch (InterruptedException e)
-		{
-			System.out.println("[INFO] Simulation loop was terminated prematurely.");
-		}
-	}
-
-	public void play() 
-	{
-		simulationLoopThread.start();
-	}
-	
-	public void pause() { simulationLoopThread.interrupt(); }
 }

@@ -32,29 +32,38 @@
 package atreia108.vega.spacefom.components;
 
 import atreia108.vega.core.IComponent;
+import hla.rti1516e.encoding.DecoderException;
 import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.HLAunicodeString;
 
 public class ReferenceFrameComponent implements IComponent
 {
-
-	@Override
+	public String frameName = null;
+	
 	public void reset()
 	{
-		// TODO Auto-generated method stub
-
+		frameName = null;
 	}
-
-	@Override
+	
 	public byte[] encode(EncoderFactory encoder)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		HLAunicodeString target = encoder.createHLAunicodeString();
+		target.setValue(frameName);
+		return target.toByteArray();
 	}
-
-	@Override
-	public void decode(EncoderFactory encoder)
+	
+	public void decode(byte[] data, EncoderFactory encoder)
 	{
-		// TODO Auto-generated method stub
-
+		HLAunicodeString decodedFrameName = encoder.createHLAunicodeString();
+		
+		try
+		{
+			decodedFrameName.decode(data);
+			frameName = decodedFrameName.getValue();
+		}
+		catch (DecoderException e)
+		{
+			e.printStackTrace();
+		}
 	}
 }

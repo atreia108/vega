@@ -36,6 +36,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+
 import java.util.Map.Entry;
 
 import atreia108.vega.hla1516e.HlaMessagePattern;
@@ -44,13 +48,23 @@ public class EntityClass
 {
 	private String name;
 	private Map<String, HlaMessagePattern> attributeMap;
-	private Map<String, String> attributeComponentMap;
+	private BidiMap<String, String> attributeComponentMap;
 	
 	public EntityClass(String name)
 	{
 		attributeMap = new HashMap<String, HlaMessagePattern>();
-		attributeComponentMap = new HashMap<String, String>();
+		attributeComponentMap = new DualHashBidiMap<String, String>();
 		this.name = name;
+	}
+	
+	public String getAttributeEquivalent(String componentName)
+	{
+		return attributeComponentMap.getKey(componentName);
+	}
+	
+	public int getComponentCount()
+	{
+		return attributeComponentMap.size();
 	}
 	
 	public Set<String> getComponentTypes()

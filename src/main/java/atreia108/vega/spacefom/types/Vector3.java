@@ -29,7 +29,7 @@
  * 
  */
 
-package atreia108.vega.types;
+package atreia108.vega.spacefom.types;
 
 import atreia108.vega.core.IConvertable;
 import hla.rti1516e.encoding.EncoderFactory;
@@ -67,13 +67,13 @@ public class Vector3 implements IConvertable<HLAfixedArray<HLAfloat64LE>>
 	
 	public HLAfixedArray<HLAfloat64LE> convert(EncoderFactory encoder)
 	{
-		HLAfixedArray<HLAfloat64LE> convertedVector = encoder.createHLAfixedArray
+		HLAfixedArray<HLAfloat64LE> target = encoder.createHLAfixedArray
 		(
 				encoder.createHLAfloat64LE(x),
 				encoder.createHLAfloat64LE(y),
 				encoder.createHLAfloat64LE(z)
 		);
 		
-		return convertedVector;
+		return target;
 	}
 }

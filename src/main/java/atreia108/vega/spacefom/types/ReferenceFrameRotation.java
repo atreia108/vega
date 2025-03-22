@@ -29,81 +29,34 @@
  * 
  */
 
-package atreia108.vega.core;
+package atreia108.vega.spacefom.types;
 
-import hla.rti1516e.RTIambassador;
-import hla.rti1516e.RtiFactoryFactory;
+import atreia108.vega.core.IConvertable;
 import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.HLAfixedArray;
+import hla.rti1516e.encoding.HLAfixedRecord;
+import hla.rti1516e.encoding.HLAfloat64LE;
 
-public abstract class SimulationBase implements Runnable
+public class ReferenceFrameRotation implements IConvertable<HLAfixedRecord>
 {
-	protected World world;
-
-	protected RTIambassador rtiAmbassador;
-	protected EncoderFactory encoder;
-	protected ConfigurationParser parser;
-
-	Thread simulationLoopThread;
-	private long FRAME_RATE;
-
-	public SimulationBase()
+	public AttitudeQuaternion attitudeQuaternion;
+	public Vector3 angularVelocity;
+	
+	public ReferenceFrameRotation()
 	{
-		simulationLoopThread = new Thread(this);
-		parser = new ConfigurationParser();
+		attitudeQuaternion = new AttitudeQuaternion(0, 0);
+		angularVelocity = new Vector3(0, 0, 0);
+	}
+	
+	public HLAfixedRecord convert(EncoderFactory encoder)
+	{
+		HLAfixedRecord target = encoder.createHLAfixedRecord();
+		HLAfixedRecord convertedAttitude = attitudeQuaternion.convert(encoder);
+		HLAfixedArray<HLAfloat64LE> convertedVelocity = angularVelocity.convert(encoder);
 		
-		try
-		{
-			rtiAmbassador = RtiFactoryFactory.getRtiFactory().getRtiAmbassador();
-			encoder = RtiFactoryFactory.getRtiFactory().getEncoderFactory();
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
+		target.add(convertedAttitude);
+		target.add(convertedVelocity);
 		
-		world = new World(this);
-		calculateFrameRate();
+		return target;
 	}
-	
-	private void calculateFrameRate()
-	{
-		String frameRateParameter = parser.getSimulationConfiguration().get("FrameRate");
-		FRAME_RATE = (long) Math.ceil((1/Double.valueOf(frameRateParameter)) * 1000);
-	}
-	
-	public long getSimulationFrameRate() { return FRAME_RATE; }
-	
-	public abstract void initialize();
-
-	public EncoderFactory getEncoder() { return encoder; }
-
-	public World getWorld() { return world; }
-
-	public RTIambassador getRtiAmbassador() { return rtiAmbassador; }
-
-	public ConfigurationParser getParser() { return parser; }
-
-	public void run()
-	{
-		System.out.println("[INFO] Simulation loop is now running");
-		try
-		{
-			while (true)
-			{
-				world.update();
-				Thread.sleep(FRAME_RATE);
-			}
-		}
-		catch (InterruptedException e)
-		{
-			System.out.println("[INFO] Simulation loop was terminated prematurely.");
-		}
-	}
-
-	public void play() 
-	{
-		simulationLoopThread.start();
-	}
-	
-	public void pause() { simulationLoopThread.interrupt(); }
 }

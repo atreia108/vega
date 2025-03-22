@@ -29,81 +29,42 @@
  * 
  */
 
-package atreia108.vega.core;
+package atreia108.vega.spacefom.components;
 
-import hla.rti1516e.RTIambassador;
-import hla.rti1516e.RtiFactoryFactory;
+import atreia108.vega.core.IComponent;
+import hla.rti1516e.encoding.DecoderException;
 import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.HLAunicodeString;
 
-public abstract class SimulationBase implements Runnable
+public class NameComponent implements IComponent
 {
-	protected World world;
-
-	protected RTIambassador rtiAmbassador;
-	protected EncoderFactory encoder;
-	protected ConfigurationParser parser;
-
-	Thread simulationLoopThread;
-	private long FRAME_RATE;
-
-	public SimulationBase()
+	public String name = "";
+	
+	public void reset()
 	{
-		simulationLoopThread = new Thread(this);
-		parser = new ConfigurationParser();
+		name = "";	
+	}
+	
+	public byte[] encode(EncoderFactory encoder)
+	{
+		HLAunicodeString target = encoder.createHLAunicodeString();
+		target.setValue(name);
+		return target.toByteArray();
+	}
+	
+	public void decode(byte[] data, EncoderFactory encoder)
+	{
+		HLAunicodeString decodedName = encoder.createHLAunicodeString();
 		
-		try
+		try 
 		{
-			rtiAmbassador = RtiFactoryFactory.getRtiFactory().getRtiAmbassador();
-			encoder = RtiFactoryFactory.getRtiFactory().getEncoderFactory();
+			decodedName.decode(data);
+			name = decodedName.getValue();
 		}
-		catch (Exception e)
+		catch (DecoderException e)
 		{
 			e.printStackTrace();
 		}
-		
-		world = new World(this);
-		calculateFrameRate();
 	}
 	
-	private void calculateFrameRate()
-	{
-		String frameRateParameter = parser.getSimulationConfiguration().get("FrameRate");
-		FRAME_RATE = (long) Math.ceil((1/Double.valueOf(frameRateParameter)) * 1000);
-	}
-	
-	public long getSimulationFrameRate() { return FRAME_RATE; }
-	
-	public abstract void initialize();
-
-	public EncoderFactory getEncoder() { return encoder; }
-
-	public World getWorld() { return world; }
-
-	public RTIambassador getRtiAmbassador() { return rtiAmbassador; }
-
-	public ConfigurationParser getParser() { return parser; }
-
-	public void run()
-	{
-		System.out.println("[INFO] Simulation loop is now running");
-		try
-		{
-			while (true)
-			{
-				world.update();
-				Thread.sleep(FRAME_RATE);
-			}
-		}
-		catch (InterruptedException e)
-		{
-			System.out.println("[INFO] Simulation loop was terminated prematurely.");
-		}
-	}
-
-	public void play() 
-	{
-		simulationLoopThread.start();
-	}
-	
-	public void pause() { simulationLoopThread.interrupt(); }
 }

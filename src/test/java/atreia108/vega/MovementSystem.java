@@ -29,52 +29,38 @@
  * 
  */
 
-package atreia108.vega.spacefom;
+package atreia108.vega;
 
-import hla.rti1516e.ObjectInstanceHandle;
-import hla.rti1516e.encoding.EncoderFactory;
-import hla.rti1516e.encoding.HLAinteger64BE;
-import hla.rti1516e.encoding.HLAunicodeString;
+import com.badlogic.ashley.core.ComponentMapper;
+import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.Family;
+import com.badlogic.ashley.systems.IteratingSystem;
 
-public class ExecutionConfiguration
+import atreia108.vega.core.World;
+import atreia108.vega.spacefom.components.SpaceTimeCoordinateStateComponent;
+import atreia108.vega.spacefom.types.Vector3;
+
+public class MovementSystem extends IteratingSystem
 {
-	private ObjectInstanceHandle objectInstance;
-	protected EncoderFactory encoder;
+	private World world;
+	ComponentMapper<SpaceTimeCoordinateStateComponent> sm;
 	
-	private String rootFrameName;
-	private long leastCommonTimeStep;
-	
-	public ExecutionConfiguration(ObjectInstanceHandle objectInstance, EncoderFactory encoder) 
+	public MovementSystem(World world)
 	{
-		this.objectInstance = objectInstance;
-		this.encoder = encoder;
+		super(Family.all(SpaceTimeCoordinateStateComponent.class).get());
+		sm = ComponentMapper.getFor(SpaceTimeCoordinateStateComponent.class);
+		this.world = world;
 	}
 	
-	public long getLeastCommonTimeStep() { return leastCommonTimeStep; }
-	
-	public String getRootFrameName() { return rootFrameName; }
-	
-	public ObjectInstanceHandle getObjectInstanceHandle() { return objectInstance; }
-	
-	public void setRootFrameName(Object frameName)
+	protected void processEntity(Entity entity, float deltaTime)
 	{
-		HLAunicodeString encodedFrameName = encoder.createHLAunicodeString();
-		try
-		{
-			encodedFrameName.decode((byte[]) frameName);
-			rootFrameName = encodedFrameName.getValue();
-		}
-		catch (Exception e) { e.printStackTrace(); }
-	}
-	
-	public void setLeastCommonTimeStep(Object lcts)
-	{
-		HLAinteger64BE encodedLcts = encoder.createHLAinteger64BE();
-		try
-		{
-			encodedLcts.decode((byte[]) lcts);
-			leastCommonTimeStep = encodedLcts.getValue();
-		}
-		catch (Exception e) { e.printStackTrace(); }
+		SpaceTimeCoordinateStateComponent stateComponent = sm.get(entity);
+		stateComponent.translationalState.position.x += 1.0;
+		stateComponent.translationalState.position.y += 2.0;
+		stateComponent.translationalState.position.z += 3.0;
+		world.sendEntityUpdate(entity);
+		
+		Vector3 position = stateComponent.translationalState.position;
+		System.out.println("Lunar Rover Position: " + "(" + position.x + ", " + position.y + ", " + position.z + ")");
 	}
 }

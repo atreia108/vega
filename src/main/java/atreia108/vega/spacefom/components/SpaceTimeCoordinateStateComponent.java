@@ -32,26 +32,43 @@
 package atreia108.vega.spacefom.components;
 
 import atreia108.vega.core.IComponent;
+import atreia108.vega.spacefom.types.ReferenceFrameRotation;
+import atreia108.vega.spacefom.types.ReferenceFrameTranslation;
 import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.HLAfixedRecord;
+import hla.rti1516e.encoding.HLAfloat64LE;
 
 public class SpaceTimeCoordinateStateComponent implements IComponent
 {
-	@Override
+	public ReferenceFrameTranslation translationalState = new ReferenceFrameTranslation();
+	public ReferenceFrameRotation rotationalState = new ReferenceFrameRotation();
+	public double time = 0.0;
+	
 	public void reset()
 	{
-		// TODO Auto-generated method stub
-
+		translationalState = null;
+		rotationalState = null;
+		time = 0.0;
 	}
-
-	@Override
+	
 	public byte[] encode(EncoderFactory encoder)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		HLAfixedRecord target = encoder.createHLAfixedRecord();
+		
+		HLAfloat64LE encodedTime = encoder.createHLAfloat64LE();
+		encodedTime.setValue(time);
+		
+		HLAfixedRecord encodedTranslationalState = translationalState.convert(encoder);
+		HLAfixedRecord encodedRotationalState = rotationalState.convert(encoder);
+		
+		target.add(encodedTranslationalState);
+		target.add(encodedRotationalState);
+		target.add(encodedTime);
+		
+		return target.toByteArray();
 	}
 
-	@Override
-	public void decode(EncoderFactory encoder)
+	public void decode(byte[] data, EncoderFactory encoder)
 	{
 		// TODO Auto-generated method stub
 	}
