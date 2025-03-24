@@ -29,15 +29,54 @@
  * 
  */
 
-package atreia108.vega.core;
+package vega.spacefom.components;
 
-import com.badlogic.ashley.core.Component;
-import com.badlogic.gdx.utils.Pool.Poolable;
-
+import hla.rti1516e.encoding.DecoderException;
 import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.HLAfixedArray;
+import hla.rti1516e.encoding.HLAfloat64LE;
+import vega.core.IComponent;
+import vega.spacefom.types.Vector3;
 
-public interface IComponent extends Component, Poolable
+public class CenterOfMassComponent implements IComponent
 {
-	public byte[] encode(EncoderFactory encoder);
-	public void decode(EncoderFactory encoder);
+	public Vector3 position = new Vector3(0, 0, 0);
+	
+	@Override
+	public void reset()
+	{
+		position.x = 0;
+		position.y = 0;
+		position.z = 0;
+	}
+	
+	@Override
+	public byte[] encode(EncoderFactory encoder)
+	{
+		HLAfixedArray<HLAfloat64LE> target = position.convert(encoder);
+		return target.toByteArray();
+	}
+	
+	@Override
+	public void decode(byte[] data, EncoderFactory encoder)
+	{
+		HLAfixedArray<HLAfloat64LE> decodedVector = encoder.createHLAfixedArray
+		(
+				encoder.createHLAfloat64LE(),
+				encoder.createHLAfloat64LE(),
+				encoder.createHLAfloat64LE()
+		);
+		
+		try
+		{
+			decodedVector.decode(data);
+			position.x = decodedVector.get(0).getValue();
+			position.y = decodedVector.get(1).getValue();
+			position.z = decodedVector.get(2).getValue();
+		}
+		catch (DecoderException e)
+		{
+			e.printStackTrace();
+		}
+	}
 }

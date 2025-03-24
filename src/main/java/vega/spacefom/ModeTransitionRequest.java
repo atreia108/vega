@@ -29,77 +29,23 @@
  * 
  */
 
-package atreia108.vega.spacefom;
+package vega.spacefom;
 
 import hla.rti1516e.encoding.EncoderFactory;
 
-public class ExecutionConfiguration
+public class ModeTransitionRequest
 {
-	protected EncoderFactory encoder;
+	private ExecutionMode executionMode;
+	public EncoderFactory encoder;
 	
-	private String rootFrameName;
-	private ExecutionMode currentExecutionMode;
-	private ExecutionMode nextExecutionMode;
-	private double nextModeScenarioTime;
-	private long leastCommonTimeStep;
-	
-	public ExecutionConfiguration(String rootFrameName, ExecutionMode currentExecutionMode, ExecutionMode nextExecutionMode, double nextModeScenarioTime, long leastCommonTimeStep, EncoderFactory encoder)
+	public ModeTransitionRequest(ExecutionMode execMode, EncoderFactory encoder)
 	{
-		this.rootFrameName = rootFrameName;
-		this.currentExecutionMode = currentExecutionMode;
-		this.nextExecutionMode = nextExecutionMode;
-		this.nextModeScenarioTime = nextModeScenarioTime;
-		this.leastCommonTimeStep = leastCommonTimeStep;
+		this.executionMode = execMode;
 		this.encoder = encoder;
 	}
-
-	public String getRootFrameName()
+	
+	public ExecutionMode getExecutionMode()
 	{
-		return rootFrameName;
-	}
-
-	public void setRootFrameName(String rootFrameName)
-	{
-		this.rootFrameName = rootFrameName;
-	}
-
-	public ExecutionMode getCurrentExecutionMode()
-	{
-		return currentExecutionMode;
-	}
-
-	public void setCurrentExecutionMode(ExecutionMode currentExecutionMode)
-	{
-		this.currentExecutionMode = currentExecutionMode;
-	}
-
-	public ExecutionMode getNextExecutionMode()
-	{
-		return nextExecutionMode;
-	}
-
-	public void setNextExecutionMode(ExecutionMode nextExecutionMode)
-	{
-		this.nextExecutionMode = nextExecutionMode;
-	}
-
-	public double getNextModeScenarioTime()
-	{
-		return nextModeScenarioTime;
-	}
-
-	public void setNextModeScenarioTime(double nextModeScenarioTime)
-	{
-		this.nextModeScenarioTime = nextModeScenarioTime;
-	}
-
-	public long getLeastCommonTimeStep()
-	{
-		return leastCommonTimeStep;
-	}
-
-	public void setLeastCommonTimeStep(long leastCommonTimeStep)
-	{
-		this.leastCommonTimeStep = leastCommonTimeStep;
+		return executionMode;
 	}
 }

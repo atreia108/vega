@@ -29,72 +29,33 @@
  * 
  */
 
-package atreia108.vega.core;
+package vega.spacefom.types;
 
-import hla.rti1516e.RTIambassador;
-import hla.rti1516e.RtiFactoryFactory;
 import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.HLAfixedRecord;
+import hla.rti1516e.encoding.HLAfloat64LE;
+import vega.core.IConvertable;
 
-public abstract class SimulationBase implements Runnable
+public class AttitudeQuaternion implements IConvertable<HLAfixedRecord>
 {
-	protected World world;
-
-	protected RTIambassador rtiAmbassador;
-	protected EncoderFactory encoder;
-	protected ConfigurationParser parser;
-
-	Thread simulationLoopThread;
-
-	public SimulationBase()
+	public double scalar;
+	public double vector;
+	
+	public AttitudeQuaternion(double scalar, double vector)
 	{
-		simulationLoopThread = new Thread(this);
-		parser = new ConfigurationParser();
-		
-		try
-		{
-			rtiAmbassador = RtiFactoryFactory.getRtiFactory().getRtiAmbassador();
-			encoder = RtiFactoryFactory.getRtiFactory().getEncoderFactory();
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-		
-		world = new World(this);
+		this.scalar = scalar;
+		this.vector = vector;
 	}
 	
-	public abstract void initialize();
-
-	public EncoderFactory getEncoder() { return encoder; }
-
-	public World getWorld() { return world; }
-
-	public RTIambassador getRtiAmbassador() { return rtiAmbassador; }
-
-	public ConfigurationParser getParser() { return parser; }
-
-	public void run()
+	public HLAfixedRecord convert(EncoderFactory encoder)
 	{
-		System.out.println("[INFO] Simulation loop is now running");
-		try
-		{
-			while (true)
-			{
-				world.update();
-				// TODO
-				Thread.sleep(17);
-			}
-		}
-		catch (InterruptedException e)
-		{
-			System.out.println("[INFO] Simulation loop was terminated prematurely.");
-		}
+		HLAfixedRecord target = encoder.createHLAfixedRecord();
+		HLAfloat64LE encodedScalar = encoder.createHLAfloat64LE(scalar);
+		HLAfloat64LE encodedVector = encoder.createHLAfloat64LE(vector);
+		
+		target.add(encodedScalar);
+		target.add(encodedVector);
+		
+		return target;
 	}
-
-	public void play() 
-	{
-		simulationLoopThread.start();
-	}
-	
-	public void pause() { simulationLoopThread.interrupt(); }
 }

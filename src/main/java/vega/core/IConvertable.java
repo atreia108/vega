@@ -29,23 +29,12 @@
  * 
  */
 
-package atreia108.vega.spacefom;
+package vega.core;
 
+import hla.rti1516e.encoding.DataElement;
 import hla.rti1516e.encoding.EncoderFactory;
 
-public class ModeTransitionRequest
+public interface IConvertable<T extends DataElement>
 {
-	private ExecutionMode executionMode;
-	public EncoderFactory encoder;
-	
-	public ModeTransitionRequest(ExecutionMode execMode, EncoderFactory encoder)
-	{
-		this.executionMode = execMode;
-		this.encoder = encoder;
-	}
-	
-	public ExecutionMode getExecutionMode()
-	{
-		return executionMode;
-	}
+	public T convert(EncoderFactory encoder);
 }

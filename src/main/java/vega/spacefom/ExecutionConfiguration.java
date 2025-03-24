@@ -29,32 +29,52 @@
  * 
  */
 
-package atreia108.vega.spacefom.components;
+package vega.spacefom;
 
-import atreia108.vega.core.IComponent;
+import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.HLAinteger64BE;
+import hla.rti1516e.encoding.HLAunicodeString;
 
-public class ReferenceFrameComponent implements IComponent
+public class ExecutionConfiguration
 {
-
-	@Override
-	public void reset()
+	private ObjectInstanceHandle objectInstance;
+	protected EncoderFactory encoder;
+	
+	private String rootFrameName;
+	private long leastCommonTimeStep;
+	
+	public ExecutionConfiguration(ObjectInstanceHandle objectInstance, EncoderFactory encoder) 
 	{
-		// TODO Auto-generated method stub
-
+		this.objectInstance = objectInstance;
+		this.encoder = encoder;
 	}
-
-	@Override
-	public byte[] encode(EncoderFactory encoder)
+	
+	public long getLeastCommonTimeStep() { return leastCommonTimeStep; }
+	
+	public String getRootFrameName() { return rootFrameName; }
+	
+	public ObjectInstanceHandle getObjectInstanceHandle() { return objectInstance; }
+	
+	public void setRootFrameName(Object frameName)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		HLAunicodeString encodedFrameName = encoder.createHLAunicodeString();
+		try
+		{
+			encodedFrameName.decode((byte[]) frameName);
+			rootFrameName = encodedFrameName.getValue();
+		}
+		catch (Exception e) { e.printStackTrace(); }
 	}
-
-	@Override
-	public void decode(EncoderFactory encoder)
+	
+	public void setLeastCommonTimeStep(Object lcts)
 	{
-		// TODO Auto-generated method stub
-
+		HLAinteger64BE encodedLcts = encoder.createHLAinteger64BE();
+		try
+		{
+			encodedLcts.decode((byte[]) lcts);
+			leastCommonTimeStep = encodedLcts.getValue();
+		}
+		catch (Exception e) { e.printStackTrace(); }
 	}
 }

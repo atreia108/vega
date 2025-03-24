@@ -29,37 +29,51 @@
  * 
  */
 
-package atreia108.vega.core;
+package vega.core;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
-import atreia108.vega.hla1516e.HlaMessagePattern;
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+
+import vega.hla1516e.HlaMessagePattern;
+
+import java.util.Map.Entry;
 
 public class EntityClass
 {
 	private String name;
 	private Map<String, HlaMessagePattern> attributeMap;
-	private Map<String, Class<?>> attributeComponentMap;
+	private BidiMap<String, String> attributeComponentMap;
 	
 	public EntityClass(String name)
 	{
 		attributeMap = new HashMap<String, HlaMessagePattern>();
-		attributeComponentMap = new HashMap<String, Class<?>>();
+		attributeComponentMap = new DualHashBidiMap<String, String>();
 		this.name = name;
 	}
 	
-	public Set<Class<?>> getComponentTypes()
+	public String getAttributeEquivalent(String componentName)
 	{
-		Set<Class<?>> componentTypeSet = new HashSet<Class<?>>();
+		return attributeComponentMap.getKey(componentName);
+	}
+	
+	public int getComponentCount()
+	{
+		return attributeComponentMap.size();
+	}
+	
+	public Set<String> getComponentTypes()
+	{
+		Set<String> componentTypeSet = new HashSet<String>();
 		
-		for (Iterator<Entry<String, Class<?>>> iterator = attributeComponentMap.entrySet().iterator(); iterator.hasNext();)
+		for (Iterator<Entry<String, String>> iterator = attributeComponentMap.entrySet().iterator(); iterator.hasNext();)
 		{
-			Class<?> componentType = iterator.next().getValue();
+			String componentType = iterator.next().getValue();
 			componentTypeSet.add(componentType);
 		}
 		
@@ -71,7 +85,8 @@ public class EntityClass
 	public Set<String> getPublishedAttributes()
 	{
 		Set<String> publicationSet = new HashSet<String>();
-		attributeMap.forEach((String attribute, HlaMessagePattern pattern) -> {
+		attributeMap.forEach((String attribute, HlaMessagePattern pattern) ->
+		{
 			if (pattern == HlaMessagePattern.PUBLISH_ONLY || pattern == HlaMessagePattern.PUBLISH_SUBSCRIBE)
 				publicationSet.add(attribute);
 		});
@@ -90,7 +105,7 @@ public class EntityClass
 		return subscriptionSet;
 	}
 	
-	public void registerAttribute(String attributeName, HlaMessagePattern messageModel, Class<?> component)
+	public void registerAttribute(String attributeName, HlaMessagePattern messageModel, String component)
 	{
 		attributeMap.put(attributeName, messageModel);
 		attributeComponentMap.put(attributeName, component);

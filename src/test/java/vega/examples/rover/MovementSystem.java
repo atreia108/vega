@@ -29,12 +29,37 @@
  * 
  */
 
-package atreia108.vega.core;
+package vega.examples.rover;
 
-import hla.rti1516e.encoding.DataElement;
-import hla.rti1516e.encoding.EncoderFactory;
+import com.badlogic.ashley.core.ComponentMapper;
+import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.Family;
+import com.badlogic.ashley.systems.IteratingSystem;
 
-public interface IConvertable<T extends DataElement>
+import vega.core.World;
+import vega.spacefom.components.SpaceTimeCoordinateStateComponent;
+import vega.spacefom.types.Vector3;
+
+public class MovementSystem extends IteratingSystem
 {
-	public T convert(EncoderFactory encoder);
+	private World world;
+	ComponentMapper<SpaceTimeCoordinateStateComponent> sm;
+	
+	public MovementSystem(World world)
+	{
+		super(Family.all(SpaceTimeCoordinateStateComponent.class).get());
+		sm = ComponentMapper.getFor(SpaceTimeCoordinateStateComponent.class);
+		this.world = world;
+	}
+	
+	@Override
+	protected void processEntity(Entity entity, float deltaTime)
+	{
+		SpaceTimeCoordinateStateComponent stateComponent = sm.get(entity);
+		stateComponent.translationalState.position.x += 10.0;
+		world.sendEntityUpdate(entity);
+		
+		Vector3 position = stateComponent.translationalState.position;
+		System.out.println("Lunar Rover Position: " + "(" + position.x + ", " + position.y + ", " + position.z + ")");
+	}
 }

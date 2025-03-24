@@ -29,7 +29,7 @@
  * 
  */
 
-package atreia108.vega.core;
+package vega.core;
 
 import java.io.File;
 import java.net.URL;
@@ -43,7 +43,7 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
-import atreia108.vega.hla1516e.HlaMessagePattern;
+import vega.hla1516e.HlaMessagePattern;
 
 public class ConfigurationParser
 {
@@ -144,9 +144,9 @@ public class ConfigurationParser
 					boolean publishFlag = componentElement.attributeValue("Publish").equals("True");
 					boolean subscribeFlag = componentElement.attributeValue("Subscribe").equals("True");
 					HlaMessagePattern publishSubscribeFlags = getPublishSubscribeFlags(publishFlag, subscribeFlag);
-					Class<?> componentClass = Class.forName(componentName);
+					// Class<?> componentClass = Class.forName(componentName);
 					
-					objectClass.registerAttribute(fomAttributeName, publishSubscribeFlags, componentClass);
+					objectClass.registerAttribute(fomAttributeName, publishSubscribeFlags, componentName);
 				}
 				catch (Exception e)
 				{
@@ -177,26 +177,5 @@ public class ConfigurationParser
 		Element simulationElement = root.element("Simulation");
 		String frameRate = simulationElement.attributeValue("FrameRate");
 		simulationParameters.put("FrameRate", frameRate);
-	}
-	
-	public static void main(String[] args)
-	{
-		ConfigurationParser parser = new ConfigurationParser();
-		parser.getObjectClasses().forEach((e) -> {
-			System.out.println(e.getName());
-			System.out.println(e.getComponentTypes());
-		});
-		
-		parser.getSimulationConfiguration().forEach((k, v) -> {
-			System.out.println(k + ": " + v);
-		});
-		
-		parser.getRtiParameters().forEach((k, v) -> {
-			System.out.println(k + ": " + v);
-		});
-		
-		for (URL fom : parser.getFomModules()) {
-			System.out.println(fom.toString());
-		}
 	}
 }

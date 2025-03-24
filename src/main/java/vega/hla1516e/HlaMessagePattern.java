@@ -29,47 +29,12 @@
  * 
  */
 
-package atreia108.vega;
+package vega.hla1516e;
 
-import com.badlogic.ashley.core.Entity;
-
-import atreia108.vega.core.SimulationBase;
-import atreia108.vega.hla1516e.FederateAmbassadorBase;
-import atreia108.vega.spacefom.SpaceFomFederateAmbassador;
-
-public class LunarRover extends SimulationBase
+public enum HlaMessagePattern
 {
-	FederateAmbassadorBase federateAmbassador;
-	SpaceFomFederateAmbassador federateAmbassador2;
-	
-	Entity lunarRover;
-	Entity lunarRover2;
-	Entity lunarRover3;
-	Entity lunarRover4;
-	
-	public LunarRover()
-	{
-		federateAmbassador = new FederateAmbassadorBase(this);
-		federateAmbassador.initialize();
-		// federateAmbassador2 = new SpaceFomFederateAmbassador(this);
-		// federateAmbassador2.initialize();
-	}
-	
-	public void initialize()
-	{
-		lunarRover = world.createEntity("LunarRover", "HLAobjectRoot.PhysicalEntity");
-		lunarRover2 = world.createEntity("LunarRover2", "HLAobjectRoot.PhysicalEntity");
-		lunarRover3 = world.createEntity("LunarRover3", "HLAobjectRoot.PhysicalEntity");
-		lunarRover4 = world.createEntity("LunarRover4", "HLAobjectRoot.PhysicalEntity");
-		
-		System.out.println(world.getName(lunarRover));
-		System.out.println(world.getName(lunarRover2));
-		System.out.println(world.getName(lunarRover3));
-		System.out.println(world.getName(lunarRover4));
-	}
-	
-	public static void main(String[] args)
-	{
-		new LunarRover();
-	}
+	NONE,
+	PUBLISH_SUBSCRIBE,
+	PUBLISH_ONLY,
+	SUBSCRIBE_ONLY
 }

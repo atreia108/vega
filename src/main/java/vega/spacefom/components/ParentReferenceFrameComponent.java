@@ -29,31 +29,44 @@
  * 
  */
 
-package atreia108.vega.spacefom;
+package vega.spacefom.components;
 
-public enum ExecutionMode
-{	
-	EXEC_MODE_RUNNING ((short) 2),
-	EXEC_MODE_SHUTDOWN((short) 3);
+import hla.rti1516e.encoding.DecoderException;
+import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.HLAunicodeString;
+import vega.core.IComponent;
+
+public class ParentReferenceFrameComponent implements IComponent
+{
+	public String frameName = null;
 	
-	private short modeValue;
-	
-	private ExecutionMode(short modeValue) {
-		this.modeValue = modeValue;
+	@Override
+	public void reset()
+	{
+		frameName = null;
 	}
 	
-	public static ExecutionMode getMode(short value)
+	@Override
+	public byte[] encode(EncoderFactory encoder)
 	{
-		for (ExecutionMode execMode : ExecutionMode.values())
-		{
-			if (execMode.modeValue == value) return execMode;
-		}
+		HLAunicodeString target = encoder.createHLAunicodeString();
+		target.setValue(frameName);
+		return target.toByteArray();
+	}
+	
+	@Override
+	public void decode(byte[] data, EncoderFactory encoder)
+	{
+		HLAunicodeString decodedFrameName = encoder.createHLAunicodeString();
 		
-		return null;
-	}
-	
-	public short getModeValue()
-	{
-		return this.modeValue;
+		try
+		{
+			decodedFrameName.decode(data);
+			frameName = decodedFrameName.getValue();
+		}
+		catch (DecoderException e)
+		{
+			e.printStackTrace();
+		}
 	}
 }

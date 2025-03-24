@@ -29,30 +29,31 @@
  * 
  */
 
-package atreia108.vega.spacefom.components;
+package vega.spacefom;
 
-import atreia108.vega.core.IComponent;
-import hla.rti1516e.encoding.EncoderFactory;
-
-public class SpaceTimeCoordinateStateComponent implements IComponent
-{
-	@Override
-	public void reset()
-	{
-		// TODO Auto-generated method stub
-
+public enum ExecutionMode
+{	
+	EXEC_MODE_RUNNING ((short) 2),
+	EXEC_MODE_SHUTDOWN((short) 3);
+	
+	private short modeValue;
+	
+	private ExecutionMode(short modeValue) {
+		this.modeValue = modeValue;
 	}
-
-	@Override
-	public byte[] encode(EncoderFactory encoder)
+	
+	public static ExecutionMode getMode(short value)
 	{
-		// TODO Auto-generated method stub
+		for (ExecutionMode execMode : ExecutionMode.values())
+		{
+			if (execMode.modeValue == value) return execMode;
+		}
+		
 		return null;
 	}
-
-	@Override
-	public void decode(EncoderFactory encoder)
+	
+	public short getModeValue()
 	{
-		// TODO Auto-generated method stub
+		return this.modeValue;
 	}
 }

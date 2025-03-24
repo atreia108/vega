@@ -29,9 +29,16 @@
  * 
  */
 
-package atreia108.vega.spacefom;
+package vega.core;
 
-public enum MTRMode
+import com.badlogic.ashley.core.Component;
+import com.badlogic.gdx.utils.Pool.Poolable;
+
+import hla.rti1516e.encoding.EncoderFactory;
+
+public interface IComponent extends Component, Poolable
 {
-
+	public byte[] encode(EncoderFactory encoder);
+	
+	public void decode(byte[] data, EncoderFactory encoder);
 }
