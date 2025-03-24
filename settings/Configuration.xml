@@ -11,10 +11,10 @@
 	<Simulation FrameRate="30" />
 	<EntityClasses>
 		<EntityClass Name="HLAobjectRoot.PhysicalEntity" >
-		<Component Name="atreia108.vega.spacefom.components.NameComponent" FomAttribute="name" Publish="True" Subscribe="False" />
-			<Component Name="atreia108.vega.spacefom.components.SpaceTimeCoordinateStateComponent" FomAttribute="state" Publish="True" Subscribe="False" />
-			<Component Name="atreia108.vega.spacefom.components.ReferenceFrameComponent" FomAttribute="parent_reference_frame" Publish="True" Subscribe="False" />
-			<Component Name="atreia108.vega.spacefom.components.CenterOfMassComponent" FomAttribute="center_of_mass" Publish="True" Subscribe="False" />
+		<Component Name="vega.spacefom.components.NameComponent" FomAttribute="name" Publish="True" Subscribe="False" />
+			<Component Name="vega.spacefom.components.SpaceTimeCoordinateStateComponent" FomAttribute="state" Publish="True" Subscribe="False" />
+			<Component Name="vega.spacefom.components.ParentReferenceFrameComponent" FomAttribute="parent_reference_frame" Publish="True" Subscribe="False" />
+			<Component Name="vega.spacefom.components.CenterOfMassComponent" FomAttribute="center_of_mass" Publish="True" Subscribe="False" />
 		</EntityClass>
 	</EntityClasses>
 </Project>

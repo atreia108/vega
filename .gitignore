@@ -4,12 +4,6 @@
 # Log file
 *.log
 
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
 # Package Files #
 *.jar
 *.war
@@ -41,15 +35,6 @@ local.properties
 # Locally stored "Eclipse launch configurations"
 *.launch
 
-# PyDev specific (Python IDE for Eclipse)
-*.pydevproject
-
-# CDT-specific (C/C++ Development Tooling)
-.cproject
-
-# CDT- autotools
-.autotools
-
 # Java annotation processor (APT)
 .factorypath
 
@@ -58,9 +43,6 @@ local.properties
 
 # sbteclipse plugin
 .target
-
-# STS (Spring Tool Suite)
-.springBeans
 
 # Code Recommenders
 .recommenders/
@@ -73,9 +55,6 @@ local.properties
 .cache-main
 .scala_dependencies
 .worksheet
-
-# Uncomment this line if you wish to ignore the project description file.
-# Typically, this file would be tracked if it contains build/dependency configurations:
 #.project
 
 target/
@@ -103,4 +82,3 @@ foms/SISO_SpaceFOM_environment.xml
 foms/SISO_SpaceFOM_management.xml
 foms/SISO_SpaceFOM_switches.xml
 libraries/*.jar
-src/main/java/atreia108/vega/legacy
