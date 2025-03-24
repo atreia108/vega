@@ -40,11 +40,13 @@ public class ParentReferenceFrameComponent implements IComponent
 {
 	public String frameName = null;
 	
+	@Override
 	public void reset()
 	{
 		frameName = null;
 	}
 	
+	@Override
 	public byte[] encode(EncoderFactory encoder)
 	{
 		HLAunicodeString target = encoder.createHLAunicodeString();
@@ -52,6 +54,7 @@ public class ParentReferenceFrameComponent implements IComponent
 		return target.toByteArray();
 	}
 	
+	@Override
 	public void decode(byte[] data, EncoderFactory encoder)
 	{
 		HLAunicodeString decodedFrameName = encoder.createHLAunicodeString();

@@ -52,6 +52,7 @@ public class MovementSystem extends IteratingSystem
 		this.world = world;
 	}
 	
+	@Override
 	protected void processEntity(Entity entity, float deltaTime)
 	{
 		SpaceTimeCoordinateStateComponent stateComponent = sm.get(entity);

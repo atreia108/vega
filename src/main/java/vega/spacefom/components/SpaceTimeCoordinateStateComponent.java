@@ -44,6 +44,7 @@ public class SpaceTimeCoordinateStateComponent implements IComponent
 	public ReferenceFrameRotation rotationalState = new ReferenceFrameRotation();
 	public double time = 0.0;
 	
+	@Override
 	public void reset()
 	{
 		translationalState = null;
@@ -51,6 +52,7 @@ public class SpaceTimeCoordinateStateComponent implements IComponent
 		time = 0.0;
 	}
 	
+	@Override
 	public byte[] encode(EncoderFactory encoder)
 	{
 		HLAfixedRecord target = encoder.createHLAfixedRecord();
@@ -68,8 +70,9 @@ public class SpaceTimeCoordinateStateComponent implements IComponent
 		return target.toByteArray();
 	}
 
+	@Override
 	public void decode(byte[] data, EncoderFactory encoder)
 	{
-		// TODO Auto-generated method stub
+		// TODO
 	}
 }

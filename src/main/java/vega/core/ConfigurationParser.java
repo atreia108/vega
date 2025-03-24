@@ -178,27 +178,4 @@ public class ConfigurationParser
 		String frameRate = simulationElement.attributeValue("FrameRate");
 		simulationParameters.put("FrameRate", frameRate);
 	}
-	
-	/*
-	public static void main(String[] args)
-	{
-		ConfigurationParser parser = new ConfigurationParser();
-		parser.getObjectClasses().forEach((e) -> {
-			System.out.println(e.getName());
-			System.out.println(e.getComponentTypes());
-		});
-		
-		parser.getSimulationConfiguration().forEach((k, v) -> {
-			System.out.println(k + ": " + v);
-		});
-		
-		parser.getRtiParameters().forEach((k, v) -> {
-			System.out.println(k + ": " + v);
-		});
-		
-		for (URL fom : parser.getFomModules()) {
-			System.out.println(fom.toString());
-		}
-	}
-	*/
 }

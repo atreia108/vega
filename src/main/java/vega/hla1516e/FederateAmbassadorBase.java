@@ -109,13 +109,13 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 	}
 	*/
 	
+	@Override
 	public void discoverObjectInstance(ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass,
 			String objectName)
 	{
 		// discoverEntityInstance(objectName, theObject, theObjectClass);
 	}
-
-	// TODO
+	
 	public void initialize()
 	{
 		try
@@ -163,11 +163,13 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 		return port;
 	}
 
+	@Override
 	public void objectInstanceNameReservationFailed(String objectName)
 	{
 		world.notifyEntityNameReservationStatus(false);
 	}
 
+	@Override
 	public void objectInstanceNameReservationSucceeded(String objectName)
 	{
 		world.notifyEntityNameReservationStatus(true);

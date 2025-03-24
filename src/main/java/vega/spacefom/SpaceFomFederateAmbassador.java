@@ -68,8 +68,8 @@ public class SpaceFomFederateAmbassador extends FederateAmbassadorBase
 	{
 		super(simulation);
 	}
-
-	// TODO - Implement SpaceFOM late joiner sequence
+	
+	@Override
 	public void initialize()
 	{
 		try
@@ -134,7 +134,8 @@ public class SpaceFomFederateAmbassador extends FederateAmbassadorBase
 				// Job System updates here
 			}
 			
-		} catch (Exception e)
+		}
+		catch (Exception e)
 		{
 			e.printStackTrace();
 		}
@@ -155,10 +156,8 @@ public class SpaceFomFederateAmbassador extends FederateAmbassadorBase
 		{
 			rtiAmbassador.connect(this, CallbackModel.HLA_IMMEDIATE, "crcHost=" + hostName + "\n" + "crcPort=" + port);
 			rtiAmbassador.joinFederationExecution(federateType, federationName);
-		} catch (Exception e)
-		{
-			e.printStackTrace();
 		}
+		catch (Exception e) { e.printStackTrace(); }
 	}
 
 	protected void createExCO()
@@ -175,10 +174,7 @@ public class SpaceFomFederateAmbassador extends FederateAmbassadorBase
 
 			rtiAmbassador.subscribeObjectClassAttributes(exCOClass, exCOAttributeHandleSet);
 		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
+		catch (Exception e) { e.printStackTrace(); }
 	}
 
 	protected void createMTR()
@@ -187,12 +183,11 @@ public class SpaceFomFederateAmbassador extends FederateAmbassadorBase
 		{
 			InteractionClassHandle mtrClassHandle = rtiAmbassador.getInteractionClassHandle("ModeTransitionRequest");
 			rtiAmbassador.publishInteractionClass(mtrClassHandle);
-		} catch (Exception e)
-		{
-			e.printStackTrace();
 		}
+		catch (Exception e) { e.printStackTrace(); }
 	}
 
+	@Override
 	public void discoverObjectInstance(final ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass,
 			String objectName)
 	{
@@ -215,6 +210,7 @@ public class SpaceFomFederateAmbassador extends FederateAmbassadorBase
 		catch (Exception e) { e.printStackTrace(); }
 	}
 
+	@Override
 	public void reflectAttributeValues(ObjectInstanceHandle theObject, AttributeHandleValueMap theAttributes,
 			byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport,
 			SupplementalReflectInfo reflectInfo) throws FederateInternalError
@@ -234,33 +230,31 @@ public class SpaceFomFederateAmbassador extends FederateAmbassadorBase
 			}
 
 			exCODiscoveryLatch.countDown();
-		} catch (Exception e)
-		{
-			e.printStackTrace();
 		}
+		catch (Exception e) { e.printStackTrace(); }
 	}
 	
+	@Override
 	@SuppressWarnings("rawtypes")
 	public void timeAdvanceGrant(LogicalTime theTime) throws FederateInternalError
 	{
-		// TODO
 		System.out.println("[INFO] Federate Ambassador was granted request to advance time");
 		currentTime = (HLAinteger64Time) theTime;
 		exCODiscoveryLatch.countDown();
 	}
 	
+	@Override
 	@SuppressWarnings("rawtypes")
 	public void timeConstrainedEnabled(LogicalTime time) throws FederateInternalError
 	{
-		// TODO
 		System.out.println("[INFO] Time constraining enabled for Federate Ambassador");
 		exCODiscoveryLatch.countDown();
 	}
 	
+	@Override
 	@SuppressWarnings("rawtypes")
 	public void timeRegulationEnabled(LogicalTime time) throws FederateInternalError
 	{
-		// TODO
 		System.out.println("[INFO] Time regulation enabled for Federate Ambassador");
 		exCODiscoveryLatch.countDown();
 	}

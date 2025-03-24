@@ -42,6 +42,7 @@ public class CenterOfMassComponent implements IComponent
 {
 	public Vector3 position = new Vector3(0, 0, 0);
 	
+	@Override
 	public void reset()
 	{
 		position.x = 0;
@@ -49,12 +50,14 @@ public class CenterOfMassComponent implements IComponent
 		position.z = 0;
 	}
 	
+	@Override
 	public byte[] encode(EncoderFactory encoder)
 	{
 		HLAfixedArray<HLAfloat64LE> target = position.convert(encoder);
 		return target.toByteArray();
 	}
 	
+	@Override
 	public void decode(byte[] data, EncoderFactory encoder)
 	{
 		HLAfixedArray<HLAfloat64LE> decodedVector = encoder.createHLAfixedArray

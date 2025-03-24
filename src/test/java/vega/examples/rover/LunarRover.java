@@ -53,6 +53,7 @@ public class LunarRover extends SimulationBase
 		federateAmbassador.initialize();
 	}
 	
+	@Override
 	public void initialize()
 	{
 		lunarRover = world.createEntity("LunarRover", "HLAobjectRoot.PhysicalEntity");

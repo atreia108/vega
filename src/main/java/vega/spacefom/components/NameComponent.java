@@ -40,11 +40,13 @@ public class NameComponent implements IComponent
 {
 	public String name = "";
 	
+	@Override
 	public void reset()
 	{
 		name = "";	
 	}
 	
+	@Override
 	public byte[] encode(EncoderFactory encoder)
 	{
 		HLAunicodeString target = encoder.createHLAunicodeString();
@@ -52,6 +54,7 @@ public class NameComponent implements IComponent
 		return target.toByteArray();
 	}
 	
+	@Override
 	public void decode(byte[] data, EncoderFactory encoder)
 	{
 		HLAunicodeString decodedName = encoder.createHLAunicodeString();
