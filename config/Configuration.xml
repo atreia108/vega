@@ -1,0 +1,20 @@
+<Project>
+	<RtiConfiguration Host="localhost" Port="8989" Federation="SEE 2025" FederateType="LunarRover">
+		<FomModules>
+			<Fom FilePath="foms/SISO_SpaceFOM_datatypes.xml" />
+			<Fom FilePath="foms/SISO_SpaceFOM_entity.xml" />
+			<Fom FilePath="foms/SISO_SpaceFOM_environment.xml" />
+			<Fom FilePath="foms/SISO_SpaceFOM_management.xml" />
+			<Fom FilePath="foms/SISO_SpaceFOM_switches.xml" />
+		</FomModules>
+	</RtiConfiguration>
+	<Simulation FrameRate="30" />
+	<EntityClasses>
+		<EntityClass Name="HLAobjectRoot.PhysicalEntity" >
+		<Component Name="vega.spacefom.components.NameComponent" FomAttribute="name" Publish="True" Subscribe="False" />
+			<Component Name="vega.spacefom.components.SpaceTimeCoordinateStateComponent" FomAttribute="state" Publish="True" Subscribe="False" />
+			<Component Name="vega.spacefom.components.ParentReferenceFrameComponent" FomAttribute="parent_reference_frame" Publish="True" Subscribe="False" />
+			<Component Name="vega.spacefom.components.CenterOfMassComponent" FomAttribute="center_of_mass" Publish="True" Subscribe="False" />
+		</EntityClass>
+	</EntityClasses>
+</Project>
