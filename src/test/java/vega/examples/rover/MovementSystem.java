@@ -58,8 +58,5 @@ public class MovementSystem extends IteratingSystem
 		SpaceTimeCoordinateStateComponent stateComponent = sm.get(entity);
 		stateComponent.translationalState.position.x += 10.0;
 		world.sendEntityUpdate(entity);
-		
-		Vector3 position = stateComponent.translationalState.position;
-		System.out.println("Lunar Rover Position: " + "(" + position.x + ", " + position.y + ", " + position.z + ")");
 	}
 }
