@@ -47,7 +47,7 @@ import vega.hla1516e.HlaMessagePattern;
 
 public class ConfigurationParser
 {
-	private final String CONFIG_FILE_PATH = "settings/Configuration.xml";
+	private final String CONFIG_FILE_PATH = "config/Configuration.xml";
 	private Element root;
 	
 	private URL[] fomModules;
