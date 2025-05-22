@@ -29,16 +29,45 @@
  * 
  */
 
-package vega.core;
+package io.github.vega.hla;
 
-import com.badlogic.ashley.core.Component;
-import com.badlogic.gdx.utils.Pool.Poolable;
+import java.util.HashMap;
+import java.util.Map;
 
-import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.InteractionClassHandle;
+import hla.rti1516e.ParameterHandle;
 
-public interface IComponent extends Component, Poolable
+public class HlaInteraction
 {
-	public byte[] encode(EncoderFactory encoder);
+	private String name;
+	private String assembler;
+	private InteractionClassHandle classHandle;
+	private HlaShareType shareType;
+	private Map<String, String> parameterAdapters;
+	private Map<String, ParameterHandle> parameterHandles;
 	
-	public void decode(byte[] data, EncoderFactory encoder);
+	public HlaInteraction(String className, String assemblerName, HlaShareType interactionShareType)
+	{
+		name = className;
+		assembler = assemblerName;
+		shareType = interactionShareType;
+		parameterAdapters = new HashMap<String, String>();
+	}
+	
+	public String getClassName() { return name; }
+	
+	public String getAssemblerName() { return assembler; }
+	
+	public InteractionClassHandle getClassHandle() { return classHandle; }
+	
+	public HlaShareType getShareType() { return shareType; }
+	
+	public Map<String, String> getParameterAdapters() { return parameterAdapters; }
+	
+	public Map<String, ParameterHandle> getParameterHandles() { return parameterHandles; }
+	
+	public void registerParameter(String parameterName, String adapterName)
+	{
+		parameterAdapters.put(parameterName, adapterName);
+	}
 }

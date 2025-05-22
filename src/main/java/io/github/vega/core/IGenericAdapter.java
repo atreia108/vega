@@ -29,34 +29,14 @@
  * 
  */
 
-package vega.spacefom.types;
+package io.github.vega.core;
+
+import com.badlogic.ashley.core.Entity;
 
 import hla.rti1516e.encoding.EncoderFactory;
-import hla.rti1516e.encoding.HLAfixedArray;
-import hla.rti1516e.encoding.HLAfixedRecord;
-import hla.rti1516e.encoding.HLAfloat64LE;
-import vega.core.IConvertable;
 
-public class ReferenceFrameTranslation implements IConvertable<HLAfixedRecord>
+public interface IGenericAdapter
 {
-	public Vector3 position;
-	public Vector3 velocity;
-	
-	public ReferenceFrameTranslation()
-	{
-		position = new Vector3(0, 0, 0);
-		velocity = new Vector3(0, 0, 0);
-	}
-	
-	public HLAfixedRecord convert(EncoderFactory encoder)
-	{
-		HLAfixedRecord target = encoder.createHLAfixedRecord();
-		HLAfixedArray<HLAfloat64LE> convertedPosition = position.convert(encoder);
-		HLAfixedArray<HLAfloat64LE> convertedVelocity = velocity.convert(encoder);
-		
-		target.add(convertedPosition);
-		target.add(convertedVelocity);
-		
-		return target;
-	}
+	public void deserialize(Entity entity, EncoderFactory encoder, byte[] buffer);
+	public byte[] serialize(Entity entity, EncoderFactory encoder);
 }

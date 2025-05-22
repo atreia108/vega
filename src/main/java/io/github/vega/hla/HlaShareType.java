@@ -29,33 +29,12 @@
  * 
  */
 
-package vega.spacefom.types;
+package io.github.vega.hla;
 
-import hla.rti1516e.encoding.EncoderFactory;
-import hla.rti1516e.encoding.HLAfixedRecord;
-import hla.rti1516e.encoding.HLAfloat64LE;
-import vega.core.IConvertable;
-
-public class AttitudeQuaternion implements IConvertable<HLAfixedRecord>
+public enum HlaShareType
 {
-	public double scalar;
-	public double vector;
-	
-	public AttitudeQuaternion(double scalar, double vector)
-	{
-		this.scalar = scalar;
-		this.vector = vector;
-	}
-	
-	public HLAfixedRecord convert(EncoderFactory encoder)
-	{
-		HLAfixedRecord target = encoder.createHLAfixedRecord();
-		HLAfloat64LE encodedScalar = encoder.createHLAfloat64LE(scalar);
-		HLAfloat64LE encodedVector = encoder.createHLAfloat64LE(vector);
-		
-		target.add(encodedScalar);
-		target.add(encodedVector);
-		
-		return target;
-	}
+	NONE,
+	PUBLISH_ONLY,
+	PUBLISH_SUBSCRIBE,
+	SUBSCRIBE_ONLY
 }

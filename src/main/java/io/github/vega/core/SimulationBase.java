@@ -29,9 +29,16 @@
  * 
  */
 
-package vega.spacefom;
+package io.github.vega.core;
 
-public enum MTRMode
+import io.github.vega.settings.Parser;
+
+public abstract class SimulationBase
 {
-
+	public SimulationBase(String settingsDirectory)
+	{
+		Parser.read(settingsDirectory);
+	}
+	
+	
 }

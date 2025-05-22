@@ -29,23 +29,46 @@
  * 
  */
 
-package vega.spacefom;
+package io.github.vega.math;
 
 import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.HLAfixedRecord;
+import io.github.vega.core.IGenericConverter;
 
-public class ModeTransitionRequest
+public class Vector3 implements IGenericConverter<HLAfixedRecord>
 {
-	private ExecutionMode executionMode;
-	public EncoderFactory encoder;
-	
-	public ModeTransitionRequest(ExecutionMode execMode, EncoderFactory encoder)
+	public double x;
+	public double y;
+	public double z;
+
+	public static final Vector3 BACK = new Vector3(0, 0, -1);
+	public static final Vector3 DOWN = new Vector3(0, -1, 0);
+	public static final Vector3 FORWARD = new Vector3(0, 0, 1);
+	public static final Vector3 LEFT = new Vector3(-1, 0, 0);
+	public static final Vector3 NEGATIVE_INFINITY = new Vector3(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY,
+			Double.NEGATIVE_INFINITY);
+	public static final Vector3 ONE = new Vector3(1, 1, 1);
+	public static final Vector3 POSITIVE_INFINITY = new Vector3(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY,
+			Double.POSITIVE_INFINITY);
+	public static final Vector3 RIGHT = new Vector3(1, 0, 0);
+	public static final Vector3 UP = new Vector3(0, 1, 0);
+	public static final Vector3 ZERO = new Vector3(0, 0, 0);
+
+	public Vector3(double x, double y, double z)
 	{
-		this.executionMode = execMode;
-		this.encoder = encoder;
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+
+	@Override
+	public HLAfixedRecord convert(EncoderFactory encoder)
+	{
+		return null;
 	}
 	
-	public ExecutionMode getExecutionMode()
+	public double magnitude()
 	{
-		return executionMode;
+		return (x * x) + (y * y) + (z * z); 
 	}
 }

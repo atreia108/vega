@@ -29,12 +29,11 @@
  * 
  */
 
-package vega.core;
+package io.github.vega.core;
 
-import hla.rti1516e.encoding.DataElement;
-import hla.rti1516e.encoding.EncoderFactory;
+import com.badlogic.ashley.core.Entity;
 
-public interface IConvertable<T extends DataElement>
+public interface IEntityAssembler
 {
-	public T convert(EncoderFactory encoder);
+	public Entity assemble();
 }

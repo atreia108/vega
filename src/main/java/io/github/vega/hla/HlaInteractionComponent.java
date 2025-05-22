@@ -29,44 +29,11 @@
  * 
  */
 
-package vega.spacefom.components;
+package io.github.vega.hla;
 
-import hla.rti1516e.encoding.DecoderException;
-import hla.rti1516e.encoding.EncoderFactory;
-import hla.rti1516e.encoding.HLAunicodeString;
-import vega.core.IComponent;
+import com.badlogic.ashley.core.Component;
 
-public class ParentReferenceFrameComponent implements IComponent
+public class HlaInteractionComponent implements Component
 {
-	public String frameName = null;
-	
-	@Override
-	public void reset()
-	{
-		frameName = null;
-	}
-	
-	@Override
-	public byte[] encode(EncoderFactory encoder)
-	{
-		HLAunicodeString target = encoder.createHLAunicodeString();
-		target.setValue(frameName);
-		return target.toByteArray();
-	}
-	
-	@Override
-	public void decode(byte[] data, EncoderFactory encoder)
-	{
-		HLAunicodeString decodedFrameName = encoder.createHLAunicodeString();
-		
-		try
-		{
-			decodedFrameName.decode(data);
-			frameName = decodedFrameName.getValue();
-		}
-		catch (DecoderException e)
-		{
-			e.printStackTrace();
-		}
-	}
+	public String className = "";
 }

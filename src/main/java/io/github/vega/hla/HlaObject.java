@@ -29,12 +29,51 @@
  * 
  */
 
-package vega.hla1516e;
+package io.github.vega.hla;
 
-public enum HlaMessagePattern
+import java.util.HashMap;
+import java.util.Map;
+
+import hla.rti1516e.AttributeHandle;
+import hla.rti1516e.ObjectClassHandle;
+
+public class HlaObject
 {
-	NONE,
-	PUBLISH_SUBSCRIBE,
-	PUBLISH_ONLY,
-	SUBSCRIBE_ONLY
+	private String name;
+	private String assembler;
+	private ObjectClassHandle classHandle;
+	private Map<String, String> attributeAdapters;
+	private Map<String, HlaShareType> attributeShareTypes;
+	private Map<String, AttributeHandle> attributeHandles;
+	
+	public String getClassName() { return name; }
+	
+	public String getAssemblerName() { return assembler; }
+	
+	public ObjectClassHandle getClassHandle() { return classHandle; }
+	
+	public Map<String, String> getAttributeAdapters() { return attributeAdapters; }
+	
+	public Map<String, HlaShareType> getAttributeShareTypes() { return attributeShareTypes; }
+	
+	public Map<String, AttributeHandle> getAttributeHandles() { return attributeHandles; }
+	
+	public HlaObject(String className, String assemblerName)
+	{
+		name = className;
+		assembler = assemblerName;
+		attributeAdapters = new HashMap<String, String>();
+		attributeShareTypes = new HashMap<String, HlaShareType>();
+	}
+	
+	public void registerAttribute(String attributeName, String adapterName, HlaShareType attributeShareType)
+	{
+		attributeAdapters.put(attributeName, adapterName);
+		attributeShareTypes.put(attributeName, attributeShareType);
+	}
+	
+	public void registerAttributeHandle(String attributeName, AttributeHandle handle)
+	{
+		attributeHandles.put(attributeName, handle);
+	}
 }

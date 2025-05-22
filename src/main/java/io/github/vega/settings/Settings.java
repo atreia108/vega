@@ -29,52 +29,49 @@
  * 
  */
 
-package vega.spacefom;
+package io.github.vega.settings;
 
-import hla.rti1516e.ObjectInstanceHandle;
-import hla.rti1516e.encoding.EncoderFactory;
-import hla.rti1516e.encoding.HLAinteger64BE;
-import hla.rti1516e.encoding.HLAunicodeString;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
-public class ExecutionConfiguration
+import io.github.vega.core.IEntityAssembler;
+import io.github.vega.core.IGenericAdapter;
+import io.github.vega.hla.HlaInteraction;
+import io.github.vega.hla.HlaObject;
+
+public record Settings()
 {
-	private ObjectInstanceHandle objectInstance;
-	protected EncoderFactory encoder;
-	
-	private String rootFrameName;
-	private long leastCommonTimeStep;
-	
-	public ExecutionConfiguration(ObjectInstanceHandle objectInstance, EncoderFactory encoder) 
+	public static String HOST_NAME;
+	public static int PORT_NUMBER;
+	public static String FEDERATE;
+	public static String FEDERATION;
+	public static URL[] FOM_MODULES;
+	public static Set<HlaObject> OBJECT_CLASSES = new HashSet<HlaObject>();
+	public static Set<HlaInteraction> INTERACTION_CLASSES = new HashSet<HlaInteraction>();
+	public static Map<String, IGenericAdapter> ADAPTERS = new HashMap<String, IGenericAdapter>();
+	public static Map<String, IEntityAssembler> ASSEMBLERS = new HashMap<String, IEntityAssembler>();
+
+	public static long FRAME_RATE;
+	public static int MIN_ENTITIES;
+	public static int MAX_ENTITIES;
+	public static int MIN_COMPONENTS;
+	public static int MAX_COMPONENTS;
+
+	public static HlaInteraction getHlaInteraction(String interactionClassName)
 	{
-		this.objectInstance = objectInstance;
-		this.encoder = encoder;
+		Optional<HlaInteraction> interaction = INTERACTION_CLASSES.stream()
+				.filter((HlaInteraction i) -> i.getClassName().equals(interactionClassName)).findAny();
+		return interaction.get();
 	}
 	
-	public long getLeastCommonTimeStep() { return leastCommonTimeStep; }
-	
-	public String getRootFrameName() { return rootFrameName; }
-	
-	public ObjectInstanceHandle getObjectInstanceHandle() { return objectInstance; }
-	
-	public void setRootFrameName(Object frameName)
+	public static HlaObject getHlaObject(String objectClassName)
 	{
-		HLAunicodeString encodedFrameName = encoder.createHLAunicodeString();
-		try
-		{
-			encodedFrameName.decode((byte[]) frameName);
-			rootFrameName = encodedFrameName.getValue();
-		}
-		catch (Exception e) { e.printStackTrace(); }
-	}
-	
-	public void setLeastCommonTimeStep(Object lcts)
-	{
-		HLAinteger64BE encodedLcts = encoder.createHLAinteger64BE();
-		try
-		{
-			encodedLcts.decode((byte[]) lcts);
-			leastCommonTimeStep = encodedLcts.getValue();
-		}
-		catch (Exception e) { e.printStackTrace(); }
+		Optional<HlaObject> object = OBJECT_CLASSES.stream()
+				.filter((HlaObject o) -> o.getClassName().equals(objectClassName)).findAny();
+		return object.get();
 	}
 }

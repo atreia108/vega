@@ -29,31 +29,43 @@
  * 
  */
 
-package vega.spacefom;
+package io.github.vega.hla;
 
-public enum ExecutionMode
-{	
-	EXEC_MODE_RUNNING ((short) 2),
-	EXEC_MODE_SHUTDOWN((short) 3);
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.badlogic.ashley.core.Entity;
+
+public class HlaInteractionManager
+{
+	private static final Logger logger = LoggerFactory.getLogger(HlaInteractionManager.class);
 	
-	private short modeValue;
+	private static List<Entity> interactionQueue;
 	
-	private ExecutionMode(short modeValue) {
-		this.modeValue = modeValue;
+	static 
+	{
+		interactionQueue = Collections.synchronizedList(new ArrayList<Entity>());
 	}
 	
-	public static ExecutionMode getMode(short value)
+	// TODO
+	public static void addInteraction(Entity interactionEntity)
 	{
-		for (ExecutionMode execMode : ExecutionMode.values())
-		{
-			if (execMode.modeValue == value) return execMode;
-		}
 		
+	}
+	
+	// TODO
+	public static List<Entity> getFor(String interactionClassName)
+	{
 		return null;
 	}
 	
-	public short getModeValue()
+	// TODO
+	public static boolean sendInteraction(Entity interactionEntity)
 	{
-		return this.modeValue;
+		return true;
 	}
 }

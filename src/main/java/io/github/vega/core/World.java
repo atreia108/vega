@@ -29,34 +29,81 @@
  * 
  */
 
-package vega.examples.rover;
+package io.github.vega.core;
 
+import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.core.Family;
-import com.badlogic.ashley.systems.IteratingSystem;
+import com.badlogic.ashley.core.EntitySystem;
+import com.badlogic.ashley.core.PooledEngine;
 
-import vega.core.World;
-import vega.spacefom.components.SpaceTimeCoordinateStateComponent;
-import vega.spacefom.types.Vector3;
-
-public class MovementSystem extends IteratingSystem
+public class World
 {
-	private World world;
-	ComponentMapper<SpaceTimeCoordinateStateComponent> sm;
+	private static PooledEngine engine;
 	
-	public MovementSystem(World world)
+	public static <T extends Component> boolean addComponent(Entity entity, T component)
 	{
-		super(Family.all(SpaceTimeCoordinateStateComponent.class).get());
-		sm = ComponentMapper.getFor(SpaceTimeCoordinateStateComponent.class);
-		this.world = world;
+		entity.add(component);
+		
+		// TODO - add condition for HLAObjectComponent
+		
+		if (getComponent(entity, component.getClass()) == null)
+			return false;
+		
+		return true;
 	}
 	
-	@Override
-	protected void processEntity(Entity entity, float deltaTime)
+	public static void addEntity(Entity entity)
 	{
-		SpaceTimeCoordinateStateComponent stateComponent = sm.get(entity);
-		stateComponent.translationalState.position.x += 10.0;
-		world.sendEntityUpdate(entity);
+		engine.addEntity(entity);
+	}
+	
+	public static void addSystem(EntitySystem system)
+	{
+		engine.addSystem(system);
+	}
+	
+	public static <T extends Component> T createComponent(Class<T> componentType)
+	{
+		return engine.createComponent(componentType);
+	}
+	
+	public static Entity createEntity()
+	{
+		return engine.createEntity();
+	}
+	
+	public static void destroyEntity(Entity entity)
+	{
+		// TODO - add condition for HLAObjectComponent
+		engine.removeEntity(entity);
+	}
+	
+	public static void destroySystem(EntitySystem system)
+	{
+		engine.removeSystem(system);
+	}
+	
+	public static void enableEngine(int minEntities, int maxEntities, int minComponents, int maxComponents)
+	{
+		engine = new PooledEngine(minEntities, maxEntities, minComponents, maxComponents);
+	}
+	
+	public static <T extends Component> T getComponent(Entity entity, Class<T> componentType)
+	{
+		ComponentMapper<T> mapper = ComponentMapper.getFor(componentType);
+		return mapper.get(entity);
+	}
+	
+	public static PooledEngine getEngine()
+	{
+		return engine;
+	}
+	
+	// TODO - Implement the method and don't forget about the HLAObjectComponent condition!
+	public static <T extends Component> void removeComponent(Class<T> componentType)
+	{
+		
 	}
 }
+
