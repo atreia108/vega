@@ -31,11 +31,7 @@
 
 package io.github.vega.math;
 
-import hla.rti1516e.encoding.EncoderFactory;
-import hla.rti1516e.encoding.HLAfixedRecord;
-import io.github.vega.core.IGenericConverter;
-
-public class Vector3 implements IGenericConverter<HLAfixedRecord>
+public class Vector3
 {
 	public double x;
 	public double y;
@@ -59,12 +55,6 @@ public class Vector3 implements IGenericConverter<HLAfixedRecord>
 		this.x = x;
 		this.y = y;
 		this.z = z;
-	}
-
-	@Override
-	public HLAfixedRecord convert(EncoderFactory encoder)
-	{
-		return null;
 	}
 	
 	public double magnitude()

@@ -31,14 +31,7 @@
 
 package io.github.vega.core;
 
-import io.github.vega.settings.Parser;
-
 public abstract class SimulationBase
 {
-	public SimulationBase(String settingsDirectory)
-	{
-		Parser.read(settingsDirectory);
-	}
-	
-	
+	public abstract void init();
 }

@@ -31,11 +31,65 @@
 
 package io.github.vega.hla;
 
-import com.badlogic.ashley.core.Component;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
-public class HlaObjectComponent implements Component
+public class HlaInteractionType
 {
-	public String className = "";
-	public String instanceName = "";
-	public boolean isRemote = false;
+	private String className;
+	private String assemblerName;
+	private PubSubModel pubSub;
+	private Map<String, String> parameterAdapterMap;
+
+	public HlaInteractionType(String classType, PubSubModel pubSubModel)
+	{
+		className = classType;
+		pubSub = pubSubModel;
+		parameterAdapterMap = new HashMap<String, String>();
+	}
+	
+	public void registerParameter(String parameterName, String adapterName)
+	{
+		parameterAdapterMap.put(parameterName, adapterName);
+	}
+	
+	public Set<String> getParameters() { return parameterAdapterMap.keySet(); }
+	
+	public String getAdapterNameFor(String parameterName) { return parameterAdapterMap.get(parameterName); }
+	
+	public String getClassName()
+	{
+		return className;
+	}
+
+	public String getAssemblerName()
+	{
+		return assemblerName;
+	}
+
+	public PubSubModel getPubSub()
+	{
+		return pubSub;
+	}
+
+	public Map<String, String> getParameterAdapterMap()
+	{
+		return parameterAdapterMap;
+	}
+
+	public String printPubSub()
+	{
+		switch (pubSub)
+		{
+			case PubSubModel.PUBLISH_ONLY:
+				return "Pub";
+			case PubSubModel.SUBSCRIBE_ONLY:
+				return "Sub";
+			case PubSubModel.PUBLISH_SUBSCRIBE:
+				return "Pub/Sub";
+			default:
+				return "N/A";
+		}
+	}
 }

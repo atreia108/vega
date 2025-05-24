@@ -33,7 +33,10 @@ package io.github.vega.core;
 
 import com.badlogic.ashley.core.Entity;
 
-public interface IEntityAssembler
+import hla.rti1516e.encoding.EncoderFactory;
+
+public interface IAdapter
 {
-	public Entity assemble();
+	public void deserialize(Entity entity, EncoderFactory encoder, byte[] buffer);
+	public byte[] serialize(Entity entity, EncoderFactory encoder);
 }

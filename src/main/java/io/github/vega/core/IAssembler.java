@@ -29,11 +29,11 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.core;
 
-import com.badlogic.ashley.core.Component;
+import com.badlogic.ashley.core.Entity;
 
-public class HlaInteractionComponent implements Component
+public interface IAssembler
 {
-	public String className = "";
+	public Entity assembleEntity();
 }

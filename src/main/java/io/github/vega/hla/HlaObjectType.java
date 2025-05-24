@@ -33,41 +33,54 @@ package io.github.vega.hla;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-import hla.rti1516e.InteractionClassHandle;
-import hla.rti1516e.ParameterHandle;
-
-public class HlaInteraction
+public class HlaObjectType
 {
-	private String name;
-	private String assembler;
-	private InteractionClassHandle classHandle;
-	private HlaShareType shareType;
-	private Map<String, String> parameterAdapters;
-	private Map<String, ParameterHandle> parameterHandles;
+	private String className;
+	private String assemblerName;
+	private Map<String, String> attributeAdapterMap;
+	private Map<String, PubSubModel> attributePubSubMap;
 	
-	public HlaInteraction(String className, String assemblerName, HlaShareType interactionShareType)
+	public HlaObjectType(String classType, String assembler)
 	{
-		name = className;
-		assembler = assemblerName;
-		shareType = interactionShareType;
-		parameterAdapters = new HashMap<String, String>();
+		className = classType;
+		assemblerName = assembler;
+		attributeAdapterMap = new HashMap<String, String>();
+		attributePubSubMap = new HashMap<String, PubSubModel>();
 	}
 	
-	public String getClassName() { return name; }
-	
-	public String getAssemblerName() { return assembler; }
-	
-	public InteractionClassHandle getClassHandle() { return classHandle; }
-	
-	public HlaShareType getShareType() { return shareType; }
-	
-	public Map<String, String> getParameterAdapters() { return parameterAdapters; }
-	
-	public Map<String, ParameterHandle> getParameterHandles() { return parameterHandles; }
-	
-	public void registerParameter(String parameterName, String adapterName)
+	public void registerAttribute(String attributeName, String adapterName, PubSubModel attributePubSub)
 	{
-		parameterAdapters.put(parameterName, adapterName);
+		attributeAdapterMap.put(attributeName, adapterName);
+		attributePubSubMap.put(attributeName, attributePubSub);
+	}
+	
+	public String getAdapterFor(String attributeName) { return attributeAdapterMap.get(attributeName); }
+	
+	public Set<String> getAttributes() { return attributeAdapterMap.keySet(); }
+	
+	public String getClassName() { return className; }
+	
+	public String getAssemblerName() { return assemblerName; }
+	
+	public Map<String, String> getAttributeAdapterMap() { return attributeAdapterMap; }
+	
+	public Map<String, PubSubModel> getAttributePubSubMap() { return attributePubSubMap; }
+	
+	public String printPubSub(String attribute)
+	{
+		PubSubModel pubSub = attributePubSubMap.get(attribute);
+		switch (pubSub)
+		{
+			case PubSubModel.PUBLISH_ONLY:
+				return "Pub";
+			case PubSubModel.SUBSCRIBE_ONLY:
+				return "Sub";
+			case PubSubModel.PUBLISH_SUBSCRIBE:
+				return "Pub/Sub";
+			default:
+				return "N/A";
+		}
 	}
 }

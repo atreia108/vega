@@ -31,26 +31,18 @@
 
 package io.github.vega.core;
 
-import com.badlogic.ashley.core.Component;
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.PooledEngine;
+
+import io.github.vega.configuration.Configuration;
 
 public class World
 {
 	private static PooledEngine engine;
 	
-	public static <T extends Component> boolean addComponent(Entity entity, T component)
+	public static Entity createEntity()
 	{
-		entity.add(component);
-		
-		// TODO - add condition for HLAObjectComponent
-		
-		if (getComponent(entity, component.getClass()) == null)
-			return false;
-		
-		return true;
+		return engine.createEntity();
 	}
 	
 	public static void addEntity(Entity entity)
@@ -58,52 +50,14 @@ public class World
 		engine.addEntity(entity);
 	}
 	
-	public static void addSystem(EntitySystem system)
+	public static void init()
 	{
-		engine.addSystem(system);
+		if (engine != null) return;
+		engine = new PooledEngine(Configuration.getMinSimulatedEntities(), Configuration.getMaxSimulatedEntities(), Configuration.getMinComponents(), Configuration.getMaxComponents());
 	}
 	
-	public static <T extends Component> T createComponent(Class<T> componentType)
+	public static void update()
 	{
-		return engine.createComponent(componentType);
-	}
-	
-	public static Entity createEntity()
-	{
-		return engine.createEntity();
-	}
-	
-	public static void destroyEntity(Entity entity)
-	{
-		// TODO - add condition for HLAObjectComponent
-		engine.removeEntity(entity);
-	}
-	
-	public static void destroySystem(EntitySystem system)
-	{
-		engine.removeSystem(system);
-	}
-	
-	public static void enableEngine(int minEntities, int maxEntities, int minComponents, int maxComponents)
-	{
-		engine = new PooledEngine(minEntities, maxEntities, minComponents, maxComponents);
-	}
-	
-	public static <T extends Component> T getComponent(Entity entity, Class<T> componentType)
-	{
-		ComponentMapper<T> mapper = ComponentMapper.getFor(componentType);
-		return mapper.get(entity);
-	}
-	
-	public static PooledEngine getEngine()
-	{
-		return engine;
-	}
-	
-	// TODO - Implement the method and don't forget about the HLAObjectComponent condition!
-	public static <T extends Component> void removeComponent(Class<T> componentType)
-	{
-		
+		engine.update(1.0f);
 	}
 }
-
