@@ -33,7 +33,7 @@ package io.github.vega.configuration;
 
 import java.net.URL;
 
-import io.github.vega.core.DataRepository;
+import io.github.vega.core.EntityDatabase;
 
 public record Configuration()
 {
@@ -107,12 +107,12 @@ public record Configuration()
 		
 		printFomModules();
 		System.out.println();
-		DataRepository.printAdapters();
+		EntityDatabase.printAdapters();
 		System.out.println();
-		DataRepository.printAssemblers();
+		EntityDatabase.printAssemblers();
 		System.out.println();
-		DataRepository.printObjectTypes();
+		EntityDatabase.printObjectTypes();
 		System.out.println();
-		DataRepository.printInteractionTypes();
+		EntityDatabase.printInteractionTypes();
 	}
 }

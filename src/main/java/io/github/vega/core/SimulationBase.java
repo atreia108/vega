@@ -31,7 +31,67 @@
 
 package io.github.vega.core;
 
+import java.lang.annotation.ElementType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.badlogic.ashley.core.Entity;
+
+import io.github.vega.configuration.ConfigurationLoader;
+import io.github.vega.hla.HlaManager;
+import io.github.vega.hla.HlaObjectType;
+
 public abstract class SimulationBase
 {
-	public abstract void init();
+	private static final Logger logger = LoggerFactory.getLogger(SimulationBase.class);
+	
+	private static Entity exCo;
+	
+	public SimulationBase(String configFileDirectory)
+	{
+		new ConfigurationLoader(configFileDirectory);
+		exec();
+	}
+	
+	protected void exec()
+	{
+		HlaManager.connect();
+		startUp();
+		
+		while (true) {}
+		// HlaManager.disconnect();
+	}
+	
+	protected void startUp()
+	{
+		// ...
+		HlaObjectType exCoClassType = EntityDatabase.getObjectType("HLAobjectRoot.ExecutionConfiguration");
+		HlaManager.subscribeObject(exCoClassType);
+		// .. MTR interaction-related content pending.
+		
+		logger.info("(1/X) Waiting to discover the ExCO object instance from the RTI.");
+		ThreadLatch.start();
+		logger.info("The ExCO object was discovered.");
+		
+		/*
+		HlaObjectType object = EntityDatabase.getObjectType("HLAobjectRoot.ExecutionConfiguration");
+		object.getAttributeNames().forEach(a -> { System.out.println(object.getAttributeHandle(a)); });
+		*/
+		
+		logger.info("(2/X) Waiting to receive the latest values of the ExCO object instance from the RTI.");
+		ThreadLatch.start();
+		logger.info("Latest updates for the ExCO object instance have been received from the RTI.");
+		
+		logger.info("(3/X) Initializing simulation entities.");
+		init();
+		logger.info("All simulation entities were successfully initialized.");
+		
+		// ...
+		// HlaManager.initialized();
+	}
+	
+	protected abstract void init();
+	
+	public static void setExCo(Entity entity) { exCo = entity; }
 }

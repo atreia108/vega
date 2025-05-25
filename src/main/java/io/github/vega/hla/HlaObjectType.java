@@ -31,43 +31,116 @@
 
 package io.github.vega.hla;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import hla.rti1516e.AttributeHandle;
+import hla.rti1516e.AttributeHandleSet;
+import hla.rti1516e.ObjectClassHandle;
+
 public class HlaObjectType
 {
-	private String className;
+	private String name;
 	private String assemblerName;
+	private ObjectClassHandle classHandle;
 	private Map<String, String> attributeAdapterMap;
 	private Map<String, PubSubModel> attributePubSubMap;
-	
+	private Map<String, AttributeHandle> attributeNameHandleMap;
+	private AttributeHandleSet attributeHandleSet;
+
+	private boolean intentDeclaredToRti;
+
 	public HlaObjectType(String classType, String assembler)
 	{
-		className = classType;
+		name = classType;
 		assemblerName = assembler;
 		attributeAdapterMap = new HashMap<String, String>();
 		attributePubSubMap = new HashMap<String, PubSubModel>();
+		attributeNameHandleMap = new HashMap<String, AttributeHandle>();
 	}
-	
+
 	public void registerAttribute(String attributeName, String adapterName, PubSubModel attributePubSub)
 	{
 		attributeAdapterMap.put(attributeName, adapterName);
 		attributePubSubMap.put(attributeName, attributePubSub);
 	}
+
+	public String getAdapterName(String attributeName)
+	{
+		return attributeAdapterMap.get(attributeName);
+	}
+
+	public Set<String> getAttributeNames()
+	{
+		return attributeAdapterMap.keySet();
+	}
 	
-	public String getAdapterFor(String attributeName) { return attributeAdapterMap.get(attributeName); }
-	
-	public Set<String> getAttributes() { return attributeAdapterMap.keySet(); }
-	
-	public String getClassName() { return className; }
-	
-	public String getAssemblerName() { return assemblerName; }
-	
-	public Map<String, String> getAttributeAdapterMap() { return attributeAdapterMap; }
-	
-	public Map<String, PubSubModel> getAttributePubSubMap() { return attributePubSubMap; }
-	
+	public List<String> getAdapterNames()
+	{
+		List<String> adapters = new ArrayList<String>(attributeAdapterMap.values());
+		return adapters;
+	}
+
+	public Set<String> getPublisheableAttributes()
+	{
+		Set<String> result = new HashSet<String>();
+
+		attributePubSubMap.forEach((attribute, pubSub) ->
+		{
+			if (pubSub == PubSubModel.PUBLISH_ONLY || pubSub == PubSubModel.PUBLISH_SUBSCRIBE)
+				result.add(attribute);
+		});
+
+		return result;
+	}
+
+	public Set<String> getSubscribeableAttributes()
+	{
+		Set<String> result = new HashSet<String>();
+
+		attributePubSubMap.forEach((attribute, pubSub) ->
+		{
+			if (pubSub == PubSubModel.SUBSCRIBE_ONLY || pubSub == PubSubModel.PUBLISH_SUBSCRIBE)
+				result.add(attribute);
+		});
+
+		return result;
+	}
+
+	public String getName()
+	{
+		return name;
+	}
+
+	public String getAssemblerName()
+	{
+		return assemblerName;
+	}
+
+	public void setRtiClassHandle(ObjectClassHandle handle)
+	{
+		classHandle = handle;
+	}
+
+	public ObjectClassHandle getRtiClassHandle()
+	{
+		return classHandle;
+	}
+
+	public Map<String, String> getAttributeAdapterMap()
+	{
+		return attributeAdapterMap;
+	}
+
+	public Map<String, PubSubModel> getAttributePubSubMap()
+	{
+		return attributePubSubMap;
+	}
+
 	public String printPubSub(String attribute)
 	{
 		PubSubModel pubSub = attributePubSubMap.get(attribute);
@@ -82,5 +155,35 @@ public class HlaObjectType
 			default:
 				return "N/A";
 		}
+	}
+
+	public AttributeHandleSet getRtiAttributeHandleSet()
+	{
+		return attributeHandleSet;
+	}
+
+	public void setRtiAttributeHandleSet(AttributeHandleSet attributeSet)
+	{
+		attributeHandleSet = attributeSet;
+	}
+	
+	public void registerAttributeHandle(String name, AttributeHandle handle)
+	{
+		attributeNameHandleMap.put(name, handle);
+	}
+	
+	public AttributeHandle getAttributeHandle(String name) { 
+		System.out.println(attributeNameHandleMap.get(name));
+		return attributeNameHandleMap.get(name);
+	}
+
+	public boolean getIntentDeclaredToRti()
+	{
+		return intentDeclaredToRti;
+	}
+
+	public void intentDeclared()
+	{
+		intentDeclaredToRti = true;
 	}
 }

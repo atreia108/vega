@@ -34,22 +34,39 @@ package io.github.vega.core;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+
+import com.badlogic.ashley.core.Entity;
+
+import hla.rti1516e.ObjectInstanceHandle;
 import io.github.vega.hla.HlaInteractionType;
 import io.github.vega.hla.HlaObjectType;
 
-public record DataRepository()
+public record EntityDatabase()
 {
-	private static final String separator = "*************************************";
 	private static Set<HlaObjectType> objectTypes = new HashSet<HlaObjectType>();
 	private static Set<HlaInteractionType> interactionTypes = new HashSet<HlaInteractionType>();
 	private static Map<String, IAdapter> adapters = new HashMap<String, IAdapter>();
 	private static Map<String, IAssembler> assemblers = new HashMap<String, IAssembler>();
 
+	private static BidiMap<Entity, ObjectInstanceHandle> entityInstances = new DualHashBidiMap<Entity, ObjectInstanceHandle>();
+
+	private static final String separator = "*************************************";
+
 	public static Set<HlaObjectType> getObjectTypes()
 	{
 		return objectTypes;
+	}
+
+	public static HlaObjectType getObjectType(String typeName)
+	{
+		Optional<HlaObjectType> object = objectTypes.stream().filter(o -> o.getName().equals(typeName)).findAny();
+
+		return object.get();
 	}
 
 	public static void addObjectType(HlaObjectType type)
@@ -70,14 +87,14 @@ public record DataRepository()
 		{
 			for (HlaObjectType object : objectTypes)
 			{
-				System.out.println("<" + object.getClassName() + ">");
-				printEqualCharLine(object.getClassName().length());
+				System.out.println("<" + object.getName() + ">");
+				printEqualCharLine(object.getName().length());
 
-				Set<String> attributes = object.getAttributes();
+				Set<String> attributes = object.getAttributeNames();
 
 				for (String attribute : attributes)
 				{
-					String fullAdapterName = object.getAdapterFor(attribute);
+					String fullAdapterName = object.getAdapterName(attribute);
 					String adapterNameOnly = getNameFromClassPath(fullAdapterName);
 					System.out
 							.println(attribute + " -> " + adapterNameOnly + " [" + object.printPubSub(attribute) + "]");
@@ -90,6 +107,14 @@ public record DataRepository()
 	public static Set<HlaInteractionType> getInteractionTypes()
 	{
 		return interactionTypes;
+	}
+
+	public static HlaInteractionType getInteractionType(String typeName)
+	{
+		Optional<HlaInteractionType> interaction = interactionTypes.stream()
+				.filter(i -> i.getClassName().equals(typeName)).findAny();
+
+		return interaction.get();
 	}
 
 	public static void addInteractionType(HlaInteractionType type)
@@ -130,6 +155,11 @@ public record DataRepository()
 	{
 		return adapters;
 	}
+	
+	public static IAdapter getAdapter(String name)
+	{
+		return adapters.get(name);
+	}
 
 	public static void addAdapter(String name, IAdapter adapterInstance)
 	{
@@ -162,6 +192,8 @@ public record DataRepository()
 	{
 		return assemblers;
 	}
+	
+	public static IAssembler getAssembler(String name) { return assemblers.get(name); }
 
 	public static void addAssembler(String name, IAssembler assemblerInstance)
 	{
@@ -192,6 +224,16 @@ public record DataRepository()
 
 	}
 
+	public static ObjectInstanceHandle getObjectInstance(Entity entity)
+	{
+		return entityInstances.get(entity);
+	}
+	
+	public static Entity getEntity(ObjectInstanceHandle instanceHandle)
+	{
+		return entityInstances.getKey(instanceHandle);
+	}
+
 	private static void printEqualCharLine(int stringLength)
 	{
 		for (int i = 0; i < stringLength; ++i)
@@ -205,5 +247,10 @@ public record DataRepository()
 	{
 		String[] classPathParts = classPath.split("\\.");
 		return classPathParts[classPathParts.length - 1];
+	}
+	
+	public static void addEntityForInstance(Entity entity, ObjectInstanceHandle instanceHandle)
+	{
+		entityInstances.put(entity, instanceHandle);
 	}
 }

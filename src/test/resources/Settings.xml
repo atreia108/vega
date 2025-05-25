@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Project>
-	<RtiProperties Host="localhost" Port="8989" Federate="LunarOutpost" Federation="SEE 2026">
+	<RtiProperties Host="localhost" Port="8989" Federate="LunarOutpost" Federation="SEE 2025">
 		<FomModules>
 			<Fom FilePath="src/test/resources/SISO_SpaceFOM_datatypes.xml" />
 			<Fom FilePath="src/test/resources/SISO_SpaceFOM_entity.xml" />
@@ -9,15 +9,16 @@
 			<Fom FilePath="src/test/resources/SISO_SpaceFOM_switches.xml"/>
 		</FomModules>
 		<ObjectClasses>
+			<ObjectClass Assembler="io.github.vega.spacefom.assemblers.ExCoAssembler" Type="HLAobjectRoot.ExecutionConfiguration">
+				<Attribute Name="root_frame_name" Adapter="io.github.vega.spacefom.adapters.LctsAdapter" Publish="False" Subscribe="True" />
+				<Attribute Name="least_common_time_step" Adapter="io.github.vega.spacefom.adapters.RfnAdapter" Publish="False" Subscribe="True" />
+			</ObjectClass>
 			<ObjectClass Assembler="io.github.vega.outpost.assemblers.RoverAssembler" Type="HLAobjectRoot.PhysicalEntity">
 				<Attribute Name="name" Adapter="io.github.vega.outpost.adapters.NameAdapter" Publish="False" Subscribe="True"/>
 				<Attribute Name="state" Adapter="io.github.vega.outpost.adapters.SpaceTimeCoordinateStateAdapter" Publish="True" Subscribe="True" />
 			</ObjectClass>
 		</ObjectClasses>
 		<InteractionClasses>
-			<InteractionClass Type="HLAinteractionRoot.ExecutionConfiguration" Assembler="io.github.vega.outpost.assemblers.ExCoAssembler" Publish="True" Subscribe="True">
-				<Parameter Name="root_frame_name" Adapter="io.github.vega.outpost.adapters.RootFrameNameAdapter" />
-			</InteractionClass>
 		</InteractionClasses>
 	</RtiProperties>
 	<SimulationProperties MinEntities="1000" MaxEntities="10000" MinComponents="500" MaxComponents="10000">

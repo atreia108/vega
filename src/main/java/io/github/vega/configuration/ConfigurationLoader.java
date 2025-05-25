@@ -45,7 +45,7 @@ import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.github.vega.core.DataRepository;
+import io.github.vega.core.EntityDatabase;
 import io.github.vega.core.IAdapter;
 import io.github.vega.core.IAssembler;
 import io.github.vega.core.World;
@@ -273,7 +273,7 @@ public class ConfigurationLoader
 			
 			HlaObjectType objectType = new HlaObjectType(typeName, assemblerName);
 			setObjectAttributes(object, objectType);
-			DataRepository.addObjectType(objectType);
+			EntityDatabase.addObjectType(objectType);
 		}
 	}
 	
@@ -294,7 +294,7 @@ public class ConfigurationLoader
 		{
 			Class<?> assemblerClass = Class.forName(assemblerName);
 			IAssembler assembler = (IAssembler) assemblerClass.getDeclaredConstructor().newInstance();
-			DataRepository.addAssembler(assemblerName, assembler);
+			EntityDatabase.addAssembler(assemblerName, assembler);
 		}
 		catch (Exception e)
 		{
@@ -309,7 +309,7 @@ public class ConfigurationLoader
 		{
 			Class<?> adapterClass = Class.forName(adapterName);
 			IAdapter adapter = (IAdapter) adapterClass.getDeclaredConstructor().newInstance();
-			DataRepository.addAdapter(adapterName, adapter);
+			EntityDatabase.addAdapter(adapterName, adapter);
 		}
 		catch (Exception e) {
 			logger.error("Initialization was terminated prematurely\n[REASON]");
@@ -329,7 +329,7 @@ public class ConfigurationLoader
 	private void setObjectAttributes(Element object, HlaObjectType objectType)
 	{
 		Iterator<Element> iterator = object.elementIterator();
-		String warnReason = "No attributes were found for the HLA object type <" + objectType.getClassName() + ">.";
+		String warnReason = "No attributes were found for the HLA object type <" + objectType.getName() + ">.";
 		
 		if (warnEmptyIterator(iterator, warnReason))
 			return;
@@ -415,7 +415,7 @@ public class ConfigurationLoader
 			
 			HlaInteractionType interactionType = new HlaInteractionType(typeName, pubSub);
 			setInteractionParameters(interaction, interactionType);
-			DataRepository.addInteractionType(interactionType);
+			EntityDatabase.addInteractionType(interactionType);
 		}
 	}
 	
