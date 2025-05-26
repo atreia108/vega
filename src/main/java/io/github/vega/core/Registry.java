@@ -233,6 +233,11 @@ public record Registry()
 		return entityInstances.get(entity);
 	}
 	
+	public static void deleteObjectInstance(Entity entity)
+	{
+		entityInstances.remove(entity);
+	}
+	
 	public static Entity getEntity(ObjectInstanceHandle instanceHandle)
 	{
 		return entityInstances.getKey(instanceHandle);

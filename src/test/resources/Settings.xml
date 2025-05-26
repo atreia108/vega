@@ -10,7 +10,7 @@
 		</FomModules>
 		<ObjectClasses>
 			<ObjectClass Assembler="io.github.vega.spacefom.assemblers.ExCoAssembler" Type="HLAobjectRoot.ExecutionConfiguration">
-				<Attribute Name="root_frame_name" Adapter="io.github.vega.spacefom.adapters.RfnAdapter" Publish="False" Subscribe="True" />
+				<Attribute Name="root_frame_name" Adapter="io.github.vega.spacefom.adapters.RootFrameNameAdapter" Publish="False" Subscribe="True" />
 				<Attribute Name="least_common_time_step" Adapter="io.github.vega.spacefom.adapters.LctsAdapter" Publish="False" Subscribe="True" />
 			</ObjectClass>
 			<ObjectClass Assembler="io.github.vega.outpost.assemblers.RoverAssembler" Type="HLAobjectRoot.PhysicalEntity">

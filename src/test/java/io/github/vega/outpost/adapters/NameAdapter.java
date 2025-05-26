@@ -20,20 +20,8 @@ public class NameAdapter implements IAdapter
 	@Override
 	public void deserialize(Entity entity, EncoderFactory encoder, byte[] buffer)
 	{
-		/*
-		HLAunicodeString encodedName = encoder.createHLAunicodeString();
-
-		try
-		{
-			encodedName.decode(buffer);
-			HlaObjectComponent objectComponent = mapper.get(entity);
-			objectComponent.instanceName = encodedName.getValue();
-		}
-		catch (DecoderException e)
-		{
-			e.printStackTrace();
-		}
-		*/
+		// No need to deserialize anything. The unique name of this entity is the instance name
+		// in the HlaObjectComponent after all.
 	}
 
 	@Override

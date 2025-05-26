@@ -49,7 +49,13 @@ public class World
 	private static final Logger logger = LoggerFactory.getLogger(World.class);
 
 	private static PooledEngine engine;
+	private static ComponentMapper<HlaObjectComponent> mapper;
 
+	static 
+	{
+		mapper = ComponentMapper.getFor(HlaObjectComponent.class);
+	}
+	
 	public static Entity createEntity()
 	{
 		return engine.createEntity();
@@ -57,13 +63,31 @@ public class World
 
 	public static void addEntity(Entity entity)
 	{
-		ComponentMapper<HlaObjectComponent> mapper = ComponentMapper.getFor(HlaObjectComponent.class);
 		HlaObjectComponent objectComponent = mapper.get(entity);
 		
 		if (isHlaObject(entity, objectComponent))
 			registerAsHlaObject(entity, objectComponent);
 		else
 			engine.addEntity(entity);
+	}
+	
+	public static boolean destroyEntity(Entity entity)
+	{
+		HlaObjectComponent objectComponent = mapper.get(entity);
+		String instanceName = objectComponent.instanceName;
+		
+		if (isHlaObject(entity, objectComponent))
+		{
+			if (!HlaManager.deleteObjectInstance(entity))
+			{	
+				logger.warn("Could not delete the entity and object instance \"{}\".\n[REASON]It may already have been previously deleted.", instanceName);
+				return false;
+			}
+		}
+		
+		engine.removeEntity(entity);
+		
+		return true;
 	}
 	
 	private static boolean isHlaObject(Entity entity, HlaObjectComponent objectComponent)
@@ -154,5 +178,10 @@ public class World
 	public static void update()
 	{
 		engine.update(1.0f);
+	}
+	
+	public static PooledEngine getEngine()
+	{
+		return engine;
 	}
 }
