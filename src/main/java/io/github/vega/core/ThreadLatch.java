@@ -13,7 +13,7 @@ public class ThreadLatch
 	
 	public static void start()
 	{
-		if (latch != null)
+		if (isActive())
 			logger.warn("The latch cannot be started as it is still waiting for an operation to finish.");
 		
 		latch = new CountDownLatch(1);
@@ -34,5 +34,11 @@ public class ThreadLatch
 	{
 		latch.countDown();
 		latch = null;
+	}
+	
+	public static boolean isActive()
+	{
+		if (latch != null) return true;
+		return false;
 	}
 }

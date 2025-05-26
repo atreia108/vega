@@ -1,5 +1,6 @@
 package io.github.vega.hla;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -10,7 +11,9 @@ import com.badlogic.ashley.core.Entity;
 
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
+import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.CallbackModel;
+import hla.rti1516e.LogicalTime;
 import hla.rti1516e.LogicalTimeFactoryFactory;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
@@ -18,12 +21,15 @@ import hla.rti1516e.RTIambassador;
 import hla.rti1516e.ResignAction;
 import hla.rti1516e.RtiFactory;
 import hla.rti1516e.RtiFactoryFactory;
+import hla.rti1516e.TimeQueryReturn;
 import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.exceptions.RTIexception;
 import hla.rti1516e.exceptions.RTIinternalError;
+import hla.rti1516e.time.HLAinteger64Time;
 import hla.rti1516e.time.HLAinteger64TimeFactory;
 import io.github.vega.configuration.Configuration;
-import io.github.vega.core.EntityDatabase;
+import io.github.vega.core.IAdapter;
+import io.github.vega.core.Registry;
 import io.github.vega.spacefom.SpaceFomFederateAmbassador;
 
 public class HlaManager
@@ -34,9 +40,13 @@ public class HlaManager
 	private static EncoderFactory encoderFactory;
 	private static HLAinteger64TimeFactory timeFactory;
 
+	private static HLAinteger64Time currentTime;
+	private static HLAinteger64Time lookAheadTime;
+	private static final long LOOK_AHEAD_INTERVAL = 1000000;
+
 	private static boolean initialized;
 	private static Object reservationSemaphore;
-	private static boolean reservationStatus;
+	private static boolean reservationSucceeded;
 
 	static
 	{
@@ -48,7 +58,7 @@ public class HlaManager
 			timeFactory = LogicalTimeFactoryFactory.getLogicalTimeFactory(HLAinteger64TimeFactory.class);
 			initialized = false;
 			reservationSemaphore = new Object();
-			reservationStatus = false;
+			reservationSucceeded = false;
 		}
 		catch (RTIinternalError e)
 		{
@@ -86,7 +96,7 @@ public class HlaManager
 		}
 		catch (RTIexception e)
 		{
-			logger.error("[REASON]\n");
+			logger.error("[REASON]");
 			e.printStackTrace();
 			System.exit(1);
 		}
@@ -100,6 +110,28 @@ public class HlaManager
 		if (!checkHlaObjectComponent(entity, object))
 			return false;
 
+		String typeName = object.className;
+		HlaObjectType type = Registry.getObjectType(typeName);
+		Map<String, AttributeHandle> attributeNameHandleMap = type.getAttributeNameHandleMap();
+		
+		try
+		{
+			ObjectInstanceHandle instanceHandle = Registry.getObjectInstance(entity);
+			AttributeHandleValueMap updatedAttributeHandleMap = rtiAmbassador.getAttributeHandleValueMapFactory().create(type.attributeHandleCount());
+			
+			attributeNameHandleMap.forEach((attributeName, attributeHandle) -> {
+				String adapterName = type.getAdapterName(attributeName);
+				IAdapter adapter = Registry.getAdapter(adapterName);
+				updatedAttributeHandleMap.put(attributeHandle, adapter.serialize(entity, encoderFactory));
+			});
+			
+			rtiAmbassador.updateAttributeValues(instanceHandle, updatedAttributeHandleMap, null);
+		}
+		catch (Exception e) {
+			logger.warn("Updates could not be sent the entity {}\n[REASON]", entity);
+			e.printStackTrace();
+		}
+		
 		return true;
 	}
 
@@ -118,7 +150,7 @@ public class HlaManager
 	{
 		String typeName = object.className;
 
-		if (EntityDatabase.getObjectType(typeName) == null)
+		if (Registry.getObjectType(typeName) == null)
 		{
 			logger.warn(
 					"The class name \"{}\" specified in the HlaObjectComponent of {} is either invalid or was not published/subscribed at runtime.",
@@ -126,7 +158,7 @@ public class HlaManager
 			return false;
 		}
 
-		if (EntityDatabase.getObjectInstance(entity) == null)
+		if (Registry.getObjectInstance(entity) == null)
 		{
 			logger.warn(
 					"Updates cannot be sent for {} because it has no corresponding object instance at the RTI. The object instance may have been previously deleted.",
@@ -141,7 +173,7 @@ public class HlaManager
 	{
 		String typeName = interaction.className;
 
-		if (EntityDatabase.getInteractionType(typeName) == null)
+		if (Registry.getInteractionType(typeName) == null)
 		{
 			logger.warn(
 					"The class name \"{}\" specified in the HlaInteractionComponent of {} is either invalid or was not published/subscribed at runtime.",
@@ -152,54 +184,65 @@ public class HlaManager
 		return true;
 	}
 
+	public static void declareAllObjects()
+	{
+		Set<HlaObjectType> objectTypes = Registry.getObjectTypes();
+
+		for (HlaObjectType type : objectTypes)
+		{
+			if (!type.getIntentDeclaredToRti())
+			{
+				publishObjectAttributes(type);
+				subscribeObjectAttributes(type);
+				type.intentDeclared();
+			}
+		}
+	}
+
 	/*
 	 * TODO - For object classes, evaluate the consequences of attempting to pub/sub
 	 * with an empty attribute set
 	 */
-	public static void publishObject(HlaObjectType type)
+	public static void publishObjectAttributes(HlaObjectType type)
 	{
-		String name = type.getName();
+		String typeName = type.getName();
 
 		try
 		{
-			ObjectClassHandle classHandle = rtiAmbassador.getObjectClassHandle(name);
+			ObjectClassHandle classHandle = rtiAmbassador.getObjectClassHandle(typeName);
 			AttributeHandleSet attributeSetHandle = rtiAmbassador.getAttributeHandleSetFactory().create();
 
 			Set<String> publisheableAttributes = type.getPublisheableAttributes();
 
-			publisheableAttributes.forEach((attribute) ->
+			publisheableAttributes.forEach((attributeName) ->
 			{
 				try
 				{
-					AttributeHandle attributeHandle = rtiAmbassador.getAttributeHandle(classHandle, attribute);
+					AttributeHandle attributeHandle = rtiAmbassador.getAttributeHandle(classHandle, attributeName);
 					attributeSetHandle.add(attributeHandle);
-					type.registerAttributeHandle(name, attributeHandle);
+					type.registerAttributeHandle(attributeName, attributeHandle);
 				}
 				catch (Exception e)
 				{
-					logger.warn("Could not publish HLA object class <" + name + ">." + "\n[REASON]\n");
+					logger.warn("Could not publish HLA object class <" + typeName + ">." + "[REASON]\n");
 					e.printStackTrace();
 				}
 			});
 
 			rtiAmbassador.publishObjectClassAttributes(classHandle, attributeSetHandle);
 
+			type.setRtiClassHandle(classHandle);
 			type.setRtiAttributeHandleSet(attributeSetHandle);
-			type.intentDeclared();
+			// type.intentDeclared();
 		}
 		catch (Exception e)
 		{
-			logger.warn("Could not publish HLA object class <" + name + ">." + "\n[REASON]\n");
+			logger.warn("Could not publish HLA object class <" + typeName + ">." + "\n[REASON]\n");
 			e.printStackTrace();
 		}
 	}
 
-	public static void publishInteraction(HlaInteractionType type)
-	{
-
-	}
-
-	public static void subscribeObject(HlaObjectType type)
+	public static void subscribeObjectAttributes(HlaObjectType type)
 	{
 		String typeName = type.getName();
 
@@ -227,8 +270,9 @@ public class HlaManager
 
 			rtiAmbassador.subscribeObjectClassAttributes(classHandle, attributeSetHandle);
 
+			type.setRtiClassHandle(classHandle);
 			type.setRtiAttributeHandleSet(attributeSetHandle);
-			type.intentDeclared();
+			// type.intentDeclared();
 		}
 		catch (Exception e)
 		{
@@ -237,14 +281,82 @@ public class HlaManager
 		}
 	}
 
+	public void declareAllInteractions()
+	{
+
+	}
+
+	public static void publishInteraction(HlaInteractionType type)
+	{
+
+	}
+
 	public static void subscribeInteraction(HlaInteractionType type)
 	{
 
 	}
-	
-	public static void registerObjectInstance(String instanceName, String className)
+
+	public static boolean registerObjectInstance(Entity entity, String typeName, String instanceName)
 	{
-		
+		HlaObjectType objectType = Registry.getObjectType(typeName);
+
+		ObjectClassHandle classHandle = objectType.getRtiClassHandle();
+		ObjectInstanceHandle instanceHandle = null;
+
+		try
+		{
+			synchronized (reservationSemaphore)
+			{
+				rtiAmbassador.reserveObjectInstanceName(instanceName);
+				awaitReservation();
+			}
+
+			if (!reservationSucceeded)
+			{
+				logger.warn(
+						"The entity {} could not be registered as an object instance at the RTI with the name \"{}\". Its HlaObjectComponent has been removed to prevent undefined behavior.\n[REASON]",
+						entity, instanceName);
+				return false;
+			}
+
+			instanceHandle = rtiAmbassador.registerObjectInstance(classHandle, instanceName);
+			Registry.addEntityForInstance(entity, instanceHandle);
+
+			return true;
+		}
+		catch (Exception e)
+		{
+			logger.warn(
+					"The entity {} could not be registered as an object instance at the RTI. Its HlaObjectComponent has been removed to prevent undefined behavior.\n[REASON]",
+					entity);
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	private static boolean awaitReservation()
+	{
+		try
+		{
+			synchronized (reservationSemaphore)
+			{
+				reservationSemaphore.wait();
+				return true;
+			}
+		}
+		catch (InterruptedException e)
+		{
+			return false;
+		}
+	}
+
+	public static void notifyReservationOutcome(boolean outcome)
+	{
+		reservationSucceeded = outcome;
+		synchronized (reservationSemaphore)
+		{
+			reservationSemaphore.notify();
+		}
 	}
 
 	public static void latestObjectInstanceUpdates(ObjectInstanceHandle handle, HlaObjectType type)
@@ -256,10 +368,89 @@ public class HlaManager
 		}
 		catch (Exception e)
 		{
-			logger.warn("Unable to request the latest updates for object instance of type <{}>.\n[REASON]\n",
+			logger.warn("Unable to request the latest updates for object instance of type <{}>.\n[REASON]",
 					type.getName());
 			e.printStackTrace();
 		}
+	}
+
+	public static void enableHlaTimeConstrained()
+	{
+		try
+		{
+			rtiAmbassador.enableTimeConstrained();
+		}
+		catch (Exception e)
+		{
+			logger.error("The simulation was terminated prematurely\n[REASON]");
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
+
+	public static void enableHlaTimeRegulation(long leastCommonTimeStep)
+	{
+		lookAheadTime = timeFactory.makeTime(leastCommonTimeStep);
+		
+		try
+		{
+			rtiAmbassador.enableTimeRegulation(timeFactory.makeInterval(LOOK_AHEAD_INTERVAL));
+		}
+		catch (Exception e)
+		{
+			logger.error("The simulation was terminated prematurely\n[REASON]");
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
+	
+	public static HLAinteger64Time logicalTimeBoundary(long leastCommonTimeStep)
+	{
+		try
+		{
+			TimeQueryReturn galtQuery = rtiAmbassador.queryGALT();
+			HLAinteger64Time galt = (HLAinteger64Time) galtQuery.time;
+			long timeBoundary = (long) ((Math.floor(galt.getValue() / leastCommonTimeStep) + 1) * leastCommonTimeStep);
+			HLAinteger64Time hltb = timeFactory.makeTime(timeBoundary);
+			
+			return hltb;
+		}
+		catch (Exception e) {
+			logger.error("The simulation was terminated prematurely\n[REASON]");
+			e.printStackTrace();
+			System.exit(1);
+		}
+		
+		return null;
+	}
+	
+	public static void advanceTime(HLAinteger64Time time)
+	{
+		try
+		{
+			rtiAmbassador.timeAdvanceRequest(time);
+		}
+		catch (Exception e) {
+			logger.error("The simulation was terminated prematurely\n[REASON]");
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
+	
+	public static HLAinteger64Time nextTimeStep()
+	{
+		long present = currentTime.getValue();
+		long timeStep = lookAheadTime.getValue();
+		long future = present + timeStep;
+		HLAinteger64Time futureInHlaTime = timeFactory.makeTime(future);
+		
+		return futureInHlaTime;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public static void updateCurrentTime(LogicalTime newTime)
+	{
+		currentTime = (HLAinteger64Time) newTime;
 	}
 
 	public static RTIambassador getRtiAmbassador()
@@ -271,7 +462,7 @@ public class HlaManager
 	{
 		return encoderFactory;
 	}
-	
+
 	public static HLAinteger64TimeFactory getLogicalTimeFactoryFactory()
 	{
 		return timeFactory;
@@ -281,19 +472,14 @@ public class HlaManager
 	{
 		return initialized;
 	}
-	
+
 	public static Object getReservationSemaphore()
 	{
 		return reservationSemaphore;
 	}
-	
-	public static void setReservationStatus(boolean status)
-	{
-		reservationStatus = status;
-	}
 
-	public static void initialized()
+	public static void setInitialized(boolean status)
 	{
-		initialized = true;
+		initialized = status;
 	}
 }

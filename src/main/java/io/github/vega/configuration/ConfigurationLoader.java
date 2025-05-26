@@ -45,7 +45,7 @@ import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.github.vega.core.EntityDatabase;
+import io.github.vega.core.Registry;
 import io.github.vega.core.IAdapter;
 import io.github.vega.core.IAssembler;
 import io.github.vega.core.World;
@@ -273,7 +273,7 @@ public class ConfigurationLoader
 			
 			HlaObjectType objectType = new HlaObjectType(typeName, assemblerName);
 			setObjectAttributes(object, objectType);
-			EntityDatabase.addObjectType(objectType);
+			Registry.addObjectType(objectType);
 		}
 	}
 	
@@ -294,7 +294,7 @@ public class ConfigurationLoader
 		{
 			Class<?> assemblerClass = Class.forName(assemblerName);
 			IAssembler assembler = (IAssembler) assemblerClass.getDeclaredConstructor().newInstance();
-			EntityDatabase.addAssembler(assemblerName, assembler);
+			Registry.addAssembler(assemblerName, assembler);
 		}
 		catch (Exception e)
 		{
@@ -309,7 +309,7 @@ public class ConfigurationLoader
 		{
 			Class<?> adapterClass = Class.forName(adapterName);
 			IAdapter adapter = (IAdapter) adapterClass.getDeclaredConstructor().newInstance();
-			EntityDatabase.addAdapter(adapterName, adapter);
+			Registry.addAdapter(adapterName, adapter);
 		}
 		catch (Exception e) {
 			logger.error("Initialization was terminated prematurely\n[REASON]");
@@ -415,7 +415,7 @@ public class ConfigurationLoader
 			
 			HlaInteractionType interactionType = new HlaInteractionType(typeName, pubSub);
 			setInteractionParameters(interaction, interactionType);
-			EntityDatabase.addInteractionType(interactionType);
+			Registry.addInteractionType(interactionType);
 		}
 	}
 	

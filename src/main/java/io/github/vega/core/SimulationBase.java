@@ -31,8 +31,6 @@
 
 package io.github.vega.core;
 
-import java.lang.annotation.ElementType;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +39,7 @@ import com.badlogic.ashley.core.Entity;
 import io.github.vega.configuration.ConfigurationLoader;
 import io.github.vega.hla.HlaManager;
 import io.github.vega.hla.HlaObjectType;
+import io.github.vega.spacefom.components.ExCoComponent;
 
 public abstract class SimulationBase
 {
@@ -51,47 +50,111 @@ public abstract class SimulationBase
 	public SimulationBase(String configFileDirectory)
 	{
 		new ConfigurationLoader(configFileDirectory);
-		exec();
 	}
+	
+	protected abstract void init();
 	
 	protected void exec()
 	{
 		HlaManager.connect();
 		startUp();
-		
-		while (true) {}
+		process();
 		// HlaManager.disconnect();
 	}
 	
 	protected void startUp()
 	{
-		// ...
-		HlaObjectType exCoClassType = EntityDatabase.getObjectType("HLAobjectRoot.ExecutionConfiguration");
-		HlaManager.subscribeObject(exCoClassType);
+		final int NUMBER_OF_INITIALIZATION_STEPS = 6;
+		
+		subscribeExCo(1, NUMBER_OF_INITIALIZATION_STEPS);
+		
 		// .. MTR interaction-related content pending.
 		
-		logger.info("(1/X) Waiting to discover the ExCO object instance from the RTI.");
-		ThreadLatch.start();
-		logger.info("The ExCO object was discovered.");
+		discoverExCo(2, NUMBER_OF_INITIALIZATION_STEPS);
+		updateExCo(3, NUMBER_OF_INITIALIZATION_STEPS);
 		
-		/*
-		HlaObjectType object = EntityDatabase.getObjectType("HLAobjectRoot.ExecutionConfiguration");
-		object.getAttributeNames().forEach(a -> { System.out.println(object.getAttributeHandle(a)); });
-		*/
+		// A temporary measure that prevents the initialized check in discoverObjectInstance and reflectAttributeValues
+		//  from setting off the latch. Likely to happen as we start discovering objects after pub/sub to RTI.
+		HlaManager.setInitialized(true);
 		
-		logger.info("(2/X) Waiting to receive the latest values of the ExCO object instance from the RTI.");
-		ThreadLatch.start();
-		logger.info("Latest updates for the ExCO object instance have been received from the RTI.");
+		pubSubFederateClasses(4, NUMBER_OF_INITIALIZATION_STEPS);
 		
-		logger.info("(3/X) Initializing simulation entities.");
+		logger.info("({}/{}) Initializing simulation entities.", 5, NUMBER_OF_INITIALIZATION_STEPS);
 		init();
 		logger.info("All simulation entities were successfully initialized.");
 		
+		// Enable again when fixing the object discovery bug.
+		//HlaManager.setInitialized(false);
+		
+		setUpTimeManagement(6, NUMBER_OF_INITIALIZATION_STEPS);
 		// ...
-		// HlaManager.initialized();
 	}
 	
-	protected abstract void init();
+	protected void subscribeExCo(int stepNumber, int totalSteps)
+	{
+		logger.info("({}/{}) Subscribing to the Execution Configuration [ExCO] object class.", stepNumber, totalSteps);
+		HlaObjectType exCoClassType = Registry.getObjectType("HLAobjectRoot.ExecutionConfiguration");
+		HlaManager.subscribeObjectAttributes(exCoClassType);
+		
+		// Manually update its intent declaration to prevent it from published/subscribed again by HlaManager.
+		exCoClassType.intentDeclared();
+		logger.info("Subscribed to the ExCO object class.");
+	}
+	
+	protected void discoverExCo(int stepNumber, int totalSteps)
+	{
+		logger.info("({}/{}) Waiting to discover the ExCO object instance from the RTI.", stepNumber, totalSteps);
+		ThreadLatch.start();
+		logger.info("The ExCO object was discovered.");	
+	}
+	
+	protected void updateExCo(int stepNumber, int totalSteps)
+	{
+		logger.info("({}/{}) Waiting to receive the latest values of the ExCO object instance from the RTI.", stepNumber, totalSteps);
+		ThreadLatch.start();
+		logger.info("Latest updates for the ExCO object instance have been received from the RTI.");
+	}
+	
+	protected void pubSubFederateClasses(int stepNumber, int totalSteps)
+	{
+		logger.info("({}/{}) Declaring all objects and interactions to the RTI.", stepNumber, totalSteps);
+		HlaManager.declareAllObjects();
+		// HlaManager.declareAllInteractions();
+		logger.info("All objects and interactions have been declared to the RTI.");
+	}
+	
+	protected void setUpTimeManagement(int stepNumber, int totalSteps)
+	{
+		logger.info("({}/{}) Aligning simulation timeline with the HLA federation.", stepNumber, totalSteps);
+		HlaManager.enableHlaTimeConstrained();
+		ThreadLatch.start();
+		
+		ExCoComponent exCoComponent = exCo.getComponent(ExCoComponent.class);
+		long leastCommonTimeStep = exCoComponent.leastCommonTimeStep;
+		HlaManager.enableHlaTimeRegulation(leastCommonTimeStep);
+		ThreadLatch.start();
+		
+		HlaManager.advanceTime(HlaManager.logicalTimeBoundary(leastCommonTimeStep));
+		ThreadLatch.start();
+		logger.info("Simulation timeline is now synchronized with the HLA federation.");
+		
+		// Update our ECS world just once because we've already been given a grant.
+		World.update();
+	}
+	
+	protected void process()
+	{
+		logger.info("The simulation is now running...");
+		
+		while (true)
+		{
+			HlaManager.advanceTime(HlaManager.nextTimeStep());
+			ThreadLatch.start();
+			World.update();
+		}
+	}
 	
 	public static void setExCo(Entity entity) { exCo = entity; }
+	
+	public static Entity getExCo() { return exCo; }
 }

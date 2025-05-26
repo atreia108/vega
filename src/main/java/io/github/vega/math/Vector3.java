@@ -31,7 +31,12 @@
 
 package io.github.vega.math;
 
-public class Vector3
+import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.HLAfixedArray;
+import hla.rti1516e.encoding.HLAfloat64LE;
+import io.github.vega.core.IGenericConverter;
+
+public class Vector3 implements IGenericConverter<HLAfixedArray<HLAfloat64LE>>
 {
 	public double x;
 	public double y;
@@ -60,5 +65,17 @@ public class Vector3
 	public double magnitude()
 	{
 		return (x * x) + (y * y) + (z * z); 
+	}
+
+	@Override
+	public HLAfixedArray<HLAfloat64LE> convert(EncoderFactory encoder)
+	{
+		HLAfixedArray<HLAfloat64LE> encodedVector = encoder.createHLAfixedArray(
+				encoder.createHLAfloat64LE(x),
+				encoder.createHLAfloat64LE(y),
+				encoder.createHLAfloat64LE(z)
+		);
+		
+		return encodedVector;
 	}
 }

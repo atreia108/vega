@@ -47,7 +47,7 @@ public class HlaObjectType
 	private String name;
 	private String assemblerName;
 	private ObjectClassHandle classHandle;
-	private Map<String, String> attributeAdapterMap;
+	private Map<String, String> attributeAdapterNameMap;
 	private Map<String, PubSubModel> attributePubSubMap;
 	private Map<String, AttributeHandle> attributeNameHandleMap;
 	private AttributeHandleSet attributeHandleSet;
@@ -58,30 +58,30 @@ public class HlaObjectType
 	{
 		name = classType;
 		assemblerName = assembler;
-		attributeAdapterMap = new HashMap<String, String>();
+		attributeAdapterNameMap = new HashMap<String, String>();
 		attributePubSubMap = new HashMap<String, PubSubModel>();
 		attributeNameHandleMap = new HashMap<String, AttributeHandle>();
 	}
 
 	public void registerAttribute(String attributeName, String adapterName, PubSubModel attributePubSub)
 	{
-		attributeAdapterMap.put(attributeName, adapterName);
+		attributeAdapterNameMap.put(attributeName, adapterName);
 		attributePubSubMap.put(attributeName, attributePubSub);
 	}
 
 	public String getAdapterName(String attributeName)
 	{
-		return attributeAdapterMap.get(attributeName);
+		return attributeAdapterNameMap.get(attributeName);
 	}
 
 	public Set<String> getAttributeNames()
 	{
-		return attributeAdapterMap.keySet();
+		return attributeAdapterNameMap.keySet();
 	}
-	
+
 	public List<String> getAdapterNames()
 	{
-		List<String> adapters = new ArrayList<String>(attributeAdapterMap.values());
+		List<String> adapters = new ArrayList<String>(attributeAdapterNameMap.values());
 		return adapters;
 	}
 
@@ -131,9 +131,9 @@ public class HlaObjectType
 		return classHandle;
 	}
 
-	public Map<String, String> getAttributeAdapterMap()
+	public Map<String, String> getAttributeAdapterNameMap()
 	{
-		return attributeAdapterMap;
+		return attributeAdapterNameMap;
 	}
 
 	public Map<String, PubSubModel> getAttributePubSubMap()
@@ -166,15 +166,25 @@ public class HlaObjectType
 	{
 		attributeHandleSet = attributeSet;
 	}
-	
+
 	public void registerAttributeHandle(String name, AttributeHandle handle)
 	{
 		attributeNameHandleMap.put(name, handle);
 	}
 	
-	public AttributeHandle getAttributeHandle(String name) { 
-		System.out.println(attributeNameHandleMap.get(name));
+	public Map<String, AttributeHandle> getAttributeNameHandleMap()
+	{
+		return attributeNameHandleMap;
+	}
+
+	public AttributeHandle getAttributeHandle(String name)
+	{
 		return attributeNameHandleMap.get(name);
+	}
+	
+	public int attributeHandleCount()
+	{
+		return attributeHandleSet.size();
 	}
 
 	public boolean getIntentDeclaredToRti()

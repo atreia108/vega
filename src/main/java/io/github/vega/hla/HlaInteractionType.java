@@ -35,29 +35,42 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import hla.rti1516e.ParameterHandle;
+
 public class HlaInteractionType
 {
 	private String className;
 	private String assemblerName;
 	private PubSubModel pubSub;
 	private Map<String, String> parameterAdapterMap;
+	private Map<String, ParameterHandle> parameterHandleMap;
+	
+	private boolean intentDeclaredToRti;
 
 	public HlaInteractionType(String classType, PubSubModel pubSubModel)
 	{
 		className = classType;
 		pubSub = pubSubModel;
 		parameterAdapterMap = new HashMap<String, String>();
+		parameterHandleMap = new HashMap<String, ParameterHandle>();
+		intentDeclaredToRti = false;
 	}
-	
+
 	public void registerParameter(String parameterName, String adapterName)
 	{
 		parameterAdapterMap.put(parameterName, adapterName);
 	}
-	
-	public Set<String> getParameters() { return parameterAdapterMap.keySet(); }
-	
-	public String getAdapterNameFor(String parameterName) { return parameterAdapterMap.get(parameterName); }
-	
+
+	public Set<String> getParameterNames()
+	{
+		return parameterAdapterMap.keySet();
+	}
+
+	public String getAdapterName(String parameterName)
+	{
+		return parameterAdapterMap.get(parameterName);
+	}
+
 	public String getClassName()
 	{
 		return className;
@@ -78,6 +91,16 @@ public class HlaInteractionType
 		return parameterAdapterMap;
 	}
 
+	public Map<String, ParameterHandle> getParameterHandleMap()
+	{
+		return parameterHandleMap;
+	}
+
+	public ParameterHandle getParameterHandle(String parameterName)
+	{
+		return parameterHandleMap.get(parameterName);
+	}
+
 	public String printPubSub()
 	{
 		switch (pubSub)
@@ -91,5 +114,15 @@ public class HlaInteractionType
 			default:
 				return "N/A";
 		}
+	}
+	
+	public boolean getIntentDeclared()
+	{
+		return intentDeclaredToRti;
+	}
+	
+	public void intentDeclared()
+	{
+		intentDeclaredToRti = true;
 	}
 }

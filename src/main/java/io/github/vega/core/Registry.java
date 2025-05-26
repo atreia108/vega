@@ -40,13 +40,15 @@ import java.util.Set;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 
+import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 
 import hla.rti1516e.ObjectInstanceHandle;
 import io.github.vega.hla.HlaInteractionType;
+import io.github.vega.hla.HlaObjectComponent;
 import io.github.vega.hla.HlaObjectType;
 
-public record EntityDatabase()
+public record Registry()
 {
 	private static Set<HlaObjectType> objectTypes = new HashSet<HlaObjectType>();
 	private static Set<HlaInteractionType> interactionTypes = new HashSet<HlaInteractionType>();
@@ -65,7 +67,9 @@ public record EntityDatabase()
 	public static HlaObjectType getObjectType(String typeName)
 	{
 		Optional<HlaObjectType> object = objectTypes.stream().filter(o -> o.getName().equals(typeName)).findAny();
-
+		
+		if (object.isEmpty()) return null;
+		
 		return object.get();
 	}
 
@@ -138,11 +142,11 @@ public record EntityDatabase()
 				System.out.println("<" + interaction.getClassName() + ">" + " [" + interaction.printPubSub() + "]");
 				printEqualCharLine(interaction.getClassName().length());
 
-				Set<String> parameters = interaction.getParameters();
+				Set<String> parameters = interaction.getParameterNames();
 
 				for (String parameter : parameters)
 				{
-					String fullAdapterName = interaction.getAdapterNameFor(parameter);
+					String fullAdapterName = interaction.getAdapterName(parameter);
 					String adapterNameOnly = getNameFromClassPath(fullAdapterName);
 					System.out.print(parameter + " -> " + adapterNameOnly);
 				}
@@ -252,5 +256,24 @@ public record EntityDatabase()
 	public static void addEntityForInstance(Entity entity, ObjectInstanceHandle instanceHandle)
 	{
 		entityInstances.put(entity, instanceHandle);
+	}
+	
+	public static Entity findEntity(String nameQuery)
+	{
+		Entity result = null;
+		
+		ComponentMapper<HlaObjectComponent> mapper = ComponentMapper.getFor(HlaObjectComponent.class);
+		
+		for (Entity entity : entityInstances.keySet())
+		{
+			HlaObjectComponent objectComponent = mapper.get(entity);
+			if (objectComponent.instanceName.equals(nameQuery))
+			{
+				result = entity;
+				break;
+			}
+		}
+		
+		return result;
 	}
 }

@@ -37,9 +37,11 @@ import org.slf4j.LoggerFactory;
 import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.PooledEngine;
 
 import io.github.vega.configuration.Configuration;
+import io.github.vega.hla.HlaManager;
 import io.github.vega.hla.HlaObjectComponent;
 
 public class World
@@ -73,7 +75,7 @@ public class World
 		
 		String typeName = objectComponent.className;
 		
-		if (EntityDatabase.getObjectType(typeName) == null)
+		if (Registry.getObjectType(typeName) == null)
 		{
 			logger.warn(
 					"An HLA object instance for the entity {} was not registered because its HlaObjectComponent specifies a class name that is either invalid or was not published/subscribed at runtime. Its associated HlaObjectComponent has been removed to prevent undefined behavior.",
@@ -90,6 +92,12 @@ public class World
 		String instanceName = component.instanceName;
 		
 		// TODO - Add reservation methods into HlaManager and connect them here.
+		boolean registration = HlaManager.registerObjectInstance(entity, typeName, instanceName);
+		
+		if (!registration)
+		{
+			removeComponent(entity, HlaObjectComponent.class);
+		}
 		
 		engine.addEntity(entity);
 	}
@@ -123,6 +131,16 @@ public class World
 			return true;
 		else
 			return false;
+	}
+	
+	public static void addSystem(EntitySystem system)
+	{
+		engine.addSystem(system);
+	}
+	
+	public static void destroySystem(EntitySystem system)
+	{
+		engine.removeSystem(system);
 	}
 
 	public static void init()

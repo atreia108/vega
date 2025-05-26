@@ -10,12 +10,13 @@
 		</FomModules>
 		<ObjectClasses>
 			<ObjectClass Assembler="io.github.vega.spacefom.assemblers.ExCoAssembler" Type="HLAobjectRoot.ExecutionConfiguration">
-				<Attribute Name="root_frame_name" Adapter="io.github.vega.spacefom.adapters.LctsAdapter" Publish="False" Subscribe="True" />
-				<Attribute Name="least_common_time_step" Adapter="io.github.vega.spacefom.adapters.RfnAdapter" Publish="False" Subscribe="True" />
+				<Attribute Name="root_frame_name" Adapter="io.github.vega.spacefom.adapters.RfnAdapter" Publish="False" Subscribe="True" />
+				<Attribute Name="least_common_time_step" Adapter="io.github.vega.spacefom.adapters.LctsAdapter" Publish="False" Subscribe="True" />
 			</ObjectClass>
 			<ObjectClass Assembler="io.github.vega.outpost.assemblers.RoverAssembler" Type="HLAobjectRoot.PhysicalEntity">
-				<Attribute Name="name" Adapter="io.github.vega.outpost.adapters.NameAdapter" Publish="False" Subscribe="True"/>
+				<Attribute Name="name" Adapter="io.github.vega.outpost.adapters.NameAdapter" Publish="True" Subscribe="True"/>
 				<Attribute Name="state" Adapter="io.github.vega.outpost.adapters.SpaceTimeCoordinateStateAdapter" Publish="True" Subscribe="True" />
+				<Attribute Name="parent_reference_frame" Adapter="io.github.vega.outpost.adapters.ParentReferenceFrameAdapter" Publish="True" Subscribe="True" />
 			</ObjectClass>
 		</ObjectClasses>
 		<InteractionClasses>
