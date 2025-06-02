@@ -32,14 +32,17 @@
 package io.github.vega.hla;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.ParameterHandle;
 
 public class HlaInteractionType
 {
 	private String className;
+	private InteractionClassHandle classHandle;
 	private String assemblerName;
 	private PubSubModel pubSub;
 	private Map<String, String> parameterAdapterMap;
@@ -47,9 +50,10 @@ public class HlaInteractionType
 	
 	private boolean intentDeclaredToRti;
 
-	public HlaInteractionType(String classType, PubSubModel pubSubModel)
+	public HlaInteractionType(String classType, String assembler, PubSubModel pubSubModel)
 	{
 		className = classType;
+		assemblerName = assembler;
 		pubSub = pubSubModel;
 		parameterAdapterMap = new HashMap<String, String>();
 		parameterHandleMap = new HashMap<String, ParameterHandle>();
@@ -60,10 +64,26 @@ public class HlaInteractionType
 	{
 		parameterAdapterMap.put(parameterName, adapterName);
 	}
+	
+	public void registerParameterHandle(String parameterName, ParameterHandle handle)
+	{
+		parameterHandleMap.put(parameterName, handle);
+	}
 
 	public Set<String> getParameterNames()
 	{
 		return parameterAdapterMap.keySet();
+	}
+	
+	public Set<ParameterHandle> getParameterHandles()
+	{
+		Set<ParameterHandle> requiredSet = new HashSet<ParameterHandle>();
+		
+		parameterHandleMap.forEach((parameterName, parameterHandle) -> {
+			requiredSet.add(parameterHandle);
+		});
+		
+		return requiredSet;
 	}
 
 	public String getAdapterName(String parameterName)
@@ -71,7 +91,7 @@ public class HlaInteractionType
 		return parameterAdapterMap.get(parameterName);
 	}
 
-	public String getClassName()
+	public String getName()
 	{
 		return className;
 	}
@@ -85,8 +105,24 @@ public class HlaInteractionType
 	{
 		return pubSub;
 	}
+	
+	public boolean isPublisheable()
+	{
+		if (pubSub == PubSubModel.PUBLISH_ONLY || pubSub == PubSubModel.PUBLISH_SUBSCRIBE)
+			return true;
+		else
+			return false;
+	}
 
-	public Map<String, String> getParameterAdapterMap()
+	public boolean isSubscribeable()
+	{
+		if (pubSub == PubSubModel.SUBSCRIBE_ONLY || pubSub == PubSubModel.PUBLISH_SUBSCRIBE)
+			return true;
+		else
+			return false;
+	}
+	
+	public Map<String, String> getParameterAdapterNameMap()
 	{
 		return parameterAdapterMap;
 	}
@@ -116,7 +152,7 @@ public class HlaInteractionType
 		}
 	}
 	
-	public boolean getIntentDeclared()
+	public boolean getIntentDeclaredToRti()
 	{
 		return intentDeclaredToRti;
 	}
@@ -124,5 +160,15 @@ public class HlaInteractionType
 	public void intentDeclared()
 	{
 		intentDeclaredToRti = true;
+	}
+	
+	public void setRtiClassHandle(InteractionClassHandle handle)
+	{
+		classHandle = handle;
+	}
+	
+	public InteractionClassHandle getRtiClassHandle()
+	{
+		return classHandle;
 	}
 }

@@ -32,11 +32,13 @@
 package io.github.vega.spacefom;
 
 import hla.rti1516e.AttributeHandleValueMap;
+import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.LogicalTime;
 import hla.rti1516e.NullFederateAmbassador;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.OrderType;
+import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.TransportationTypeHandle;
 import hla.rti1516e.exceptions.FederateInternalError;
 import io.github.vega.hla.HlaCallbackManager;
@@ -50,50 +52,58 @@ public class SpaceFomFederateAmbassador extends NullFederateAmbassador
 	{
 		HlaCallbackManager.reflectAttributeValues(theObject, theAttributes);
 	}
-	
+
 	@Override
 	public void discoverObjectInstance(final ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass,
 			String objectName)
 	{
 		HlaCallbackManager.discoverObjectInstance(theObject, theObjectClass, objectName);
 	}
-	
+
 	@Override
 	public void objectInstanceNameReservationFailed(String objectName)
 	{
 		HlaCallbackManager.objectInstanceNameReservationFailed(objectName);
 	}
-	
+
 	@Override
 	public void objectInstanceNameReservationSucceeded(String objectName)
 	{
 		HlaCallbackManager.objectInstanceNameReservationSucceeded(objectName);
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void timeConstrainedEnabled(LogicalTime time) throws FederateInternalError
 	{
 		HlaCallbackManager.timeConstrainedEnabled(time);
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void timeRegulationEnabled(LogicalTime time) throws FederateInternalError
 	{
 		HlaCallbackManager.timeRegulationEnabled(time);
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void timeAdvanceGrant(LogicalTime theTime) throws FederateInternalError
 	{
 		HlaCallbackManager.timeAdvanceGrant(theTime);
 	}
-	
+
 	@Override
- 	public void removeObjectInstance(ObjectInstanceHandle theObject, byte[] userSuppliedTag, OrderType sentOrdering, SupplementalRemoveInfo removeInfo)
- 	{
- 		HlaCallbackManager.removeObjectInstance(theObject);
- 	}
+	public void removeObjectInstance(ObjectInstanceHandle theObject, byte[] userSuppliedTag, OrderType sentOrdering,
+			SupplementalRemoveInfo removeInfo)
+	{
+		HlaCallbackManager.removeObjectInstance(theObject);
+	}
+
+	public void receiveInteraction(InteractionClassHandle interactionClass, ParameterHandleValueMap theParameters,
+			byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport,
+			SupplementalReceiveInfo receiveInfo) throws FederateInternalError
+	{
+		HlaCallbackManager.receiveInteraction(interactionClass, theParameters, userSuppliedTag);
+	}
 }

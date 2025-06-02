@@ -413,7 +413,7 @@ public class ConfigurationLoader
 			checkPubSubFlag("Subscribe", subscribeValue);
 			PubSubModel pubSub = getPubSubValue(publishValue, subscribeValue);
 			
-			HlaInteractionType interactionType = new HlaInteractionType(typeName, pubSub);
+			HlaInteractionType interactionType = new HlaInteractionType(typeName, assemblerName, pubSub);
 			setInteractionParameters(interaction, interactionType);
 			Registry.addInteractionType(interactionType);
 		}
@@ -422,7 +422,7 @@ public class ConfigurationLoader
 	private void setInteractionParameters(Element interaction, HlaInteractionType interactionType)
 	{
 		Iterator<Element> iterator = interaction.elementIterator();
-		String warnReason = "No parameters were found for the HLA interaction type <" + interactionType.getClassName() + ">.";
+		String warnReason = "No parameters were found for the HLA interaction type <" + interactionType.getName() + ">.";
 		
 		if (warnEmptyIterator(iterator, warnReason))
 			return;

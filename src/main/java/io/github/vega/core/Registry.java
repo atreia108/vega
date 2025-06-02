@@ -116,7 +116,7 @@ public record Registry()
 	public static HlaInteractionType getInteractionType(String typeName)
 	{
 		Optional<HlaInteractionType> interaction = interactionTypes.stream()
-				.filter(i -> i.getClassName().equals(typeName)).findAny();
+				.filter(i -> i.getName().equals(typeName)).findAny();
 
 		return interaction.get();
 	}
@@ -139,8 +139,8 @@ public record Registry()
 		{
 			for (HlaInteractionType interaction : interactionTypes)
 			{
-				System.out.println("<" + interaction.getClassName() + ">" + " [" + interaction.printPubSub() + "]");
-				printEqualCharLine(interaction.getClassName().length());
+				System.out.println("<" + interaction.getName() + ">" + " [" + interaction.printPubSub() + "]");
+				printEqualCharLine(interaction.getName().length());
 
 				Set<String> parameters = interaction.getParameterNames();
 
@@ -148,7 +148,7 @@ public record Registry()
 				{
 					String fullAdapterName = interaction.getAdapterName(parameter);
 					String adapterNameOnly = getNameFromClassPath(fullAdapterName);
-					System.out.print(parameter + " -> " + adapterNameOnly);
+					System.out.print(parameter + " -> " + adapterNameOnly + "\n");
 				}
 			}
 		}

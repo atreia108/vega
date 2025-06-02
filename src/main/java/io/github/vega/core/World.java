@@ -74,12 +74,12 @@ public class World
 	public static boolean destroyEntity(Entity entity)
 	{
 		HlaObjectComponent objectComponent = mapper.get(entity);
-		String instanceName = objectComponent.instanceName;
 		
 		if (isHlaObject(entity, objectComponent))
 		{
 			if (!HlaManager.deleteObjectInstance(entity))
-			{	
+			{
+				String instanceName = objectComponent.instanceName;
 				logger.warn("Could not delete the entity and object instance \"{}\".\n[REASON]It may already have been previously deleted.", instanceName);
 				return false;
 			}

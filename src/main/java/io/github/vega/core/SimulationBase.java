@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import com.badlogic.ashley.core.Entity;
 
 import io.github.vega.configuration.ConfigurationLoader;
+import io.github.vega.hla.HlaInteractionType;
 import io.github.vega.hla.HlaManager;
 import io.github.vega.hla.HlaObjectType;
 import io.github.vega.spacefom.components.ExCoComponent;
@@ -64,29 +65,30 @@ public abstract class SimulationBase
 	
 	protected void startUp()
 	{
-		final int NUMBER_OF_INITIALIZATION_STEPS = 6;
+		final int NUMBER_OF_INITIALIZATION_STEPS = 7;
 		
 		subscribeExCo(1, NUMBER_OF_INITIALIZATION_STEPS);
 		
 		// .. MTR interaction-related content pending.
+		publishMtr(2, NUMBER_OF_INITIALIZATION_STEPS);
 		
-		discoverExCo(2, NUMBER_OF_INITIALIZATION_STEPS);
-		updateExCo(3, NUMBER_OF_INITIALIZATION_STEPS);
+		discoverExCo(3, NUMBER_OF_INITIALIZATION_STEPS);
+		updateExCo(4, NUMBER_OF_INITIALIZATION_STEPS);
 		
 		// A temporary measure that prevents the initialized check in discoverObjectInstance and reflectAttributeValues
 		//  from setting off the latch. Likely to happen as we start discovering objects after pub/sub to RTI.
 		HlaManager.setInitialized(true);
 		
-		pubSubFederateClasses(4, NUMBER_OF_INITIALIZATION_STEPS);
+		pubSubFederateClasses(5, NUMBER_OF_INITIALIZATION_STEPS);
 		
-		logger.info("({}/{}) Initializing simulation entities.", 5, NUMBER_OF_INITIALIZATION_STEPS);
+		logger.info("({}/{}) Initializing simulation entities.", 6, NUMBER_OF_INITIALIZATION_STEPS);
 		init();
 		logger.info("All simulation entities were successfully initialized.");
 		
 		// Enable again when fixing the object discovery bug.
 		//HlaManager.setInitialized(false);
 		
-		setUpTimeManagement(6, NUMBER_OF_INITIALIZATION_STEPS);
+		setUpTimeManagement(7, NUMBER_OF_INITIALIZATION_STEPS);
 		// ...
 	}
 	
@@ -99,6 +101,17 @@ public abstract class SimulationBase
 		// Manually update its intent declaration to prevent it from published/subscribed again by HlaManager.
 		exCoClassType.intentDeclared();
 		logger.info("Subscribed to the ExCO object class.");
+	}
+	
+	protected void publishMtr(int stepNumber, int totalSteps)
+	{
+		logger.info("({}/{}) Publishing the ModeTransitionRequest [MTR] interaction class.", stepNumber, totalSteps);
+		HlaInteractionType mtrClassType = Registry.getInteractionType("HLAinteractionRoot.ModeTransitionRequest");
+		HlaManager.publishInteraction(mtrClassType);
+		
+		// Manually update its intent declaration to prevent it from published/subscribed again by HlaManager.
+		mtrClassType.intentDeclared();
+		logger.info("Published the MTR interaction class.");
 	}
 	
 	protected void discoverExCo(int stepNumber, int totalSteps)
@@ -119,7 +132,7 @@ public abstract class SimulationBase
 	{
 		logger.info("({}/{}) Declaring all objects and interactions to the RTI.", stepNumber, totalSteps);
 		HlaManager.declareAllObjects();
-		// HlaManager.declareAllInteractions();
+		HlaManager.declareAllInteractions();
 		logger.info("All objects and interactions have been declared to the RTI.");
 	}
 	

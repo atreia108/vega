@@ -36,17 +36,17 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.AttributeHandleValueMap;
-import hla.rti1516e.FederateAmbassador.SupplementalRemoveInfo;
+import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.LogicalTime;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
-import hla.rti1516e.OrderType;
+import hla.rti1516e.ParameterHandle;
+import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.exceptions.FederateInternalError;
@@ -61,15 +61,6 @@ import io.github.vega.spacefom.components.ExCoComponent;
 public class HlaCallbackManager
 {
 	private static final Logger logger = LoggerFactory.getLogger(HlaCallbackManager.class);
-	
-	private static ComponentMapper<HlaObjectComponent> objectMapper;
-	private static ComponentMapper<HlaInteractionComponent> interactionMapper;
-	
-	static 
-	{
-		objectMapper = ComponentMapper.getFor(HlaObjectComponent.class);
-		interactionMapper = ComponentMapper.getFor(HlaInteractionComponent.class);
-	}
 
 	public static void discoverObjectInstance(final ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass,
 			String objectName)
@@ -80,20 +71,20 @@ public class HlaCallbackManager
 		{
 			String objectClassName = rtiAmbassador.getObjectClassName(theObjectClass);
 			String objectInstanceName = rtiAmbassador.getObjectInstanceName(theObject);
-			
+
 			HlaObjectType type = Registry.getObjectType(objectClassName);
 			IAssembler assembler = Registry.getAssembler(type.getAssemblerName());
-			
+
 			Entity entity = assembler.assembleEntity();
-			
+
 			HlaObjectComponent objectComponent = World.createComponent(HlaObjectComponent.class);
 			objectComponent.className = objectClassName;
 			objectComponent.instanceName = objectInstanceName;
-			
+
 			World.addComponent(entity, objectComponent);
 
 			Registry.addEntityForInstance(entity, theObject);
-			
+
 			if (!HlaManager.isInitialized() && World.getComponent(entity, ExCoComponent.class) != null)
 			{
 				SimulationBase.setExCo(entity);
@@ -128,7 +119,8 @@ public class HlaCallbackManager
 			if (!containsAllAttributes(attributeHandleSet, theAttributes))
 			{
 				logger.warn(
-						"Updated set of values received for [Entity: {}, Instance: {}, Object Class: {}] was missing one or more required attributes. No changes were made to the simulation.");
+						"Updated set of values received for [Entity: {}, Instance: {}, Object Class: {}] was missing one or more required attributes. No changes were made to the simulation.",
+						entity, theObject, classHandle);
 				return;
 			}
 
@@ -165,7 +157,7 @@ public class HlaCallbackManager
 		{
 			AttributeHandle attributeHandle = objectType.getAttributeHandle(attributeName);
 			byte[] attributeValue = newValues.get(attributeHandle);
-			
+
 			String adapterName = objectType.getAdapterName(attributeName);
 			IAdapter adapter = Registry.getAdapter(adapterName);
 			adapter.deserialize(entity, encoder, attributeValue);
@@ -200,9 +192,70 @@ public class HlaCallbackManager
 		HlaManager.updateCurrentTime(theTime);
 		ThreadLatch.stop();
 	}
-	
- 	public static void removeObjectInstance(ObjectInstanceHandle theObject)
- 	{
- 		HlaManager.deleteRemoteEntity(theObject);
- 	}
+
+	public static void removeObjectInstance(ObjectInstanceHandle theObject)
+	{
+		HlaManager.deleteRemoteEntity(theObject);
+	}
+
+	public static void receiveInteraction(InteractionClassHandle interactionClass,
+			ParameterHandleValueMap theParameters, byte[] userSuppliedTag)
+	{
+		RTIambassador rtiAmbassador = HlaManager.getRtiAmbassador();
+		try
+		{
+			String className = rtiAmbassador.getInteractionClassName(interactionClass);
+			HlaInteractionType interactionType = Registry.getInteractionType(className);
+			Set<ParameterHandle> parameterHandleSet = interactionType.getParameterHandles();
+
+			if (!containsAllParameters(parameterHandleSet, theParameters))
+			{
+				logger.warn("Ignored a received interaction of type {} which was missing one or more parameters.",
+						interactionClass);
+				return;
+			}
+
+			createInteraction(interactionType, theParameters);
+		}
+		catch (Exception e)
+		{
+			logger.warn("Could not receive interaction from the RTI\n[REASON]");
+			e.printStackTrace();
+		}
+	}
+
+	private static boolean containsAllParameters(Set<ParameterHandle> required, ParameterHandleValueMap candidate)
+	{
+		for (ParameterHandle parameterHandle : required)
+		{
+			if (!candidate.containsKey(parameterHandle))
+				return false;
+		}
+		return true;
+	}
+
+	private static void createInteraction(HlaInteractionType type, ParameterHandleValueMap valueMap)
+	{
+		EncoderFactory encoder = HlaManager.getEncoderFactory();
+		
+		String assemblerName = type.getAssemblerName();
+		IAssembler assembler = Registry.getAssembler(assemblerName);
+
+		Entity interactionEntity = assembler.assembleEntity();
+		HlaInteractionComponent interactionComponent = World.createComponent(HlaInteractionComponent.class);
+		interactionComponent.className = type.getName();
+		World.addComponent(interactionEntity, interactionComponent);
+
+		Set<String> parameterNames = type.getParameterNames();
+		parameterNames.forEach((parameterName) ->
+		{
+			ParameterHandle parameterHandle = type.getParameterHandle(parameterName);
+			byte[] parameterValue = valueMap.get(parameterHandle);
+			String adapterName = type.getAdapterName(parameterName);
+			IAdapter adapter = Registry.getAdapter(adapterName);
+			adapter.deserialize(interactionEntity, encoder, parameterValue);
+		});
+
+		HlaManager.addInteraction(interactionEntity);
+	}
 }
