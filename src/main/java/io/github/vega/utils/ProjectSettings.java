@@ -29,23 +29,66 @@
  * 
  */
 
-package io.github.vega.spacefom.assemblers;
+package io.github.vega.utils;
 
-import com.badlogic.ashley.core.Entity;
+import java.net.URL;
 
-import io.github.vega.core.IAssembler;
-import io.github.vega.core.World;
-import io.github.vega.spacefom.components.ExCoComponent;
-
-public class ExCoAssembler implements IAssembler
+public record ProjectSettings()
 {
-	@Override
-	public Entity assembleEntity()
+	public static String HOST_NAME;
+	public static String PORT_NUMBER;
+	public static String FEDERATION_NAME;
+	public static String FEDERATE_NAME;
+	public static URL[] FOM_MODULES;
+	
+	public static int MIN_ENTITIES;
+	public static int MAX_ENTITIES;
+	public static int MIN_COMPONENTS;
+	public static int MAX_COMPONENTS;
+	
+	private static String separatorStyle1 = "========================================";
+
+	public static void print()
 	{
-		Entity exCo = World.createEntity();
-		ExCoComponent exCoComponent = World.createComponent(ExCoComponent.class);
-		World.addComponent(exCo, exCoComponent);
+		System.out.println(separatorStyle1);
+		System.out.println("Settings for <" + FEDERATE_NAME + ">");
+		System.out.println(separatorStyle1 + "\n");
+		System.out.println("RTI Connection");
+		System.out.println(separatorStyle1);
+		System.out.println("Host: " + HOST_NAME);
+		System.out.println("Port: " + PORT_NUMBER);
+		System.out.println("Federation: " + FEDERATION_NAME + "\n");
+		printFomModules();
+		printEngineParameters();
+	}
+
+	public static void printFomModules()
+	{
+		System.out.println("HLA FOM Modules");
+		System.out.println(separatorStyle1);
 		
-		return exCo;
+		if (FOM_MODULES == null)
+		{
+			System.out.println("None");
+		}
+		else
+		{
+			for (URL url : FOM_MODULES)
+			{
+				System.out.println(url);
+			}
+		}
+		System.out.println();
+	}
+	
+	public static void printEngineParameters()
+	{
+		System.out.println("Simulation Engine Parameters");
+		System.out.println(separatorStyle1);
+		
+		System.out.println("Minimum Entities: " + MIN_ENTITIES);
+		System.out.println("Maximum Entities: " + MAX_ENTITIES);
+		System.out.println("Minimum Components: " + MIN_COMPONENTS);
+		System.out.println("Maximum Components: " + MAX_COMPONENTS + "\n");
 	}
 }

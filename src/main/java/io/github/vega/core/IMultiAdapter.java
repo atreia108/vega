@@ -29,12 +29,14 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.core;
 
-import com.badlogic.ashley.core.Component;
+import com.badlogic.ashley.core.Entity;
 
-public class HlaObjectComponent implements Component
+import hla.rti1516e.encoding.EncoderFactory;
+
+public interface IMultiAdapter
 {
-	public String className = "HLAobjectRoot";
-	public String instanceName = "";
+	public void deserialize(Entity entity, EncoderFactory encoder, byte[] buffer, int trigger);
+	public byte[] serialize(Entity entity, EncoderFactory encoder, int trigger);
 }
