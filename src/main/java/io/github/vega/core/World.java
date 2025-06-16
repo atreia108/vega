@@ -31,9 +31,7 @@
 
 package io.github.vega.core;
 
-import java.util.HashSet;
-import java.util.Set;
-
+import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.PooledEngine;
 
 import io.github.vega.utils.ProjectSettings;
@@ -41,7 +39,21 @@ import io.github.vega.utils.ProjectSettings;
 public class World
 {
 	private static PooledEngine engine;
-	private static Set<String> discoveredObjects = new HashSet<String>();
+	
+	public static Entity createEntity()
+	{
+		return engine.createEntity();
+	}
+	
+	public static void addEntity(Entity entity)
+	{
+		engine.addEntity(entity);
+	}
+	
+	public static void update()
+	{
+		engine.update(1.0f);
+	}
 	
 	public static void init()
 	{
@@ -49,10 +61,5 @@ public class World
 			return;
 		
 		engine = new PooledEngine(ProjectSettings.MIN_ENTITIES, ProjectSettings.MAX_ENTITIES, ProjectSettings.MIN_COMPONENTS, ProjectSettings.MAX_COMPONENTS);
-	}
-	
-	public static void update()
-	{
-		engine.update(1.0f);
 	}
 }

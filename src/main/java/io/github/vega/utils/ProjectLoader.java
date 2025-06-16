@@ -59,14 +59,14 @@ public class ProjectLoader
 
 	private Document projectFile;
 
-	private Element projectElement;
+	private Element simulationElement;
 	private Element rtiElement;
 	private Element fomModulesElement;
 	private Element requiredObjectsElement;
 	private Element objectClassesElement;
 	private Element interactionClassesElement;
 
-	private Element simulationElement;
+	private Element engineElement;
 
 	private static final int DEFAULT_MIN_ENTITIES = 1000;
 	private static final int DEFAULT_MAX_ENTITIES = 5000;
@@ -105,17 +105,17 @@ public class ProjectLoader
 		loadRequiredObjectsElement();
 		loadObjectClassesElement();
 		loadInteractionClassesElement();
-		loadSimulationElement();
+		loadEngineElement();
 
 		World.init();
 	}
 
 	private void loadProjectElement()
 	{
-		projectElement = projectFile.getRootElement();
-		String projectName = projectElement.attributeValue("Name");
+		simulationElement = projectFile.getRootElement();
+		String projectName = simulationElement.attributeValue("Name");
 
-		if (projectElement == null)
+		if (simulationElement == null)
 		{
 			LOGGER.error("Project initialization failed\n[REASON] The project file does not contain a root <Project> element");
 			System.exit(1);
@@ -127,7 +127,7 @@ public class ProjectLoader
 
 	private void loadRtiElement()
 	{
-		rtiElement = projectElement.element("Rti");
+		rtiElement = simulationElement.element("Rti");
 
 		if (rtiElement == null)
 		{
@@ -160,7 +160,7 @@ public class ProjectLoader
 
 	private void loadFomModulesElement()
 	{
-		fomModulesElement = projectElement.element("FomModules");
+		fomModulesElement = simulationElement.element("FomModules");
 
 		if (fomModulesElement == null)
 		{
@@ -231,7 +231,7 @@ public class ProjectLoader
 
 	private void loadRequiredObjectsElement()
 	{
-		requiredObjectsElement = projectElement.element("RequiredObjects");
+		requiredObjectsElement = simulationElement.element("RequiredObjects");
 
 		if (requiredObjectsElement == null)
 		{
@@ -275,7 +275,7 @@ public class ProjectLoader
 
 	private void loadObjectClassesElement()
 	{
-		objectClassesElement = projectElement.element("ObjectClasses");
+		objectClassesElement = simulationElement.element("ObjectClasses");
 
 		if (objectClassesElement == null)
 		{
@@ -292,10 +292,10 @@ public class ProjectLoader
 		}
 
 		while (iterator.hasNext())
-			objectType(iterator.next());
+			createObjectType(iterator.next());
 	}
 
-	private void objectType(Element objectClassElement)
+	private void createObjectType(Element objectClassElement)
 	{
 		elementNameCheck(objectClassElement, "ObjectClass");
 
@@ -317,7 +317,7 @@ public class ProjectLoader
 			System.exit(1);
 		}
 
-		newArchetype(archetypeName);
+		createArchetype(archetypeName);
 
 		HLAObjectType newObjectType = new HLAObjectType(typeName, archetypeName);
 		loadObjectAttributes(objectClassElement, newObjectType, typeName);
@@ -346,7 +346,7 @@ public class ProjectLoader
 		}
 	}
 
-	private void newArchetype(String archetypeName)
+	private void createArchetype(String archetypeName)
 	{
 		try
 		{
@@ -372,10 +372,10 @@ public class ProjectLoader
 		}
 
 		while (iterator.hasNext())
-			objectAttribute(iterator.next(), objectType);
+			loadObjectAttribute(iterator.next(), objectType);
 	}
 
-	private void objectAttribute(Element attributeElement, HLAObjectType objectType)
+	private void loadObjectAttribute(Element attributeElement, HLAObjectType objectType)
 	{
 		elementNameCheck(attributeElement, "Attribute");
 
@@ -399,7 +399,7 @@ public class ProjectLoader
 		PubSubModel pubSub = pubSubValue(publishFlag, subscribeFlag);
 		objectType.registerAttribute(objectAttributeName, pubSub);
 
-		attributeAdapter(attributeElement, objectAttributeName, objectType);
+		loadAttributeAdapter(attributeElement, objectAttributeName, objectType);
 	}
 
 	private boolean duplicateObjectAttribute(HLAObjectType objectType, String objectAttributeName)
@@ -435,7 +435,7 @@ public class ProjectLoader
 			return PubSubModel.PUBLISH_SUBSCRIBE;
 	}
 
-	private void attributeAdapter(Element attributeElement, String objectAttributeName, HLAObjectType objectType)
+	private void loadAttributeAdapter(Element attributeElement, String objectAttributeName, HLAObjectType objectType)
 	{
 		Element adapterElement = attributeElement.element("Adapter");
 		Element multiAdapterElement = attributeElement.element("MultiAdapter");
@@ -460,7 +460,7 @@ public class ProjectLoader
 			if (!adapterCreated(adapterClassName))
 			{
 				classExists(adapterClassName);
-				newAdapter(adapterClassName);
+				createAdapter(adapterClassName);
 			}
 			objectType.registerAdapter(objectAttributeName, adapterClassName);
 		}
@@ -476,13 +476,13 @@ public class ProjectLoader
 			if (!multiAdapterCreated(multiAdapterClassName))
 			{
 				classExists(multiAdapterClassName);
-				newMultiAdapter(multiAdapterClassName);
+				createMultiAdapter(multiAdapterClassName);
 			}
 			objectType.registerMultiAdapter(objectAttributeName, multiAdapterClassName, triggerValue);
 		}
 	}
 
-	private void newAdapter(String adapterClassName)
+	private void createAdapter(String adapterClassName)
 	{
 		try
 		{
@@ -497,7 +497,7 @@ public class ProjectLoader
 		}
 	}
 
-	private void newMultiAdapter(String multiAdapterClassName)
+	private void createMultiAdapter(String multiAdapterClassName)
 	{
 		try
 		{
@@ -514,7 +514,7 @@ public class ProjectLoader
 
 	private void loadInteractionClassesElement()
 	{
-		interactionClassesElement = projectElement.element("InteractionClasses");
+		interactionClassesElement = simulationElement.element("InteractionClasses");
 
 		if (interactionClassesElement == null)
 		{
@@ -531,10 +531,10 @@ public class ProjectLoader
 		}
 
 		while (iterator.hasNext())
-			interactionType(iterator.next());
+			createInteractionType(iterator.next());
 	}
 
-	private void interactionType(Element interactionClassElement)
+	private void createInteractionType(Element interactionClassElement)
 	{
 		elementNameCheck(interactionClassElement, "InteractionClass");
 
@@ -557,7 +557,7 @@ public class ProjectLoader
 		}
 
 		if (!archetypeCreated(archetypeName))
-			newArchetype(archetypeName);
+			createArchetype(archetypeName);
 
 		String publishFlag = interactionClassElement.attributeValue("Publish");
 		nullOrEmptyAttribute("InteractionClass", "Publish", publishFlag);
@@ -602,10 +602,10 @@ public class ProjectLoader
 		}
 
 		while (iterator.hasNext())
-			interactionParameter(iterator.next(), interactionType);
+			createInteractionParameter(iterator.next(), interactionType);
 	}
 
-	private void interactionParameter(Element parameterElement, HLAInteractionType interactionType)
+	private void createInteractionParameter(Element parameterElement, HLAInteractionType interactionType)
 	{
 		elementNameCheck(parameterElement, "Parameter");
 
@@ -620,7 +620,7 @@ public class ProjectLoader
 
 		interactionType.registerParameter(interactionParameterName);
 
-		parameterAdapter(parameterElement, interactionParameterName, interactionType);
+		loadParameterAdapter(parameterElement, interactionParameterName, interactionType);
 	}
 
 	private boolean duplicateInteractionParameter(HLAInteractionType interactionType, String parameterName)
@@ -632,7 +632,7 @@ public class ProjectLoader
 			return false;
 	}
 
-	private void parameterAdapter(Element parameterElement, String parameterName, HLAInteractionType interactionType)
+	private void loadParameterAdapter(Element parameterElement, String parameterName, HLAInteractionType interactionType)
 	{
 		Element adapterElement = parameterElement.element("Adapter");
 		Element multiAdapterElement = parameterElement.element("MultiAdapter");
@@ -657,7 +657,7 @@ public class ProjectLoader
 			if (!adapterCreated(adapterClassName))
 			{
 				classExists(adapterClassName);
-				newAdapter(adapterClassName);
+				createAdapter(adapterClassName);
 			}
 
 			interactionType.registerAdapter(parameterName, adapterClassName);
@@ -674,7 +674,7 @@ public class ProjectLoader
 			if (!multiAdapterCreated(multiAdapterClassName))
 			{
 				classExists(multiAdapterClassName);
-				newMultiAdapter(multiAdapterClassName);
+				createMultiAdapter(multiAdapterClassName);
 			}
 			interactionType.registerMultiAdapter(parameterName, multiAdapterClassName, triggerValue);
 		}
@@ -696,25 +696,16 @@ public class ProjectLoader
 			return false;
 	}
 
-	private void loadSimulationElement()
+	private void loadEngineElement()
 	{
-		simulationElement = projectElement.element("Simulation");
+		engineElement = simulationElement.element("Engine");
 
 		// The ECS world needs to be initialized with certain starting parameters. If
 		// these are absent from the project file, load stored defaults.
-		if (simulationElement == null)
-		{
-			LOGGER.warn("No parameters are specified for the simulation engine. Using default values instead.");
-			loadSimulationElementDefaults();
-			return;
-		}
-
-		Element engineElement = simulationElement.element("Engine");
-
 		if (engineElement == null)
 		{
 			LOGGER.warn("No parameters are specified for the simulation engine. Using default values instead.");
-			loadSimulationElementDefaults();
+			loadEngineElementDefaults();
 			return;
 		}
 
@@ -759,7 +750,7 @@ public class ProjectLoader
 		boundsCheck("MinComponents", "MaxComponents", ProjectSettings.MIN_COMPONENTS, ProjectSettings.MAX_COMPONENTS);
 	}
 
-	private void loadSimulationElementDefaults()
+	private void loadEngineElementDefaults()
 	{
 		ProjectSettings.MIN_ENTITIES = DEFAULT_MIN_ENTITIES;
 		ProjectSettings.MAX_ENTITIES = DEFAULT_MAX_ENTITIES;

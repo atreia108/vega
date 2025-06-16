@@ -29,11 +29,52 @@
  * 
  */
 
-package io.github.vega.components;
+package io.github.vega.hla;
 
-import com.badlogic.ashley.core.Component;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-public class HLAInteractionComponent implements Component
+import hla.rti1516e.RTIambassador;
+import hla.rti1516e.RtiFactory;
+import hla.rti1516e.RtiFactoryFactory;
+
+public class HLAManager
 {
-	public String className = "";
+	private static final Logger LOGGER = LogManager.getLogger();
+	
+	protected static RtiFactory rtiFactory;
+	protected static RTIambassador rtiAmbassador;
+	
+	static 
+	{
+		try
+		{
+			rtiFactory = RtiFactoryFactory.getRtiFactory();
+			rtiAmbassador = rtiFactory.getRtiAmbassador();
+		}
+		catch (Exception e) {
+			LOGGER.error("Project initialization failed\n[REASON]");
+			System.exit(1);
+		}
+	}
+	
+	public static void connect()
+	{
+		
+	}
+	
+	public static void disconnect()
+	{
+		
+	}
+	
+	public static void declareAllObjects()
+	{
+		
+	}
+	
+	public static void declareAllInteractions()
+	{
+		
+	}
 }
