@@ -29,11 +29,27 @@
  * 
  */
 
-package io.github.vega.components;
+package io.github.vega.hla;
 
-import com.badlogic.ashley.core.Component;
-
-public class HLAInteractionComponent implements Component
+public enum PubSubIntent
 {
-	public String className = "";
+	NONE,
+	PUBLISH_ONLY,
+	PUBLISH_SUBSCRIBE,
+	SUBSCRIBE_ONLY;
+	
+	public static String toString(PubSubIntent pubSub)
+	{
+		switch (pubSub)
+		{
+			case PUBLISH_ONLY:
+				return "Publish";
+			case PUBLISH_SUBSCRIBE:
+				return "Publish/Subscribe";
+			case SUBSCRIBE_ONLY:
+				return "Subscribe";
+			default:
+				return "None";
+		}
+	}
 }

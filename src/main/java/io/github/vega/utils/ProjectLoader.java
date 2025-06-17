@@ -51,7 +51,7 @@ import io.github.vega.core.IMultiAdapter;
 import io.github.vega.core.World;
 import io.github.vega.hla.HLAInteractionType;
 import io.github.vega.hla.HLAObjectType;
-import io.github.vega.hla.PubSubModel;
+import io.github.vega.hla.PubSubIntent;
 
 public class ProjectLoader
 {
@@ -396,7 +396,7 @@ public class ProjectLoader
 		nullOrEmptyAttribute("Attribute", "Subscribe", subscribeFlag);
 		pubSubFlagCheck("Subscribe", subscribeFlag);
 
-		PubSubModel pubSub = pubSubValue(publishFlag, subscribeFlag);
+		PubSubIntent pubSub = intentValue(publishFlag, subscribeFlag);
 		objectType.registerAttribute(objectAttributeName, pubSub);
 
 		loadAttributeAdapter(attributeElement, objectAttributeName, objectType);
@@ -420,19 +420,19 @@ public class ProjectLoader
 		}
 	}
 
-	private PubSubModel pubSubValue(String publishValue, String subscribeValue)
+	private PubSubIntent intentValue(String publishValue, String subscribeValue)
 	{
 		boolean publishFlag = publishValue.equals("True") ? true : false;
 		boolean subscribeFlag = subscribeValue.equals("True") ? true : false;
 
 		if (publishFlag && subscribeFlag)
-			return PubSubModel.PUBLISH_SUBSCRIBE;
+			return PubSubIntent.PUBLISH_SUBSCRIBE;
 		else if (publishFlag && !subscribeFlag)
-			return PubSubModel.PUBLISH_ONLY;
+			return PubSubIntent.PUBLISH_ONLY;
 		else if (!publishFlag && subscribeFlag)
-			return PubSubModel.SUBSCRIBE_ONLY;
+			return PubSubIntent.SUBSCRIBE_ONLY;
 		else
-			return PubSubModel.PUBLISH_SUBSCRIBE;
+			return PubSubIntent.PUBLISH_SUBSCRIBE;
 	}
 
 	private void loadAttributeAdapter(Element attributeElement, String objectAttributeName, HLAObjectType objectType)
@@ -567,7 +567,7 @@ public class ProjectLoader
 		nullOrEmptyAttribute("InteractionClass", "Subscribe", subscribeFlag);
 		pubSubFlagCheck("Subscribe", subscribeFlag);
 
-		PubSubModel pubSub = pubSubValue(publishFlag, subscribeFlag);
+		PubSubIntent pubSub = intentValue(publishFlag, subscribeFlag);
 
 		HLAInteractionType newInteractionType = new HLAInteractionType(typeName, archetypeName, pubSub);
 		loadInteractionParameters(interactionClassElement, newInteractionType, typeName);

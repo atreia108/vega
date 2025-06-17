@@ -80,6 +80,11 @@
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.13.0</version>
+				<configuration>
+					<compilerArgs>
+						<arg>-parameters</arg>
+					</compilerArgs>
+				</configuration>
 			</plugin>
 			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -117,10 +122,12 @@
 						<goals>
 							<goal>shade</goal>
 						</goals>
-						<!-- log4j2 requires the Uber JAR's Manifest to be marked as Multi-Release -->
+						<!-- log4j2 requires the Uber JAR's Manifest to be
+						marked as Multi-Release -->
 						<configuration>
 							<transformers>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<manifestEntries>
 										<Multi-Release>true</Multi-Release>
 									</manifestEntries>

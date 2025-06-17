@@ -29,15 +29,53 @@
  * 
  */
 
-package io.github.vega.components;
+package io.github.vega.utils;
 
-import com.badlogic.ashley.core.Component;
+import java.util.concurrent.CountDownLatch;
 
-import hla.rti1516e.ObjectInstanceHandle;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-public class HLAObjectComponent implements Component
+public class ExecutionLatch
 {
-	public String className = "";
-	public String instanceName = "";
-	public ObjectInstanceHandle instanceHandle = null;
+	private static final Logger LOGGER = LogManager.getLogger();
+
+	private static CountDownLatch latch;
+
+	public static void enable()
+	{
+		if (active())
+			LOGGER.warn("The execution latch cannot be enabled until the currently executing operation is terminated.");
+
+		latch = new CountDownLatch(1);
+
+		try
+		{
+			latch.await();
+		}
+		catch (InterruptedException e)
+		{
+			LOGGER.error("Simulation was terminated prematurely\n[REASON]", e);
+			System.exit(1);
+		}
+	}
+
+	public static void disable()
+	{
+		if (!active())
+			LOGGER.warn("Cannot disable the execution latch since it has yet to be enabled.");
+		else
+		{
+			latch.countDown();
+			latch = null;
+		}
+	}
+
+	public static boolean active()
+	{
+		if (latch != null)
+			return true;
+		else
+			return false;
+	}
 }

@@ -45,7 +45,7 @@ import io.github.vega.core.IEntityArchetype;
 import io.github.vega.core.IMultiAdapter;
 import io.github.vega.hla.HLAInteractionType;
 import io.github.vega.hla.HLAObjectType;
-import io.github.vega.hla.PubSubModel;
+import io.github.vega.hla.PubSubIntent;
 
 public record ProjectRegistry()
 {
@@ -175,7 +175,7 @@ public record ProjectRegistry()
 			
 			for (String attributeName : objectType.attributeNames)
 			{
-				String pubSub = PubSubModel.toString(objectType.lookupPubSub(attributeName));
+				String pubSub = PubSubIntent.toString(objectType.lookupIntent(attributeName));
 				
 				if (objectType.multiAdapter(attributeName))
 				{
@@ -202,7 +202,7 @@ public record ProjectRegistry()
 		
 		for (HLAInteractionType interactionType : interactionTypes)
 		{
-			String pubSub = PubSubModel.toString(interactionType.pubSub);
+			String pubSub = PubSubIntent.toString(interactionType.intent);
 			System.out.println("<" + interactionType.name + ">" + " [" + pubSub + "]");
 			System.out.println("Archetype: " + trimClassName(interactionType.archetypeName));
 			System.out.println(separatorStyle2);

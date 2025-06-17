@@ -29,11 +29,11 @@
  * 
  */
 
-package io.github.vega.components;
+package io.github.vega.spacefom.components;
 
 import com.badlogic.ashley.core.Component;
 
-public class ExCOComponent implements Component
+public class MTRComponent implements Component
 {
 
 }

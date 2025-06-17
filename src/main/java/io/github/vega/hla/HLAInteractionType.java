@@ -43,27 +43,29 @@ public class HLAInteractionType
 {
 	public String name;
 	public String archetypeName;
-	public PubSubModel pubSub;
+	public PubSubIntent intent;
 	public InteractionClassHandle classHandle;
 	public Set<String> parameterNames;
 	public Map<String, String> parameterAdapterNameMap;
 	public Map<String, ParameterHandle> parameterHandleMap;
-	public boolean intentDeclared;
-	
 	public Map<String, Map<String, Integer>> parameterMultiAdapterNameMap;
 	
-	public HLAInteractionType(String name, String archetypeName, PubSubModel pubSub)
+	// A flag used to determine whether an HLA object/interaction type should be automatically declared to the RTI or not.
+	// If set to false, it means we intend to manually handle the declaration ourselves.
+	public boolean declareIntent;
+	
+	public HLAInteractionType(String name, String archetypeName, PubSubIntent pubSub)
 	{
 		this.name = name;
 		this.archetypeName = archetypeName;
-		this.pubSub = pubSub;
+		this.intent = pubSub;
 		
 		parameterNames = new HashSet<String>();
 		parameterAdapterNameMap = new HashMap<String, String>();
 		parameterHandleMap = new HashMap<String, ParameterHandle>();
-		intentDeclared = false;
 		
 		parameterMultiAdapterNameMap = new HashMap<String, Map<String,Integer>>();
+		declareIntent = true;
 	}
 	
 	public void registerParameter(String parameterName)

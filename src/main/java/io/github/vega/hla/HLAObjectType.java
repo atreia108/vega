@@ -47,11 +47,13 @@ public class HLAObjectType
 	public Set<String> attributeNames;
 	public Map<String, String> attributeAdapterNameMap;
 	public Map<String, AttributeHandle> attributeHandleMap;
-	public Map<String, PubSubModel> attributePubSubMap;
-	public boolean intentDeclared;
-
+	public Map<String, PubSubIntent> attributePubSubMap;
 	public Map<String, Map<String, Integer>> attributeMultiAdapterNameMap;
 
+	// A flag used to determine whether an HLA object/interaction type should be automatically declared to the RTI or not.
+	// If set to false, it means we intend to manually handle the declaration ourselves.
+	public boolean declareIntent;
+	
 	public HLAObjectType(String name, String archetypeName)
 	{
 		this.name = name;
@@ -61,16 +63,16 @@ public class HLAObjectType
 		attributeAdapterNameMap = new HashMap<String, String>();
 
 		attributeHandleMap = new HashMap<String, AttributeHandle>();
-		attributePubSubMap = new HashMap<String, PubSubModel>();
-		intentDeclared = false;
+		attributePubSubMap = new HashMap<String, PubSubIntent>();
 
 		attributeMultiAdapterNameMap = new HashMap<String, Map<String, Integer>>();
+		declareIntent = true;
 	}
 
-	public void registerAttribute(String attributeName, PubSubModel pubSub)
+	public void registerAttribute(String attributeName, PubSubIntent intent)
 	{
 		attributeNames.add(attributeName);
-		attributePubSubMap.put(attributeName, pubSub);
+		attributePubSubMap.put(attributeName, intent);
 	}
 
 	public void registerAdapter(String attributeName, String adapterName)
@@ -136,7 +138,7 @@ public class HLAObjectType
 			return false;
 	}
 
-	public PubSubModel lookupPubSub(String attributeName)
+	public PubSubIntent lookupIntent(String attributeName)
 	{
 		return attributePubSubMap.get(attributeName);
 	}
