@@ -37,7 +37,7 @@ import hla.rti1516e.ObjectInstanceHandle;
 
 public class HLAObjectComponent implements Component
 {
-	public String className = "";
-	public String instanceName = "";
-	public ObjectInstanceHandle instanceHandle = null;
+	public String className = null;
+	public String instanceName = null;
+	public ObjectInstanceHandle handle = null;
 }

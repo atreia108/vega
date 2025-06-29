@@ -45,13 +45,12 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
-import io.github.vega.core.IAdapter;
+import io.github.vega.core.IDataConverter;
 import io.github.vega.core.IEntityArchetype;
-import io.github.vega.core.IMultiAdapter;
-import io.github.vega.core.World;
-import io.github.vega.hla.HLAInteractionType;
-import io.github.vega.hla.HLAObjectType;
-import io.github.vega.hla.PubSubIntent;
+import io.github.vega.core.IMultiDataConverter;
+import io.github.vega.hla.VegaInteractionClass;
+import io.github.vega.hla.VegaObjectClass;
+import io.github.vega.hla.SharingModel;
 
 public class ProjectLoader
 {
@@ -60,7 +59,7 @@ public class ProjectLoader
 	private Document projectFile;
 
 	private Element simulationElement;
-	private Element rtiElement;
+	private Element rtiConfigurationElement;
 	private Element fomModulesElement;
 	private Element requiredObjectsElement;
 	private Element objectClassesElement;
@@ -99,50 +98,51 @@ public class ProjectLoader
 
 	private void loadElements()
 	{
-		loadProjectElement();
-		loadRtiElement();
+		// Items to be loaded into Project settings
+		loadSimulationElement();
+		loadRtiConfigElement();
 		loadFomModulesElement();
+
+		// Items to be loaded into the Project registry
 		loadRequiredObjectsElement();
 		loadObjectClassesElement();
 		loadInteractionClassesElement();
 		loadEngineElement();
-
-		World.init();
 	}
 
-	private void loadProjectElement()
+	private void loadSimulationElement()
 	{
 		simulationElement = projectFile.getRootElement();
 		String projectName = simulationElement.attributeValue("Name");
 
 		if (simulationElement == null)
 		{
-			LOGGER.error("Project initialization failed\n[REASON] The project file does not contain a root <Project> element");
+			LOGGER.error("Project initialization failed\n[REASON] The project file does not contain a root <Simulation> element");
 			System.exit(1);
 		}
 
-		nullOrEmptyAttribute("Project", "Name", projectName);
+		nullOrEmptyAttribute("Simulation", "Name", projectName);
 		ProjectSettings.FEDERATE_NAME = projectName;
 	}
 
-	private void loadRtiElement()
+	private void loadRtiConfigElement()
 	{
-		rtiElement = simulationElement.element("Rti");
+		rtiConfigurationElement = simulationElement.element("RtiConfiguration");
 
-		if (rtiElement == null)
+		if (rtiConfigurationElement == null)
 		{
-			LOGGER.error("Project initialization failed\n[REASON] The project file does not contain an <Rti> element");
+			LOGGER.error("Project initialization failed\n[REASON] The project file does not contain an <RtiConfiguration> element");
 			System.exit(1);
 		}
 
-		String hostName = rtiElement.attributeValue("Host");
-		nullOrEmptyAttribute("Rti", "Host", hostName);
+		String hostName = rtiConfigurationElement.attributeValue("Host");
+		nullOrEmptyAttribute("RtiConfiguration", "Host", hostName);
 
-		String portNumber = rtiElement.attributeValue("Port");
-		nullOrEmptyAttribute("Rti", "Port", portNumber);
+		String portNumber = rtiConfigurationElement.attributeValue("Port");
+		nullOrEmptyAttribute("RtiConfiguration", "Port", portNumber);
 
-		String federationName = rtiElement.attributeValue("Federation");
-		nullOrEmptyAttribute("Rti", "Federation", federationName);
+		String federationName = rtiConfigurationElement.attributeValue("Federation");
+		nullOrEmptyAttribute("RtiConfiguration", "Federation", federationName);
 
 		ProjectSettings.HOST_NAME = hostName;
 		ProjectSettings.PORT_NUMBER = portNumber;
@@ -153,7 +153,7 @@ public class ProjectLoader
 	{
 		if (attributeValue == null || attributeValue.isEmpty())
 		{
-			LOGGER.error("Project initialization failed\n[REASON] The <{}> element is missing the \"{}\" attribute in the project file", elementName, attributeName);
+			LOGGER.error("Project initialization failed\n[REASON] The <{}> element is missing the \"{}\" attribute", elementName, attributeName);
 			System.exit(1);
 		}
 	}
@@ -164,7 +164,7 @@ public class ProjectLoader
 
 		if (fomModulesElement == null)
 		{
-			LOGGER.warn("No FOM modules are specified. Assuming no extensions to the SpaceFOM are used in this simulation");
+			LOGGER.warn("No FOM modules are specified. Assuming no FOM data extensions are used in this simulation");
 			return;
 		}
 
@@ -172,7 +172,7 @@ public class ProjectLoader
 
 		if (!iterator.hasNext())
 		{
-			LOGGER.warn("No FOM modules are specified. Assuming no extensions to the SpaceFOM are used in this simulation");
+			LOGGER.warn("No FOM modules are specified. Assuming no FOM data extensions are used in this simulation");
 			return;
 		}
 
@@ -235,7 +235,7 @@ public class ProjectLoader
 
 		if (requiredObjectsElement == null)
 		{
-			LOGGER.warn("No required objects are specified. Assuming there are no objects that must be discovered before starting the simulation.");
+			LOGGER.warn("No required objects are specified. Assuming there are no object instances that must be discovered before starting the simulation.");
 			return;
 		}
 
@@ -243,7 +243,7 @@ public class ProjectLoader
 
 		if (!iterator.hasNext())
 		{
-			LOGGER.warn("No required objects are specified. Assuming there are no objects that must be discovered before starting the simulation.");
+			LOGGER.warn("No required objects are specified. Assuming there are no object instances that must be discovered before starting the simulation.");
 			return;
 		}
 
@@ -252,25 +252,26 @@ public class ProjectLoader
 		while (iterator.hasNext())
 		{
 			Element requiredObjectElement = iterator.next();
-			elementNameCheck(requiredObjectElement, "RequiredObject");
 
-			String objectName = requiredObjectElement.attributeValue("Name");
-			nullOrEmptyAttribute("RequiredObject", "Name", objectName);
-			requiredObjects.add(objectName);
+			if (elementNameCheck(requiredObjectElement, "Object"))
+			{
+				String objectName = requiredObjectElement.attributeValue("Name");
+				nullOrEmptyAttribute("Object", "Name", objectName);
+				requiredObjects.add(objectName);
+			}
 		}
 
 		ProjectRegistry.requiredObjects = requiredObjects;
 	}
 
-	private void elementNameCheck(Element element, String comparison)
+	private boolean elementNameCheck(Element element, String comparison)
 	{
 		String elementName = element.getName();
 
-		if (!elementName.equals(comparison))
-		{
-			LOGGER.error("Project initialization failed\n[REASON] Unknown element \"{}\" encountered instead of expected \"{}\"", elementName, comparison);
-			System.exit(1);
-		}
+		if (elementName.equals(comparison))
+			return true;
+		else
+			return false;
 	}
 
 	private void loadObjectClassesElement()
@@ -279,7 +280,7 @@ public class ProjectLoader
 
 		if (objectClassesElement == null)
 		{
-			LOGGER.warn("No HLA object classes are specified. Automatic publish/subscribe will be skipped and no updates will be received for any object from the RTI");
+			LOGGER.warn("No HLA object classes are specified. Automatic publish/subscribe will be skipped and no updates will be sent or received for any object");
 			return;
 		}
 
@@ -287,47 +288,56 @@ public class ProjectLoader
 
 		if (!iterator.hasNext())
 		{
-			LOGGER.warn("No HLA object classes are specified. Automatic publish/subscribe will be skipped and no updates will be received for any object from the RTI");
+			LOGGER.warn("No HLA object classes are specified. Automatic publish/subscribe will be skipped and no updates will be sent or received for any object");
 			return;
 		}
 
 		while (iterator.hasNext())
-			createObjectType(iterator.next());
+			createObjectClass(iterator.next());
 	}
 
-	private void createObjectType(Element objectClassElement)
+	private void createObjectClass(Element objectClassElement)
 	{
-		elementNameCheck(objectClassElement, "ObjectClass");
-
-		String typeName = objectClassElement.attributeValue("Type");
-		nullOrEmptyAttribute("ObjectClass", "Type", typeName);
-
-		if (duplicateObjectType(typeName))
+		if (elementNameCheck(objectClassElement, "ObjectClass"))
 		{
-			LOGGER.warn("Skipping duplicate definition for the HLA object class <{}>", typeName);
-			return;
+			String className = objectClassElement.attributeValue("Name");
+			nullOrEmptyAttribute("ObjectClass", "Name", className);
+
+			if (duplicateObjectClass(className))
+			{
+				LOGGER.warn("Skipping duplicate definition for the HLA object class <{}>", className);
+				return;
+			}
+
+			String archetypeName = objectClassElement.attributeValue("Archetype");
+			nullOrEmptyAttribute("ObjectClass", "Archetype", archetypeName);
+
+			if (!classExists(archetypeName))
+			{
+				LOGGER.error("Project initialization failed\n[REASON] The Java class definition for the archetype \"{}\" was not found", archetypeName);
+				System.exit(1);
+			}
+
+			if (!archetypeCreated(archetypeName))
+				createArchetype(archetypeName);
+
+			Element declarationElement = objectClassElement.element("DeclarationDisabled");
+			VegaObjectClass newObjectClass = null;
+
+			if (declarationElement != null)
+				newObjectClass = new VegaObjectClass(className, archetypeName, false);
+			else
+				newObjectClass = new VegaObjectClass(className, archetypeName, true);
+
+			loadObjectAttributes(objectClassElement, newObjectClass);
+
+			ProjectRegistry.addObjectClass(newObjectClass);
 		}
-
-		String archetypeName = objectClassElement.attributeValue("Archetype");
-		nullOrEmptyAttribute("ObjectClass", "Archetype", archetypeName);
-
-		if (!classExists(archetypeName))
-		{
-			LOGGER.error("Project initialization failed\n[REASON] The Java class definition for the archetype \"{}\" was not found", archetypeName);
-			System.exit(1);
-		}
-
-		createArchetype(archetypeName);
-
-		HLAObjectType newObjectType = new HLAObjectType(typeName, archetypeName);
-		loadObjectAttributes(objectClassElement, newObjectType, typeName);
-
-		ProjectRegistry.addObjectType(newObjectType);
 	}
 
-	private boolean duplicateObjectType(String typeName)
+	private boolean duplicateObjectClass(String className)
 	{
-		if (ProjectRegistry.lookupObjectType(typeName) != null)
+		if (ProjectRegistry.getObjectClass(className) != null)
 			return true;
 		else
 			return false;
@@ -354,6 +364,11 @@ public class ProjectLoader
 			IEntityArchetype archetype = (IEntityArchetype) archetypeClass.getDeclaredConstructor().newInstance();
 			ProjectRegistry.addArchetype(archetypeName, archetype);
 		}
+		catch (ClassCastException e) 
+		{
+			LOGGER.error("Project Initialization failed\n[REASON] Could not create the Entity Archetype \"{}\". The Java class provided as source is not of the type <IEntityArchetype>", archetypeName);
+			System.exit(1);
+		}
 		catch (Exception e)
 		{
 			LOGGER.error("Project initialization failed\n[REASON]", e);
@@ -361,134 +376,120 @@ public class ProjectLoader
 		}
 	}
 
-	private void loadObjectAttributes(Element objectClassElement, HLAObjectType objectType, String objectTypeName)
+	private void loadObjectAttributes(Element objectClassElement, VegaObjectClass objectClass)
 	{
 		Iterator<Element> iterator = objectClassElement.elementIterator();
 
 		if (!iterator.hasNext())
 		{
-			LOGGER.warn("No attributes specified for the HLA object class <" + objectTypeName + ">. Updates for instances of this type will likely not be received from the RTI");
+			LOGGER.warn("No attributes specified for the HLA object class <" + objectClass.name + ">. Updates for instances of this type will likely not be sent or received");
 			return;
 		}
 
 		while (iterator.hasNext())
-			loadObjectAttribute(iterator.next(), objectType);
+		{
+			Element nextElement = iterator.next();
+			if (elementNameCheck(nextElement, "Attribute"))
+				loadObjectAttribute(nextElement, objectClass);
+		}
 	}
 
-	private void loadObjectAttribute(Element attributeElement, HLAObjectType objectType)
+	private void loadObjectAttribute(Element attributeElement, VegaObjectClass objectClass)
 	{
-		elementNameCheck(attributeElement, "Attribute");
 
 		String objectAttributeName = attributeElement.attributeValue("Name");
 		nullOrEmptyAttribute("Attribute", "Name", objectAttributeName);
 
-		if (duplicateObjectAttribute(objectType, objectAttributeName))
+		if (duplicateObjectAttribute(objectClass, objectAttributeName))
 		{
-			LOGGER.warn("Skipping duplicate attribute definition \"{}\" in the HLA object class <{}>", objectAttributeName, objectType.name);
+			LOGGER.warn("Skipping duplicate attribute definition \"{}\" in the HLA object class <{}>", objectAttributeName, objectClass.name);
 			return;
 		}
 
-		String publishFlag = attributeElement.attributeValue("Publish");
-		nullOrEmptyAttribute("Attribute", "Publish", publishFlag);
-		pubSubFlagCheck("Publish", publishFlag);
+		String sharingIntentValue = attributeElement.attributeValue("Sharing");
+		nullOrEmptyAttribute("Attribute", "Sharing", objectAttributeName);
+		SharingModel sharingModel = sharingModelValue(sharingIntentValue);
 
-		String subscribeFlag = attributeElement.attributeValue("Subscribe");
-		nullOrEmptyAttribute("Attribute", "Subscribe", subscribeFlag);
-		pubSubFlagCheck("Subscribe", subscribeFlag);
+		objectClass.addAttribute(objectAttributeName, sharingModel);
 
-		PubSubIntent pubSub = intentValue(publishFlag, subscribeFlag);
-		objectType.registerAttribute(objectAttributeName, pubSub);
-
-		loadAttributeAdapter(attributeElement, objectAttributeName, objectType);
+		loadAttributeConverter(attributeElement, objectAttributeName, objectClass);
 	}
 
-	private boolean duplicateObjectAttribute(HLAObjectType objectType, String objectAttributeName)
+	private boolean duplicateObjectAttribute(VegaObjectClass objectClass, String objectAttributeName)
 	{
-		boolean exists = objectType.attributeNames.contains(objectAttributeName);
+		boolean exists = objectClass.attributeNames.contains(objectAttributeName);
 		if (exists)
 			return true;
 		else
 			return false;
 	}
 
-	private void pubSubFlagCheck(String flagType, String flagValue)
+	private SharingModel sharingModelValue(String sharingValue)
 	{
-		if (!(flagValue.equals("True") || flagValue.equals("False")))
+		sharingModelCheck(sharingValue);
+
+		switch (sharingValue)
 		{
-			LOGGER.error("Project initialization failed\n[REASON] Unrecognized value \"{}\" for the \"{}\" attribute. Only \"True\" or \"False\" is considered valid", flagValue, flagType);
+			case "Publish":
+				return SharingModel.PUBLISH_ONLY;
+			case "Subscribe":
+				return SharingModel.SUBSCRIBE_ONLY;
+			default:
+				return SharingModel.PUBLISH_SUBSCRIBE;
+		}
+	}
+
+	private void sharingModelCheck(String sharingValue)
+	{
+		if (!(sharingValue.equals("Publish") || sharingValue.equals("Subscribe") || sharingValue.equals("PublishSubscribe")))
+		{
+			LOGGER.error("Project initialization failed\n[REASON] Unrecognized value \"{}\" for the \"Sharing\" attribute. Only \"Publish\", \"Subscribe\" or \"PublishSubscribe\" are considered valid", sharingValue);
 			System.exit(1);
 		}
 	}
 
-	private PubSubIntent intentValue(String publishValue, String subscribeValue)
+	private void loadAttributeConverter(Element attributeElement, String objectAttributeName, VegaObjectClass objectClass)
 	{
-		boolean publishFlag = publishValue.equals("True") ? true : false;
-		boolean subscribeFlag = subscribeValue.equals("True") ? true : false;
+		Element converterElement = attributeElement.element("DataConverter");
+		String converterClassName = converterElement.attributeValue("Source");
+		nullOrEmptyAttribute("DataConverter", "Source", converterClassName);
 
-		if (publishFlag && subscribeFlag)
-			return PubSubIntent.PUBLISH_SUBSCRIBE;
-		else if (publishFlag && !subscribeFlag)
-			return PubSubIntent.PUBLISH_ONLY;
-		else if (!publishFlag && subscribeFlag)
-			return PubSubIntent.SUBSCRIBE_ONLY;
-		else
-			return PubSubIntent.PUBLISH_SUBSCRIBE;
-	}
+		String converterTrigger = converterElement.attributeValue("Trigger");
 
-	private void loadAttributeAdapter(Element attributeElement, String objectAttributeName, HLAObjectType objectType)
-	{
-		Element adapterElement = attributeElement.element("Adapter");
-		Element multiAdapterElement = attributeElement.element("MultiAdapter");
-
-		if (adapterElement == null && multiAdapterElement == null)
+		if (converterTrigger == null)
 		{
-			LOGGER.error("Project initialization failed\n[REASON] Adapter/MultiAdapter element missing for the object class attribute \"{}\"", objectAttributeName);
-			System.exit(1);
-		}
-
-		if (adapterElement != null && multiAdapterElement != null)
-		{
-			LOGGER.error("Project initialization failed\n[REASON] The object class attribute \"{}\" is not allowed to have both an adapter *and* multi-adapter", objectAttributeName);
-			System.exit(1);
-		}
-
-		if (adapterElement != null)
-		{
-			String adapterClassName = adapterElement.attributeValue("Class");
-			nullOrEmptyAttribute("Adapter", "Class", adapterClassName);
-
-			if (!adapterCreated(adapterClassName))
+			if (!converterCreated(converterClassName))
 			{
-				classExists(adapterClassName);
-				createAdapter(adapterClassName);
+				classExists(converterClassName);
+				createDataConverter(converterClassName);
 			}
-			objectType.registerAdapter(objectAttributeName, adapterClassName);
+			objectClass.addConverter(objectAttributeName, converterClassName);
 		}
 		else
 		{
-			String multiAdapterClassName = multiAdapterElement.attributeValue("Class");
-			nullOrEmptyAttribute("MultiAdapter", "Class", multiAdapterClassName);
+			int triggerValue = toInteger("Trigger", converterTrigger);
 
-			String multiAdapterTrigger = multiAdapterElement.attributeValue("Trigger");
-			nullOrEmptyAttribute("MultiAdapter", "Trigger", multiAdapterTrigger);
-			int triggerValue = toInteger("Trigger", multiAdapterTrigger);
-
-			if (!multiAdapterCreated(multiAdapterClassName))
+			if (!multiConverterCreated(converterClassName))
 			{
-				classExists(multiAdapterClassName);
-				createMultiAdapter(multiAdapterClassName);
+				classExists(converterClassName);
+				createMultiDataConverter(converterClassName);
 			}
-			objectType.registerMultiAdapter(objectAttributeName, multiAdapterClassName, triggerValue);
+			objectClass.addMultiConverter(objectAttributeName, converterClassName, triggerValue);
 		}
 	}
 
-	private void createAdapter(String adapterClassName)
+	private void createDataConverter(String converterName)
 	{
 		try
 		{
-			Class<?> adapterClass = Class.forName(adapterClassName);
-			IAdapter adapter = (IAdapter) adapterClass.getDeclaredConstructor().newInstance();
-			ProjectRegistry.addAdapter(adapterClassName, adapter);
+			Class<?> converterClass = Class.forName(converterName);
+			IDataConverter converter = (IDataConverter) converterClass.getDeclaredConstructor().newInstance();
+			ProjectRegistry.addDataConverter(converterName, converter);
+		}
+		catch (ClassCastException e) 
+		{
+			LOGGER.error("Project Initialization failed\n[REASON] Could not create the data converter \"{}\". The Java class provided as source is not of the type <IDataConverter>", converterName);
+			System.exit(1);
 		}
 		catch (Exception e)
 		{
@@ -497,13 +498,18 @@ public class ProjectLoader
 		}
 	}
 
-	private void createMultiAdapter(String multiAdapterClassName)
+	private void createMultiDataConverter(String converterName)
 	{
 		try
 		{
-			Class<?> multiAdapterClass = Class.forName(multiAdapterClassName);
-			IMultiAdapter multiAdapter = (IMultiAdapter) multiAdapterClass.getDeclaredConstructor().newInstance();
-			ProjectRegistry.addMultiAdapter(multiAdapterClassName, multiAdapter);
+			Class<?> multiConverterClass = Class.forName(converterName);
+			IMultiDataConverter multiConverter = (IMultiDataConverter) multiConverterClass.getDeclaredConstructor().newInstance();
+			ProjectRegistry.addMultiConverter(converterName, multiConverter);
+		}
+		catch (ClassCastException e) 
+		{
+			LOGGER.error("Project Initialization failed\n[REASON] Could not create the data converter \"{}\". The Java class provided as source is not of the type <IMultiDataConverter>", converterName);
+			System.exit(1);
 		}
 		catch (Exception e)
 		{
@@ -518,7 +524,7 @@ public class ProjectLoader
 
 		if (interactionClassesElement == null)
 		{
-			LOGGER.warn("No HLA interaction classes are specified. Automatic publish/subscribe will be skipped and no interactions will be received from the RTI");
+			LOGGER.warn("No HLA interaction classes are specified. Automatic publish/subscribe will be skipped and no interactions will be sent or received");
 			return;
 		}
 
@@ -526,58 +532,60 @@ public class ProjectLoader
 
 		if (!iterator.hasNext())
 		{
-			LOGGER.warn("No HLA interaction classes are specified. Automatic publish/subscribe will be skipped and no interactions will be received from the RTI");
+			LOGGER.warn("No HLA interaction classes are specified. Automatic publish/subscribe will be skipped and no interactions will be sent or received");
 			return;
 		}
 
 		while (iterator.hasNext())
-			createInteractionType(iterator.next());
+			createInteractionClass(iterator.next());
 	}
 
-	private void createInteractionType(Element interactionClassElement)
+	private void createInteractionClass(Element interactionClassElement)
 	{
-		elementNameCheck(interactionClassElement, "InteractionClass");
-
-		String typeName = interactionClassElement.attributeValue("Type");
-		nullOrEmptyAttribute("InteractionClass", "Type", typeName);
-
-		if (duplicateInteractionType(typeName))
+		if (elementNameCheck(interactionClassElement, "InteractionClass"))
 		{
-			LOGGER.warn("Skipping duplicate definition for the HLA interaction class <{}>", typeName);
-			return;
+			String className = interactionClassElement.attributeValue("Name");
+			nullOrEmptyAttribute("InteractionClass", "Name", className);
+
+			if (duplicateInteractionClass(className))
+			{
+				LOGGER.warn("Skipping duplicate definition for the HLA interaction class <{}>", className);
+				return;
+			}
+
+			String archetypeName = interactionClassElement.attributeValue("Archetype");
+			nullOrEmptyAttribute("InteractionClass", "Archetype", archetypeName);
+
+			if (!classExists(archetypeName))
+			{
+				LOGGER.error("Project initialization failed\n[REASON] The Java class definition for the archetype \"{}\" was not found", archetypeName);
+				System.exit(1);
+			}
+
+			if (!archetypeCreated(archetypeName))
+				createArchetype(archetypeName);
+
+			String sharingIntentValue = interactionClassElement.attributeValue("Sharing");
+			nullOrEmptyAttribute("InteractionClass", "Sharing", sharingIntentValue);
+			SharingModel sharingModel = sharingModelValue(sharingIntentValue);
+
+			Element declarationElement = interactionClassElement.element("DeclarationDisabled");
+			VegaInteractionClass newInteractionClass = null;
+
+			if (declarationElement != null)
+				newInteractionClass = new VegaInteractionClass(className, archetypeName, sharingModel, false);
+			else
+				newInteractionClass = new VegaInteractionClass(className, archetypeName, sharingModel, true);
+
+			loadInteractionParameters(interactionClassElement, newInteractionClass);
+
+			ProjectRegistry.addInteractionClass(newInteractionClass);
 		}
-
-		String archetypeName = interactionClassElement.attributeValue("Archetype");
-		nullOrEmptyAttribute("InteractionClass", "Archetype", archetypeName);
-
-		if (!classExists(archetypeName))
-		{
-			LOGGER.error("Project initialization failed\n[REASON] The Java class definition for the archetype \"{}\" was not found", archetypeName);
-			System.exit(1);
-		}
-
-		if (!archetypeCreated(archetypeName))
-			createArchetype(archetypeName);
-
-		String publishFlag = interactionClassElement.attributeValue("Publish");
-		nullOrEmptyAttribute("InteractionClass", "Publish", publishFlag);
-		pubSubFlagCheck("Publish", publishFlag);
-
-		String subscribeFlag = interactionClassElement.attributeValue("Subscribe");
-		nullOrEmptyAttribute("InteractionClass", "Subscribe", subscribeFlag);
-		pubSubFlagCheck("Subscribe", subscribeFlag);
-
-		PubSubIntent pubSub = intentValue(publishFlag, subscribeFlag);
-
-		HLAInteractionType newInteractionType = new HLAInteractionType(typeName, archetypeName, pubSub);
-		loadInteractionParameters(interactionClassElement, newInteractionType, typeName);
-
-		ProjectRegistry.addInteractionType(newInteractionType);
 	}
 
-	private boolean duplicateInteractionType(String typeName)
+	private boolean duplicateInteractionClass(String className)
 	{
-		if (ProjectRegistry.lookupInteractionType(typeName) != null)
+		if (ProjectRegistry.getInteractionClass(className) != null)
 			return true;
 		else
 			return false;
@@ -585,112 +593,96 @@ public class ProjectLoader
 
 	private boolean archetypeCreated(String archetypeName)
 	{
-		if (ProjectRegistry.lookupArchetype(archetypeName) != null)
+		if (ProjectRegistry.getArchetype(archetypeName) != null)
 			return true;
 		else
 			return false;
 	}
 
-	private void loadInteractionParameters(Element interactionClassElement, HLAInteractionType interactionType, String typeName)
+	private void loadInteractionParameters(Element interactionClassElement, VegaInteractionClass interactionClass)
 	{
 		Iterator<Element> iterator = interactionClassElement.elementIterator();
 
 		if (!iterator.hasNext())
 		{
-			LOGGER.warn("No parameters specified for the HLA interaction class <" + typeName + ">. Interactions of this type will likely not be received from the RTI");
+			LOGGER.warn("No parameters specified for the HLA interaction class <" + interactionClass.name + ">. Interactions of this type will likely not be received");
 			return;
 		}
 
 		while (iterator.hasNext())
-			createInteractionParameter(iterator.next(), interactionType);
+		{
+			Element nextElement = iterator.next();
+			if (elementNameCheck(nextElement, "Parameter"))
+				createInteractionParameter(nextElement, interactionClass);
+		}
 	}
 
-	private void createInteractionParameter(Element parameterElement, HLAInteractionType interactionType)
+	private void createInteractionParameter(Element parameterElement, VegaInteractionClass interactionClass)
 	{
-		elementNameCheck(parameterElement, "Parameter");
-
 		String interactionParameterName = parameterElement.attributeValue("Name");
 		nullOrEmptyAttribute("Parameter", "Name", interactionParameterName);
 
-		if (duplicateInteractionParameter(interactionType, interactionParameterName))
+		if (duplicateInteractionParameter(interactionClass, interactionParameterName))
 		{
-			LOGGER.warn("Skipping duplicate parameter definition \"{}\" in the HLA interaction class <{}>", interactionParameterName, interactionType.name);
+			LOGGER.warn("Skipping duplicate parameter definition \"{}\" in the HLA interaction class <{}>", interactionParameterName, interactionClass.name);
 			return;
 		}
 
-		interactionType.registerParameter(interactionParameterName);
+		interactionClass.addParameter(interactionParameterName);
 
-		loadParameterAdapter(parameterElement, interactionParameterName, interactionType);
+		loadParameterConverter(parameterElement, interactionParameterName, interactionClass);
 	}
 
-	private boolean duplicateInteractionParameter(HLAInteractionType interactionType, String parameterName)
+	private boolean duplicateInteractionParameter(VegaInteractionClass interactionClass, String parameterName)
 	{
-		boolean exists = interactionType.parameterNames.contains(parameterName);
+		boolean exists = interactionClass.parameterNames.contains(parameterName);
 		if (exists)
 			return true;
 		else
 			return false;
 	}
 
-	private void loadParameterAdapter(Element parameterElement, String parameterName, HLAInteractionType interactionType)
-	{
-		Element adapterElement = parameterElement.element("Adapter");
-		Element multiAdapterElement = parameterElement.element("MultiAdapter");
+	private void loadParameterConverter(Element parameterElement, String parameterName, VegaInteractionClass interactionClass)
+	{	
+		Element converterElement = parameterElement.element("DataConverter");
+		String converterClassName = converterElement.attributeValue("Source");
+		nullOrEmptyAttribute("DataConverter", "Source", converterClassName);
 
-		if (adapterElement == null && multiAdapterElement == null)
+		String converterTrigger = converterElement.attributeValue("Trigger");
+		
+		if (converterTrigger == null)
 		{
-			LOGGER.error("Project initialization failed\n[REASON] Adapter/MultiAdapter element missing for the interaction class parameter \"{}\"", parameterName);
-			System.exit(1);
-		}
-
-		if (adapterElement != null && multiAdapterElement != null)
-		{
-			LOGGER.error("Project initialization failed\n[REASON] The interaction class parameter \"{}\" is not allowed to have both an adapter *and* multi-adapter", parameterName);
-			System.exit(1);
-		}
-
-		if (adapterElement != null)
-		{
-			String adapterClassName = adapterElement.attributeValue("Class");
-			nullOrEmptyAttribute("Adapter", "Class", adapterClassName);
-
-			if (!adapterCreated(adapterClassName))
+			if (!converterCreated(converterClassName))
 			{
-				classExists(adapterClassName);
-				createAdapter(adapterClassName);
+				classExists(converterClassName);
+				createDataConverter(converterClassName);
 			}
-
-			interactionType.registerAdapter(parameterName, adapterClassName);
+			interactionClass.addConverter(parameterName, converterClassName);
 		}
 		else
 		{
-			String multiAdapterClassName = multiAdapterElement.attributeValue("Class");
-			nullOrEmptyAttribute("MultiAdapter", "Class", multiAdapterClassName);
+			int triggerValue = toInteger("Trigger", converterTrigger);
 
-			String multiAdapterTrigger = multiAdapterElement.attributeValue("Trigger");
-			nullOrEmptyAttribute("MultiAdapter", "Trigger", multiAdapterTrigger);
-			int triggerValue = toInteger("Trigger", multiAdapterTrigger);
-
-			if (!multiAdapterCreated(multiAdapterClassName))
+			if (!multiConverterCreated(converterClassName))
 			{
-				classExists(multiAdapterClassName);
-				createMultiAdapter(multiAdapterClassName);
+				classExists(converterClassName);
+				createMultiDataConverter(converterClassName);
 			}
-			interactionType.registerMultiAdapter(parameterName, multiAdapterClassName, triggerValue);
+			interactionClass.addMultiConverter(parameterName, converterClassName, triggerValue);
 		}
 	}
 
-	private boolean adapterCreated(String adapterName)
+	private boolean converterCreated(String converterName)
 	{
-		if (ProjectRegistry.lookupAdapter(adapterName) != null)
+		if (ProjectRegistry.getDataConverter(converterName) != null)
 			return true;
 		else
 			return false;
 	}
 
-	private boolean multiAdapterCreated(String multiAdapterName)
+	private boolean multiConverterCreated(String converterName)
 	{
-		if (ProjectRegistry.lookupMultiAdapter(multiAdapterName) != null)
+		if (ProjectRegistry.getMultiConverter(converterName) != null)
 			return true;
 		else
 			return false;

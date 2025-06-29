@@ -29,11 +29,14 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.core;
 
-import com.badlogic.ashley.core.Component;
+import com.badlogic.ashley.core.Entity;
 
-public class HLAInteractionComponent implements Component
+import hla.rti1516e.encoding.EncoderFactory;
+
+public interface IDataConverter
 {
-	public String className = null;
+	public void decode(Entity entity, EncoderFactory encoder, byte[] buffer);
+	public byte[] encode(Entity entity, EncoderFactory encoder);
 }

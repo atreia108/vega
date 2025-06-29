@@ -29,11 +29,22 @@
  * 
  */
 
-package io.github.vega.spacefom.components;
+package io.github.vega.archetypes;
 
-import com.badlogic.ashley.core.Component;
+import com.badlogic.ashley.core.Entity;
 
-public class ExCOComponent implements Component
+import io.github.vega.core.IEntityArchetype;
+import io.github.vega.core.World;
+
+public class ExecutionConfiguration implements IEntityArchetype
 {
+
+	@Override
+	public Entity assemble()
+	{
+		Entity exCO = World.createEntity();
+		
+		return exCO;
+	}
 
 }

@@ -29,14 +29,26 @@
  * 
  */
 
-package io.github.vega.core;
+package io.github.vega.hla;
 
-import com.badlogic.ashley.core.Entity;
-
-import hla.rti1516e.encoding.EncoderFactory;
-
-public interface IMultiAdapter
+public enum SharingModel
 {
-	public void deserialize(Entity entity, EncoderFactory encoder, byte[] buffer, int trigger);
-	public byte[] serialize(Entity entity, EncoderFactory encoder, int trigger);
+	PUBLISH_ONLY,
+	PUBLISH_SUBSCRIBE,
+	SUBSCRIBE_ONLY;
+	
+	public static String toString(SharingModel pubSub)
+	{
+		switch (pubSub)
+		{
+			case PUBLISH_ONLY:
+				return "Publish";
+			case PUBLISH_SUBSCRIBE:
+				return "Publish/Subscribe";
+			case SUBSCRIBE_ONLY:
+				return "Subscribe";
+			default:
+				return "None";
+		}
+	}
 }

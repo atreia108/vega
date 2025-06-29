@@ -29,27 +29,14 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.core;
 
-public enum PubSubIntent
+import com.badlogic.ashley.core.Entity;
+
+import hla.rti1516e.encoding.EncoderFactory;
+
+public interface IMultiDataConverter
 {
-	NONE,
-	PUBLISH_ONLY,
-	PUBLISH_SUBSCRIBE,
-	SUBSCRIBE_ONLY;
-	
-	public static String toString(PubSubIntent pubSub)
-	{
-		switch (pubSub)
-		{
-			case PUBLISH_ONLY:
-				return "Publish";
-			case PUBLISH_SUBSCRIBE:
-				return "Publish/Subscribe";
-			case SUBSCRIBE_ONLY:
-				return "Subscribe";
-			default:
-				return "None";
-		}
-	}
+	public void decode(Entity entity, EncoderFactory encoder, byte[] buffer, int trigger);
+	public byte[] encode(Entity entity, EncoderFactory encoder, int trigger);
 }

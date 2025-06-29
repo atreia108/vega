@@ -35,5 +35,5 @@ import com.badlogic.ashley.core.Entity;
 
 public interface IEntityArchetype
 {
-	public Entity create();
+	public Entity assemble();
 }

@@ -29,11 +29,51 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.data;
 
-import com.badlogic.ashley.core.Component;
+import com.badlogic.ashley.core.Entity;
 
-public class HLAInteractionComponent implements Component
+import io.github.vega.archetypes.ExecutionConfiguration;
+import io.github.vega.components.ExCOComponent;
+import io.github.vega.core.World;
+
+public class ExCO
 {
-	public String className = null;
+	private static Entity exCO;
+	private static ExCOComponent component;
+	
+	private ExCO()
+	{
+		ExecutionConfiguration exCOArchetype = new ExecutionConfiguration();
+		exCO = exCOArchetype.assemble();
+		component = World.getComponent(exCO, ExCOComponent.class);
+	}
+	
+	public static Entity instance()
+	{
+		if (exCO == null)
+			new ExCO();
+		
+		return exCO;
+	}
+	
+	public static String getRootFrameName()
+	{
+		return component.rootFrameName;
+	}
+	
+	public static ExecutionMode getCurrentExecutionMode()
+	{
+		return component.currentExecutionMode;
+	}
+	
+	public static ExecutionMode getNextExecutionMode()
+	{
+		return component.nextExecutionMode;
+	}
+	
+	public static long getLeastCommonTimeStep()
+	{
+		return component.leastCommonTimeStep;
+	}
 }

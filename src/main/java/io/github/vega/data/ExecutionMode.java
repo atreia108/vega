@@ -29,11 +29,35 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.data;
 
-import com.badlogic.ashley.core.Component;
-
-public class HLAInteractionComponent implements Component
+public enum ExecutionMode
 {
-	public String className = null;
+	EXEC_MODE_INITIALIZING((short) 1),
+	EXEC_MODE_RUNNING((short) 2),
+	EXEC_MODE_FREEZE((short) 3),
+	EXEC_MODE_SHUTDOWN((short) 4);
+	
+	private short value;
+	
+	private ExecutionMode(short value)
+	{
+		this.value = value;
+	}
+	
+	public static ExecutionMode get(short value)
+	{
+		for (ExecutionMode execMode : ExecutionMode.values())
+		{
+			if (execMode.value == value)
+				return execMode;
+		}
+		
+		return null;
+	}
+	
+	public short getValue()
+	{
+		return value;
+	}
 }

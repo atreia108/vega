@@ -31,6 +31,8 @@
 
 package io.github.vega.core;
 
+import com.badlogic.ashley.core.Component;
+import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.PooledEngine;
 
@@ -50,7 +52,13 @@ public class World
 		engine.addEntity(entity);
 	}
 	
-	public static void update()
+	public static <T extends Component> T getComponent(Entity entity, Class<T> componentType)
+	{
+		ComponentMapper<T> mapper = ComponentMapper.getFor(componentType);
+		return mapper.get(entity);
+	}
+	
+	public static void process()
 	{
 		engine.update(1.0f);
 	}

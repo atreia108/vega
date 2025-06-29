@@ -31,9 +31,37 @@
 
 package io.github.vega.hla;
 
-import com.badlogic.ashley.core.Component;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-public class HLAInteractionComponent implements Component
+import hla.rti1516e.RTIambassador;
+import hla.rti1516e.RtiFactory;
+import hla.rti1516e.RtiFactoryFactory;
+
+public class VegaRTIAmbassador
 {
-	public String className = null;
+	private static final Logger LOGGER = LogManager.getLogger();
+	
+	private static RTIambassador rtiAmbassador;
+
+	private VegaRTIAmbassador()
+	{
+		try
+		{
+			RtiFactory rtiFactory = RtiFactoryFactory.getRtiFactory();
+			rtiAmbassador = rtiFactory.getRtiAmbassador();
+		}
+		catch (Exception e)
+		{
+			LOGGER.error("[REASON]", e);
+			System.exit(1);
+		}
+	}
+
+	synchronized public static RTIambassador instance()
+	{
+		if (rtiAmbassador == null)
+			new VegaRTIAmbassador();
+		return rtiAmbassador;
+	}
 }

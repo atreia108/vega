@@ -40,226 +40,241 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import io.github.vega.core.IAdapter;
+import io.github.vega.core.IDataConverter;
 import io.github.vega.core.IEntityArchetype;
-import io.github.vega.core.IMultiAdapter;
-import io.github.vega.hla.HLAInteractionType;
-import io.github.vega.hla.HLAObjectType;
-import io.github.vega.hla.PubSubIntent;
+import io.github.vega.core.IMultiDataConverter;
+import io.github.vega.hla.VegaInteractionClass;
+import io.github.vega.hla.VegaObjectClass;
+import io.github.vega.hla.SharingModel;
 
 public record ProjectRegistry()
 {
 	private static final Logger LOGGER = LogManager.getLogger();
-	
-	public static Set<HLAObjectType> objectTypes = new HashSet<HLAObjectType>();
-	public static Set<HLAInteractionType> interactionTypes = new HashSet<HLAInteractionType>();
+
+	public static Set<VegaObjectClass> objectClasses = new HashSet<VegaObjectClass>();
+	public static Set<VegaInteractionClass> interactionClasses = new HashSet<VegaInteractionClass>();
 	public static Map<String, IEntityArchetype> archetypes = new HashMap<String, IEntityArchetype>();
-	public static Map<String, IAdapter> adapters = new HashMap<String, IAdapter>();
-	public static Map<String, IMultiAdapter> multiAdapters = new HashMap<String, IMultiAdapter>();
-	
+	public static Map<String, IDataConverter> dataConverters = new HashMap<String, IDataConverter>();
+	public static Map<String, IMultiDataConverter> multiDataConverters = new HashMap<String, IMultiDataConverter>();
+
 	public static Set<String> requiredObjects;
-	
+
 	private static final String separatorStyle1 = "========================================";
 	private static final String separatorStyle2 = "****************************************";
-	
+
 	public static void addArchetype(String archetypeName, IEntityArchetype archetype)
 	{
 		archetypes.put(archetypeName, archetype);
 	}
-	
-	public static void addObjectType(HLAObjectType type)
+
+	public static void addObjectClass(VegaObjectClass objectClass)
 	{
-		objectTypes.add(type);
+		objectClasses.add(objectClass);
 	}
-	
-	public static void addInteractionType(HLAInteractionType type)
+
+	public static void addInteractionClass(VegaInteractionClass interactionClass)
 	{
-		interactionTypes.add(type);
+		interactionClasses.add(interactionClass);
 	}
-	
-	public static void addAdapter(String adapterName, IAdapter adapter)
+
+	public static void addDataConverter(String converterName, IDataConverter converter)
 	{
-		adapters.put(adapterName, adapter);
+		dataConverters.put(converterName, converter);
 	}
-	
-	public static void addMultiAdapter(String multiAdapterName, IMultiAdapter multiAdapter)
+
+	public static void addMultiConverter(String converterName, IMultiDataConverter multiConverter)
 	{
-		multiAdapters.put(multiAdapterName, multiAdapter);
+		multiDataConverters.put(converterName, multiConverter);
 	}
-	
-	public static HLAObjectType lookupObjectType(String typeName)
+
+	public static VegaObjectClass getObjectClass(String name)
 	{
-		Optional<HLAObjectType> query = objectTypes.stream().filter(o -> o.name.equals(typeName)).findAny();
-		
+		Optional<VegaObjectClass> query = objectClasses.stream().filter(o -> o.name.equals(name)).findAny();
+
 		if (query.isEmpty())
 			return null;
 		else
 			return query.get();
 	}
-	
-	public static HLAInteractionType lookupInteractionType(String typeName)
+
+	public static VegaInteractionClass getInteractionClass(String name)
 	{
-		Optional<HLAInteractionType> query = interactionTypes.stream().filter(i -> i.name.equals(typeName)).findAny();
-		
+		Optional<VegaInteractionClass> query = interactionClasses.stream().filter(i -> i.name.equals(name)).findAny();
+
 		if (query.isEmpty())
 			return null;
 		else
 			return query.get();
 	}
-	
-	public static IEntityArchetype lookupArchetype(String archetypeName)
+
+	public static IEntityArchetype getArchetype(String archetypeName)
 	{
 		return archetypes.get(archetypeName);
 	}
-	
-	public static IAdapter lookupAdapter(String adapterName)
+
+	public static IDataConverter getDataConverter(String converterName)
 	{
-		return adapters.get(adapterName);
+		return dataConverters.get(converterName);
 	}
-	
-	public static IMultiAdapter lookupMultiAdapter(String multiAdapterName)
+
+	public static IMultiDataConverter getMultiConverter(String converterName)
 	{
-		return multiAdapters.get(multiAdapterName);
+		return multiDataConverters.get(converterName);
 	}
-	
+
 	public static void print()
 	{
 		System.out.println(separatorStyle1);
 		System.out.println("Registry for <" + ProjectSettings.FEDERATE_NAME + ">");
 		System.out.println(separatorStyle1 + "\n");
 		printRequiredObjects();
-		printObjectTypes();
-		printInteractionTypes();
+		printObjectClasses();
+		printInteractionClasses();
 		printArchetypes();
-		printAdapters();
-		printMultiAdapters();
+		printConverters();
+		printMultiConverters();
 	}
-	
+
 	public static void printRequiredObjects()
 	{
 		System.out.println("Required Objects");
 		System.out.println(separatorStyle1);
-		
+
 		if (requiredObjects == null || requiredObjects.isEmpty())
 			System.out.println("None");
 		else
 		{
 			int counter = 0;
 			int length = requiredObjects.size();
-			
+
 			for (String object : requiredObjects)
 			{
 				if (counter == length - 1)
 					System.out.print(object + "\n\n");
 				else
 					System.out.print(object + ", ");
-				
+
 				counter++;
 			}
 		}
 	}
-	
-	public static void printObjectTypes()
+
+	public static void printObjectClasses()
 	{
 		System.out.println("HLA Object Classes");
 		System.out.println(separatorStyle1);
-		
-		if (objectTypes.isEmpty())
+
+		if (objectClasses.isEmpty())
 			System.out.println("None");
-		
-		for (HLAObjectType objectType : objectTypes)
+		else
 		{
-			System.out.println("<" + objectType.name + ">");
-			System.out.println("Archetype: " + trimClassName(objectType.archetypeName));
-			System.out.println(separatorStyle2);
-			
-			for (String attributeName : objectType.attributeNames)
+			for (VegaObjectClass objectClass : objectClasses)
 			{
-				String pubSub = PubSubIntent.toString(objectType.lookupIntent(attributeName));
-				
-				if (objectType.multiAdapter(attributeName))
+				System.out.println("<" + objectClass.name + ">");
+				System.out.println("Archetype: " + trimClassName(objectClass.archetypeName));
+
+				if (!objectClass.declareAutomatically)
+					System.out.println("AUTO-DECLARATION DISABLED");
+
+				System.out.println(separatorStyle2);
+
+				for (String attributeName : objectClass.attributeNames)
 				{
-					String multiAdapterName = objectType.lookupMultiAdapterName(attributeName);
-					System.out.println(attributeName + " -> " + trimClassName(multiAdapterName) + " (Trigger: " + objectType.lookupMultiAdapterTrigger(attributeName, multiAdapterName) + ")" + " [" + pubSub + "]");
+					String pubSub = SharingModel.toString(objectClass.getSharingModel(attributeName));
+
+					if (objectClass.isMultiConverter(attributeName))
+					{
+						String multiConverterName = objectClass.getMultiConverterName(attributeName);
+						System.out.println(attributeName + " -> " + trimClassName(multiConverterName) + " (Trigger: " + objectClass.getConverterTrigger(attributeName, multiConverterName) + ")" + " [" + pubSub + "]");
+					}
+					else if (objectClass.getConverter(attributeName))
+					{
+						String adapterName = objectClass.getConverterName(attributeName);
+						System.out.println(attributeName + " -> " + trimClassName(adapterName) + " [" + pubSub + "]");
+					}
 				}
-				else if (objectType.adapter(attributeName))
-				{
-					String adapterName = objectType.lookupAdapterName(attributeName);
-					System.out.println(attributeName + " -> " + trimClassName(adapterName) + " [" + pubSub + "]");
-				}
+				System.out.println();
 			}
-			System.out.println();
 		}
 	}
-	
-	public static void printInteractionTypes()
+
+	public static void printInteractionClasses()
 	{
 		System.out.println("HLA Interaction Classes");
 		System.out.println(separatorStyle1);
-		
-		if (interactionTypes.isEmpty())
+
+		if (interactionClasses.isEmpty())
 			System.out.println("None");
-		
-		for (HLAInteractionType interactionType : interactionTypes)
+		else
 		{
-			String pubSub = PubSubIntent.toString(interactionType.intent);
-			System.out.println("<" + interactionType.name + ">" + " [" + pubSub + "]");
-			System.out.println("Archetype: " + trimClassName(interactionType.archetypeName));
-			System.out.println(separatorStyle2);
-			
-			for (String parameterName : interactionType.parameterNames)
+			for (VegaInteractionClass interactionClass : interactionClasses)
 			{
-				if (interactionType.multiAdapter(parameterName))
+				String pubSub = SharingModel.toString(interactionClass.sharingModel);
+				System.out.println("<" + interactionClass.name + ">" + " [" + pubSub + "]");
+				System.out.println("Archetype: " + trimClassName(interactionClass.archetypeName));
+				if (!interactionClass.declareAutomatically)
+					System.out.println("AUTO-DECLARATION DISABLED");
+
+				System.out.println(separatorStyle2);
+
+				for (String parameterName : interactionClass.parameterNames)
 				{
-					String multiAdapterName = interactionType.lookupMultiAdapterName(parameterName);
-					System.out.println(parameterName + " -> " + trimClassName(multiAdapterName) + " (Trigger: " + interactionType.lookupMultiAdapterTrigger(parameterName, multiAdapterName) + ")");
+					if (interactionClass.isMultiConverter(parameterName))
+					{
+						String multiAdapterName = interactionClass.getMultiConverterName(parameterName);
+						System.out.println(parameterName + " -> " + trimClassName(multiAdapterName) + " (Trigger: " + interactionClass.getMultiConverterTrigger(parameterName, multiAdapterName) + ")");
+					}
+					else if (interactionClass.isConverter(parameterName))
+					{
+						String adapterName = interactionClass.getConverterName(parameterName);
+						System.out.println(parameterName + " -> " + trimClassName(adapterName));
+					}
 				}
-				else if (interactionType.adapter(parameterName))
-				{
-					String adapterName = interactionType.lookupAdapterName(parameterName);
-					System.out.println(parameterName + " -> " + trimClassName(adapterName));
-				}
+				System.out.println();
 			}
-			System.out.println();
 		}
 	}
-	
+
 	public static void printArchetypes()
 	{
 		System.out.println("Entity Archetypes");
 		System.out.println(separatorStyle1);
-		
+
 		if (archetypes.isEmpty())
 			System.out.println("None");
-		
+
 		for (String archetypeName : archetypes.keySet())
 			System.out.println(trimClassName(archetypeName));
-		
+
 		System.out.println();
 	}
-	
-	public static void printAdapters()
+
+	public static void printConverters()
 	{
-		System.out.println("Adapters in-use");
+		System.out.println("Data Converters in-use");
 		System.out.println(separatorStyle1);
-		
-		for (String adapterName : adapters.keySet())
-			System.out.println(trimClassName(adapterName));
-		
+
+		if (dataConverters.isEmpty())
+			System.out.println("None");
+		else
+		{
+			for (String adapterName : dataConverters.keySet())
+				System.out.println(trimClassName(adapterName));
+		}
 		System.out.println();
 	}
-	
-	public static void printMultiAdapters()
+
+	public static void printMultiConverters()
 	{
-		System.out.println("Multi-Adapters in-use");
+		System.out.println("Multi Data Converters in-use");
 		System.out.println(separatorStyle1);
-		
-		for (String multiAdapterName : multiAdapters.keySet())
+
+		for (String multiAdapterName : multiDataConverters.keySet())
 			System.out.println(trimClassName(multiAdapterName));
-		
+
 		System.out.println();
 	}
-	
+
 	private static String trimClassName(String fullClassName)
 	{
 		if (fullClassName.isEmpty())
@@ -267,10 +282,10 @@ public record ProjectRegistry()
 			LOGGER.warn("Encountered blank canonical name for a class during an attempt to trim it to its simple name. Using NULL as fallback value instead");
 			return "NULL";
 		}
-		
+
 		String[] partition = fullClassName.split("\\.");
 		int len = partition.length;
-		
+
 		return partition[len - 1];
 	}
 }

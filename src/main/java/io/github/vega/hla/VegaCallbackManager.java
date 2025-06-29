@@ -31,9 +31,7 @@
 
 package io.github.vega.hla;
 
-import com.badlogic.ashley.core.Component;
-
-public class HLAInteractionComponent implements Component
+public class VegaCallbackManager
 {
-	public String className = null;
+
 }

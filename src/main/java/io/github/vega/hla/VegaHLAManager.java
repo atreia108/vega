@@ -29,14 +29,29 @@
  * 
  */
 
-package io.github.vega.core;
+package io.github.vega.hla;
 
-import io.github.vega.utils.ProjectLoader;
+import com.badlogic.ashley.core.Entity;
 
-public abstract class SimulationBase
+public class VegaHLAManager
 {
-	public SimulationBase(String projectFilePath)
+	public static boolean register(Entity objectInstance)
 	{
-		new ProjectLoader(projectFilePath);
+		return true;
+	}
+	
+	public static boolean destroy(Entity objectInstance)
+	{
+		return true;
+	}
+	
+	public static boolean update(Entity objectInstance)
+	{
+		return true;
+	}
+	
+	public static boolean send(Entity interaction)
+	{
+		return true;
 	}
 }

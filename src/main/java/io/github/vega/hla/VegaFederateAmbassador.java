@@ -31,9 +31,9 @@
 
 package io.github.vega.hla;
 
-import com.badlogic.ashley.core.Component;
+import hla.rti1516e.NullFederateAmbassador;
 
-public class HLAInteractionComponent implements Component
+public class VegaFederateAmbassador extends NullFederateAmbassador
 {
-	public String className = null;
+
 }

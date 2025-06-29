@@ -29,11 +29,28 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.converters;
 
-import com.badlogic.ashley.core.Component;
+import com.badlogic.ashley.core.Entity;
 
-public class HLAInteractionComponent implements Component
+import hla.rti1516e.encoding.EncoderFactory;
+import io.github.vega.core.IMultiDataConverter;
+
+public class MTRConverter implements IMultiDataConverter
 {
-	public String className = null;
+
+	@Override
+	public void decode(Entity entity, EncoderFactory encoder, byte[] buffer, int trigger)
+	{
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public byte[] encode(Entity entity, EncoderFactory encoder, int trigger)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

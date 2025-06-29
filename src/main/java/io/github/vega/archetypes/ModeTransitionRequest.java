@@ -29,11 +29,20 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.archetypes;
 
-import com.badlogic.ashley.core.Component;
+import com.badlogic.ashley.core.Entity;
 
-public class HLAInteractionComponent implements Component
+import io.github.vega.core.IEntityArchetype;
+import io.github.vega.core.World;
+
+public class ModeTransitionRequest implements IEntityArchetype
 {
-	public String className = null;
+	@Override
+	public Entity assemble()
+	{
+		Entity modeTransitionRequest = World.createEntity();
+		
+		return modeTransitionRequest;
+	}
 }

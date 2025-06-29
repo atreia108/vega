@@ -29,11 +29,29 @@
  * 
  */
 
-package io.github.vega.spacefom.components;
+package io.github.vega.data;
 
-import com.badlogic.ashley.core.Component;
-
-public class MTRComponent implements Component
+public enum MTRMode
 {
-
+	MTR_GOTO_RUN((short) 2),
+	MTR_GOTO_FREEZE((short) 3),
+	MTR_GOTO_SHUTDOWN((short) 4);
+	
+	private short mtrValue;
+	
+	MTRMode(short value)
+	{
+		mtrValue = value;
+	}
+	
+	public static MTRMode get(short value)
+	{
+		for (MTRMode mode : MTRMode.values())
+		{
+			if (mode.mtrValue == value)
+				return mode;
+		}
+		
+		return null;
+	}
 }

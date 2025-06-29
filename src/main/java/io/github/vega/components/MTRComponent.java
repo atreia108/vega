@@ -29,11 +29,13 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.components;
 
 import com.badlogic.ashley.core.Component;
 
-public class HLAInteractionComponent implements Component
+import io.github.vega.data.MTRMode;
+
+public class MTRComponent implements Component
 {
-	public String className = null;
+	public MTRMode executionMode = null;
 }

@@ -29,14 +29,16 @@
  * 
  */
 
-package io.github.vega.core;
+package io.github.vega.components;
 
-import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.Component;
 
-import hla.rti1516e.encoding.EncoderFactory;
+import io.github.vega.data.ExecutionMode;
 
-public interface IAdapter
+public class ExCOComponent implements Component
 {
-	public void deserialize(Entity entity, EncoderFactory encoder, byte[] buffer);
-	public byte[] serialize(Entity entity, EncoderFactory encoder);
+	public String rootFrameName = null;
+	public ExecutionMode currentExecutionMode = null;
+	public ExecutionMode nextExecutionMode = null;
+	public long leastCommonTimeStep = 0L;
 }
