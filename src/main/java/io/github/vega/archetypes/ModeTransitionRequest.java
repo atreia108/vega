@@ -33,6 +33,7 @@ package io.github.vega.archetypes;
 
 import com.badlogic.ashley.core.Entity;
 
+import io.github.vega.components.MTRComponent;
 import io.github.vega.core.IEntityArchetype;
 import io.github.vega.core.World;
 
@@ -42,6 +43,9 @@ public class ModeTransitionRequest implements IEntityArchetype
 	public Entity assemble()
 	{
 		Entity modeTransitionRequest = World.createEntity();
+		MTRComponent mtrComponent = World.createComponent(MTRComponent.class);
+		
+		World.addComponent(modeTransitionRequest, mtrComponent);
 		
 		return modeTransitionRequest;
 	}

@@ -35,22 +35,22 @@ import com.badlogic.ashley.core.Entity;
 
 public class VegaHLAManager
 {
-	public static boolean register(Entity objectInstance)
+	public static boolean registerObjectInstance(Entity objectInstance)
 	{
 		return true;
 	}
 	
-	public static boolean destroy(Entity objectInstance)
+	public static boolean destroyObjectInstance(Entity objectInstance)
 	{
 		return true;
 	}
 	
-	public static boolean update(Entity objectInstance)
+	public static boolean sendObjectInstanceUpdate(Entity objectInstance)
 	{
 		return true;
 	}
 	
-	public static boolean send(Entity interaction)
+	public static boolean sendInteraction(Entity interaction)
 	{
 		return true;
 	}

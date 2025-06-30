@@ -46,6 +46,7 @@ import io.github.vega.hla.VegaFederateAmbassador;
 import io.github.vega.hla.VegaInteractionClass;
 import io.github.vega.hla.VegaObjectClass;
 import io.github.vega.hla.VegaRTIAmbassador;
+import io.github.vega.utils.ExecutionLatch;
 import io.github.vega.utils.ProjectLoader;
 import io.github.vega.utils.ProjectRegistry;
 import io.github.vega.utils.ProjectSettings;
@@ -54,16 +55,32 @@ public abstract class VegaSimulationBase
 {
 	protected static final Logger LOGGER = LogManager.getLogger();
 	
+	public VegaSimulationBase(String projectFilePath, String[] args)
+	{
+		unpackArgs(args);
+		new ProjectLoader(projectFilePath);
+		World.setupEngine();
+	}
+	
 	public VegaSimulationBase(String projectFilePath)
 	{
 		new ProjectLoader(projectFilePath);
-		World.init();
+		World.setupEngine();
+	}
+	
+	private void unpackArgs(String[] args)
+	{
+		if (args == null || args.length == 0)
+			return;
+		
+		if (args[0].equals("reduced_logging"))
+			ProjectSettings.REDUCED_LOGGING = true;
 	}
 
 	// This method is called during the "Register Federate Object Instances" step of
 	// the SpaceFOM late joiner initialization p.80. It is anticipated that users
 	// will initialize the entities and systems they plan to use in here.
-	protected abstract void init();
+	protected abstract void onInit();
 
 	protected abstract void onRun();
 
@@ -71,25 +88,42 @@ public abstract class VegaSimulationBase
 
 	protected abstract void onFreeze();
 	
-	protected void start()
+	protected void init()
 	{
 		final int TOTAL_STEPS = 10;
 		int currentStep = 0;
 		
 		connect();
 		
-		LOGGER.info("({}/{}) Subscribing to the ExecutionConfiguration (ExCO) object class", ++currentStep, TOTAL_STEPS);
-		setupExCO();
-		LOGGER.info("Subscribed to the ExCO object class");
+		if (!ProjectSettings.REDUCED_LOGGING)
+			LOGGER.info("({}/{}) Subscribing to the ExecutionConfiguration (ExCO) object class", ++currentStep, TOTAL_STEPS);
+		subscribeExCO();
+		if (!ProjectSettings.REDUCED_LOGGING)
+			LOGGER.info("Subscribed to the ExCO object class");
 		
-		LOGGER.info("({}/{}) Declaring the ModeTransitionRequest (MTR) interaction class", ++currentStep, TOTAL_STEPS);
+		if (!ProjectSettings.REDUCED_LOGGING)
+			LOGGER.info("({}/{}) Declaring the ModeTransitionRequest (MTR) interaction class", ++currentStep, TOTAL_STEPS);
 		publishMTR();
-		LOGGER.info("MTR interaction class has been declared");
+		if (!ProjectSettings.REDUCED_LOGGING)
+			LOGGER.info("MTR interaction class has been declared");
+		
+		if (!ProjectSettings.REDUCED_LOGGING)
+			LOGGER.info("({}/{}) Waiting to discover the ExCO object instance", ++currentStep, TOTAL_STEPS);
+		ExecutionLatch.enable();
+		if (!ProjectSettings.REDUCED_LOGGING)
+			LOGGER.info("Discovered ExCO object instance");
+		
+		if (!ProjectSettings.REDUCED_LOGGING)
+			LOGGER.info("({}/{}) Waiting to receive the latest values of the ExCO object instance", ++currentStep, TOTAL_STEPS);
+		ExecutionLatch.enable();
+		if (!ProjectSettings.REDUCED_LOGGING)
+			LOGGER.info("Latest values for ExCO have been received");
+		
 		//...
-		exec();
+		execLoop();
 	}
 	
-	private void setupExCO()
+	private void subscribeExCO()
 	{
 		final String className = "HLAobjectRoot.ExecutionConfiguration";
 		final String archetypeName = "io.github.vega.archetypes.ExecutionConfiguration";
@@ -137,7 +171,7 @@ public abstract class VegaSimulationBase
 		mtrClass.declare();
 	}
 	
-	private void exec()
+	private void execLoop()
 	{
 		while (true)
 		{

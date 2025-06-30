@@ -98,12 +98,12 @@ public class ProjectLoader
 
 	private void loadElements()
 	{
-		// Items to be loaded into Project settings
+		// Items to be loaded into project settings
 		loadSimulationElement();
 		loadRtiConfigElement();
 		loadFomModulesElement();
 
-		// Items to be loaded into the Project registry
+		// Items to be loaded into the project registry
 		loadRequiredObjectsElement();
 		loadObjectClassesElement();
 		loadInteractionClassesElement();
@@ -164,7 +164,8 @@ public class ProjectLoader
 
 		if (fomModulesElement == null)
 		{
-			LOGGER.warn("No FOM modules are specified. Assuming no FOM data extensions are used in this simulation");
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("No FOM modules are specified. Assuming no FOM data extensions are used in this simulation");
 			return;
 		}
 
@@ -172,7 +173,8 @@ public class ProjectLoader
 
 		if (!iterator.hasNext())
 		{
-			LOGGER.warn("No FOM modules are specified. Assuming no FOM data extensions are used in this simulation");
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("No FOM modules are specified. Assuming no FOM data extensions are used in this simulation");
 			return;
 		}
 
@@ -235,7 +237,8 @@ public class ProjectLoader
 
 		if (requiredObjectsElement == null)
 		{
-			LOGGER.warn("No required objects are specified. Assuming there are no object instances that must be discovered before starting the simulation.");
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("No required objects are specified. Assuming there are no object instances that must be discovered before starting the simulation.");
 			return;
 		}
 
@@ -243,7 +246,8 @@ public class ProjectLoader
 
 		if (!iterator.hasNext())
 		{
-			LOGGER.warn("No required objects are specified. Assuming there are no object instances that must be discovered before starting the simulation.");
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("No required objects are specified. Assuming there are no object instances that must be discovered before starting the simulation.");
 			return;
 		}
 
@@ -280,7 +284,8 @@ public class ProjectLoader
 
 		if (objectClassesElement == null)
 		{
-			LOGGER.warn("No HLA object classes are specified. Automatic publish/subscribe will be skipped and no updates will be sent or received for any object");
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("No HLA object classes are specified. Automatic publish/subscribe will be skipped and no updates will be sent or received for any object");
 			return;
 		}
 
@@ -288,7 +293,8 @@ public class ProjectLoader
 
 		if (!iterator.hasNext())
 		{
-			LOGGER.warn("No HLA object classes are specified. Automatic publish/subscribe will be skipped and no updates will be sent or received for any object");
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("No HLA object classes are specified. Automatic publish/subscribe will be skipped and no updates will be sent or received for any object");
 			return;
 		}
 
@@ -305,7 +311,8 @@ public class ProjectLoader
 
 			if (duplicateObjectClass(className))
 			{
-				LOGGER.warn("Skipping duplicate definition for the HLA object class <{}>", className);
+				if (!ProjectSettings.REDUCED_LOGGING)
+					LOGGER.warn("Skipping duplicate definition for the HLA object class <{}>", className);
 				return;
 			}
 
@@ -382,7 +389,8 @@ public class ProjectLoader
 
 		if (!iterator.hasNext())
 		{
-			LOGGER.warn("No attributes specified for the HLA object class <" + objectClass.name + ">. Updates for instances of this type will likely not be sent or received");
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("No attributes specified for the HLA object class <" + objectClass.name + ">. Updates for instances of this type will likely not be sent or received");
 			return;
 		}
 
@@ -402,7 +410,8 @@ public class ProjectLoader
 
 		if (duplicateObjectAttribute(objectClass, objectAttributeName))
 		{
-			LOGGER.warn("Skipping duplicate attribute definition \"{}\" in the HLA object class <{}>", objectAttributeName, objectClass.name);
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("Skipping duplicate attribute definition \"{}\" in the HLA object class <{}>", objectAttributeName, objectClass.name);
 			return;
 		}
 
@@ -524,7 +533,8 @@ public class ProjectLoader
 
 		if (interactionClassesElement == null)
 		{
-			LOGGER.warn("No HLA interaction classes are specified. Automatic publish/subscribe will be skipped and no interactions will be sent or received");
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("No HLA interaction classes are specified. Automatic publish/subscribe will be skipped and no interactions will be sent or received");
 			return;
 		}
 
@@ -532,7 +542,8 @@ public class ProjectLoader
 
 		if (!iterator.hasNext())
 		{
-			LOGGER.warn("No HLA interaction classes are specified. Automatic publish/subscribe will be skipped and no interactions will be sent or received");
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("No HLA interaction classes are specified. Automatic publish/subscribe will be skipped and no interactions will be sent or received");
 			return;
 		}
 
@@ -549,7 +560,8 @@ public class ProjectLoader
 
 			if (duplicateInteractionClass(className))
 			{
-				LOGGER.warn("Skipping duplicate definition for the HLA interaction class <{}>", className);
+				if (!ProjectSettings.REDUCED_LOGGING)
+					LOGGER.warn("Skipping duplicate definition for the HLA interaction class <{}>", className);
 				return;
 			}
 
@@ -605,7 +617,8 @@ public class ProjectLoader
 
 		if (!iterator.hasNext())
 		{
-			LOGGER.warn("No parameters specified for the HLA interaction class <" + interactionClass.name + ">. Interactions of this type will likely not be received");
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("No parameters specified for the HLA interaction class <" + interactionClass.name + ">. Interactions of this type will likely not be received");
 			return;
 		}
 
@@ -624,7 +637,8 @@ public class ProjectLoader
 
 		if (duplicateInteractionParameter(interactionClass, interactionParameterName))
 		{
-			LOGGER.warn("Skipping duplicate parameter definition \"{}\" in the HLA interaction class <{}>", interactionParameterName, interactionClass.name);
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("Skipping duplicate parameter definition \"{}\" in the HLA interaction class <{}>", interactionParameterName, interactionClass.name);
 			return;
 		}
 
@@ -696,7 +710,8 @@ public class ProjectLoader
 		// these are absent from the project file, load stored defaults.
 		if (engineElement == null)
 		{
-			LOGGER.warn("No parameters are specified for the simulation engine. Using default values instead.");
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("No parameters are specified for the simulation engine. Using default values instead.");
 			loadEngineElementDefaults();
 			return;
 		}
@@ -709,7 +724,8 @@ public class ProjectLoader
 		if (minEntities == null || minEntities.isEmpty())
 		{
 			ProjectSettings.MIN_ENTITIES = DEFAULT_MIN_ENTITIES;
-			LOGGER.warn("Missing MinEntities attribute for <Engine> element. Using default value ({}) instead", DEFAULT_MIN_ENTITIES);
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("Missing MinEntities attribute for <Engine> element. Using default value ({}) instead", DEFAULT_MIN_ENTITIES);
 		}
 		else
 			ProjectSettings.MIN_ENTITIES = toInteger("MinEntities", minEntities);
@@ -717,7 +733,8 @@ public class ProjectLoader
 		if (maxEntities == null || maxEntities.isEmpty())
 		{
 			ProjectSettings.MAX_ENTITIES = DEFAULT_MAX_ENTITIES;
-			LOGGER.warn("Missing MaxEntities attribute for <Engine> element. Using default value ({}) instead", DEFAULT_MAX_ENTITIES);
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("Missing MaxEntities attribute for <Engine> element. Using default value ({}) instead", DEFAULT_MAX_ENTITIES);
 		}
 		else
 			ProjectSettings.MAX_ENTITIES = toInteger("MaxEntities", maxEntities);
@@ -725,7 +742,8 @@ public class ProjectLoader
 		if (minComponents == null || minComponents.isEmpty())
 		{
 			ProjectSettings.MIN_COMPONENTS = DEFAULT_MIN_COMPONENTS;
-			LOGGER.warn("Missing MinComponents attribute for <Engine> element. Using default value ({}) instead", DEFAULT_MIN_COMPONENTS);
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("Missing MinComponents attribute for <Engine> element. Using default value ({}) instead", DEFAULT_MIN_COMPONENTS);
 		}
 		else
 			ProjectSettings.MIN_COMPONENTS = toInteger("MinComponents", minComponents);
@@ -733,7 +751,8 @@ public class ProjectLoader
 		if (maxComponents == null || maxComponents.isEmpty())
 		{
 			ProjectSettings.MAX_COMPONENTS = DEFAULT_MAX_COMPONENTS;
-			LOGGER.warn("Missing MaxComponents attribute for <Engine> element. Using default value ({}) instead", DEFAULT_MAX_COMPONENTS);
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.warn("Missing MaxComponents attribute for <Engine> element. Using default value ({}) instead", DEFAULT_MAX_COMPONENTS);
 		}
 		else
 			ProjectSettings.MAX_COMPONENTS = toInteger("MaxComponents", maxComponents);

@@ -31,18 +31,119 @@
 
 package io.github.vega.converters;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 
+import hla.rti1516e.encoding.DecoderException;
 import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.HLAinteger16LE;
+import hla.rti1516e.encoding.HLAinteger64BE;
+import hla.rti1516e.encoding.HLAunicodeString;
+import io.github.vega.components.ExCOComponent;
 import io.github.vega.core.IMultiDataConverter;
+import io.github.vega.data.ExecutionMode;
 
 public class ExCOConverter implements IMultiDataConverter
 {
+	private static final Logger LOGGER = LogManager.getLogger();
+
+	private ComponentMapper<ExCOComponent> mapper;
+
+	public ExCOConverter()
+	{
+		mapper = ComponentMapper.getFor(ExCOComponent.class);
+	}
+
 	@Override
 	public void decode(Entity entity, EncoderFactory encoder, byte[] buffer, int trigger)
 	{
-		// TODO Auto-generated method stub
+		ExCOComponent component = mapper.get(entity);
 
+		switch (trigger)
+		{
+			case 0:
+				decodeRootFrameName(encoder, buffer, component);
+				break;
+			case 1:
+				decodeCurrentExecutionMode(encoder, buffer, component);
+				break;
+			case 2:
+				decodeNextExecutionMode(encoder, buffer, component);
+				break;
+			case 3:
+				decodeLeastCommonTimeStep(encoder, buffer, component);
+				break;
+			default:
+				LOGGER.warn("Out of bounds value supplied for trigger ({}) in ExCOConverter. Only values between 0-3 are valid");
+				break;
+		}
+	}
+
+	private void decodeRootFrameName(EncoderFactory encoder, byte[] buffer, ExCOComponent component)
+	{
+		HLAunicodeString target = encoder.createHLAunicodeString();
+
+		try
+		{
+			target.decode(buffer);
+			component.rootFrameName = target.getValue();
+		}
+		catch (DecoderException e)
+		{
+			LOGGER.error("Failed to decode the root_frame_name field of the ExCO object instance\n[REASON]", e);
+			System.exit(1);
+		}
+	}
+
+	private void decodeCurrentExecutionMode(EncoderFactory encoder, byte[] buffer, ExCOComponent component)
+	{
+		HLAinteger16LE target = encoder.createHLAinteger16LE();
+
+		try
+		{
+			target.decode(buffer);
+			component.currentExecutionMode = ExecutionMode.get(target.getValue());
+		}
+		catch (DecoderException e)
+		{
+			LOGGER.error("Failed to decode the current_execution_mode field of the ExCO object instance\n[REASON]", e);
+			System.exit(1);
+		}
+	}
+
+	private void decodeNextExecutionMode(EncoderFactory encoder, byte[] buffer, ExCOComponent component)
+	{
+		HLAinteger16LE target = encoder.createHLAinteger16LE();
+
+		try
+		{
+			target.decode(buffer);
+			component.nextExecutionMode = ExecutionMode.get(target.getValue());
+		}
+		catch (DecoderException e)
+		{
+			LOGGER.error("Failed to decode the next_execution_mode field of the ExCO object instance\n[REASON]", e);
+			System.exit(1);
+		}
+	}
+
+	private void decodeLeastCommonTimeStep(EncoderFactory encoder, byte[] buffer, ExCOComponent component)
+	{
+		HLAinteger64BE target = encoder.createHLAinteger64BE();
+
+		try
+		{
+			target.decode(buffer);
+			component.leastCommonTimeStep = target.getValue();
+		}
+		catch (DecoderException e)
+		{
+			LOGGER.error("Failed to decode the least_common_time_step field of the ExCO object instance\n[REASON]", e);
+			System.exit(1);
+		}
 	}
 
 	@Override

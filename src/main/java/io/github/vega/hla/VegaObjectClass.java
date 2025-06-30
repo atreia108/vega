@@ -71,7 +71,7 @@ public class VegaObjectClass
 		this.name = name;
 		this.archetypeName = archetypeName;
 		this.declareAutomatically = declareAutomatically;
-		
+
 		attributeNames = new HashSet<String>();
 		attributeConverterMap = new HashMap<String, String>();
 
@@ -79,7 +79,7 @@ public class VegaObjectClass
 		attributeSharingMap = new HashMap<String, SharingModel>();
 
 		attributeMultiConverterMap = new HashMap<String, Map<String, Integer>>();
-		
+
 		isPublished = false;
 		isSubscribed = false;
 	}
@@ -103,12 +103,12 @@ public class VegaObjectClass
 		attributeMultiConverterMap.put(attributeName, multiConverterTriggerMap);
 	}
 
-	public String getConverterName(String attributeName)
+	public String getAttributeConverterName(String attributeName)
 	{
 		return attributeConverterMap.get(attributeName);
 	}
 
-	public String getMultiConverterName(String attributeName)
+	public String getAttributeMultiConverterName(String attributeName)
 	{
 		Map<String, Integer> multiConverterParameters = attributeMultiConverterMap.get(attributeName);
 
@@ -125,13 +125,13 @@ public class VegaObjectClass
 			return null;
 	}
 
-	public int getConverterTrigger(String attributeName, String multiConverterName)
+	public int getAttributeConverterTrigger(String attributeName, String multiConverterName)
 	{
 		Map<String, Integer> multiConverterParameters = attributeMultiConverterMap.get(attributeName);
 		return multiConverterParameters.get(multiConverterName);
 	}
 
-	public boolean getConverter(String attributeName)
+	public boolean attributeUsesConverter(String attributeName)
 	{
 		String converterName = attributeConverterMap.get(attributeName);
 
@@ -146,14 +146,12 @@ public class VegaObjectClass
 		return attributeHandleMap.get(attributeName);
 	}
 
-	public boolean isMultiConverter(String attributeName)
+	public boolean attributeUsesMultiConverter(String attributeName)
 	{
-		String multiConverterName = getMultiConverterName(attributeName);
+		String multiConverterName = getAttributeMultiConverterName(attributeName);
 
 		if (multiConverterName != null)
-		{
 			return true;
-		}
 		else
 			return false;
 	}
@@ -181,19 +179,30 @@ public class VegaObjectClass
 		return result;
 	}
 
-	public Set<AttributeHandle> publisheableAttributeHandles()
+	public AttributeHandleSet publisheableAttributeHandles()
 	{
-		Set<AttributeHandle> result = new HashSet<AttributeHandle>();
-
-		attributeHandleMap.forEach((attributeName, handle) ->
+		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+		try
 		{
-			SharingModel sharingModel = getSharingModel(attributeName);
+			AttributeHandleSet result = rtiAmbassador.getAttributeHandleSetFactory().create();
 
-			if (sharingModel == SharingModel.PUBLISH_ONLY || sharingModel == SharingModel.PUBLISH_SUBSCRIBE)
-				result.add(handle);
-		});
+			attributeHandleMap.forEach((attributeName, handle) ->
+			{
+				SharingModel sharingModel = getSharingModel(attributeName);
 
-		return result;
+				if (sharingModel == SharingModel.PUBLISH_ONLY || sharingModel == SharingModel.PUBLISH_SUBSCRIBE)
+					result.add(handle);
+			});
+			
+			return result;
+		}
+		catch (Exception e)
+		{
+			LOGGER.error("Could not generate attribute handle set containing published attributes for the HLA object class <{}>\n[REASON]", e, name);
+			System.exit(1);
+		}
+		
+		return null;
 	}
 
 	public Set<String> subscribeableAttributeNames()
@@ -208,22 +217,33 @@ public class VegaObjectClass
 
 		return result;
 	}
-
-	public Set<AttributeHandle> subscribeableAttributeHandles()
-	{
-		Set<AttributeHandle> result = new HashSet<AttributeHandle>();
-
-		attributeHandleMap.forEach((attributeName, handle) ->
-		{
-			SharingModel sharingModel = getSharingModel(attributeName);
-
-			if (sharingModel == SharingModel.SUBSCRIBE_ONLY || sharingModel == SharingModel.PUBLISH_SUBSCRIBE)
-				result.add(handle);
-		});
-
-		return result;
-	}
 	
+	public AttributeHandleSet subscribeableAttributeHandles()
+	{
+		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+		try
+		{
+			AttributeHandleSet result = rtiAmbassador.getAttributeHandleSetFactory().create();
+
+			attributeHandleMap.forEach((attributeName, handle) ->
+			{
+				SharingModel sharingModel = getSharingModel(attributeName);
+
+				if (sharingModel == SharingModel.SUBSCRIBE_ONLY || sharingModel == SharingModel.PUBLISH_SUBSCRIBE)
+					result.add(handle);
+			});
+			
+			return result;
+		}
+		catch (Exception e)
+		{
+			LOGGER.error("Could not generate attribute handle set containing subscribed attributes for the HLA object class <{}>\n[REASON]", e, name);
+			System.exit(1);
+		}
+		
+		return null;
+	}
+
 	public void declare()
 	{
 		publish();

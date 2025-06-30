@@ -31,9 +31,25 @@
 
 package io.github.vega.hla;
 
+import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.NullFederateAmbassador;
+import hla.rti1516e.ObjectClassHandle;
+import hla.rti1516e.ObjectInstanceHandle;
+import hla.rti1516e.OrderType;
+import hla.rti1516e.TransportationTypeHandle;
+import hla.rti1516e.exceptions.FederateInternalError;
 
 public class VegaFederateAmbassador extends NullFederateAmbassador
 {
-
+	@Override
+	public void discoverObjectInstance(final ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass, String objectName)
+	{
+		VegaCallbackManager.discoverObjectInstance(theObject, theObjectClass, objectName);
+	}
+	
+	@Override
+	public void reflectAttributeValues(ObjectInstanceHandle theObject, AttributeHandleValueMap theAttributes, byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport, SupplementalReflectInfo reflectInfo) throws FederateInternalError
+	{
+		VegaCallbackManager.reflectAttributeValues(theObject, theAttributes);
+	}
 }

@@ -100,12 +100,12 @@ public class VegaInteractionClass
 		parameterMultiConverterNameMap.put(parameterName, multiConverterTriggerMap);
 	}
 
-	public String getConverterName(String parameterName)
+	public String getParameterConverterName(String parameterName)
 	{
 		return parameterConverterNameMap.get(parameterName);
 	}
 
-	public String getMultiConverterName(String parameterName)
+	public String getParameterMultiConverterName(String parameterName)
 	{
 		Map<String, Integer> multiConverterParameters = parameterMultiConverterNameMap.get(parameterName);
 
@@ -122,7 +122,7 @@ public class VegaInteractionClass
 			return null;
 	}
 
-	public int getMultiConverterTrigger(String parameterName, String converterName)
+	public int getParameterMultiConverterTrigger(String parameterName, String converterName)
 	{
 		Map<String, Integer> multiConverterParameters = parameterMultiConverterNameMap.get(parameterName);
 		return multiConverterParameters.get(converterName);
@@ -133,7 +133,7 @@ public class VegaInteractionClass
 		return parameterHandleMap.get(parameterName);
 	}
 
-	public boolean isConverter(String parameterName)
+	public boolean parameterUsesConverter(String parameterName)
 	{
 		String converterName = parameterConverterNameMap.get(parameterName);
 
@@ -143,9 +143,9 @@ public class VegaInteractionClass
 			return false;
 	}
 
-	public boolean isMultiConverter(String parameterName)
+	public boolean parameterUsesMultiConverter(String parameterName)
 	{
-		String multiConverterName = getMultiConverterName(parameterName);
+		String multiConverterName = getParameterMultiConverterName(parameterName);
 
 		if (multiConverterName != null)
 		{
@@ -220,6 +220,8 @@ public class VegaInteractionClass
 			LOGGER.error("Failed to publish the HLA interaction class <{}>\n[REASON]", name, e);
 			System.exit(1);
 		}
+		
+		isPublished = true;
 	}
 
 	public void subscribe()
@@ -253,5 +255,7 @@ public class VegaInteractionClass
 			LOGGER.error("Failed to subscribe to the HLA interaction class <{}>\n[REASON]", name, e);
 			System.exit(1);
 		}
+		
+		isSubscribed = true;
 	}
 }

@@ -33,16 +33,19 @@ package io.github.vega.archetypes;
 
 import com.badlogic.ashley.core.Entity;
 
+import io.github.vega.components.ExCOComponent;
 import io.github.vega.core.IEntityArchetype;
 import io.github.vega.core.World;
 
 public class ExecutionConfiguration implements IEntityArchetype
 {
-
 	@Override
 	public Entity assemble()
 	{
 		Entity exCO = World.createEntity();
+		ExCOComponent exCOComponent = World.createComponent(ExCOComponent.class);
+		
+		World.addComponent(exCO, exCOComponent);
 		
 		return exCO;
 	}

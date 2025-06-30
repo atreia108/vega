@@ -37,27 +37,37 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.badlogic.ashley.core.ComponentMapper;
+import com.badlogic.ashley.core.Entity;
+
+import hla.rti1516e.ObjectInstanceHandle;
 import io.github.vega.core.IDataConverter;
 import io.github.vega.core.IEntityArchetype;
 import io.github.vega.core.IMultiDataConverter;
 import io.github.vega.hla.VegaInteractionClass;
 import io.github.vega.hla.VegaObjectClass;
+import io.github.vega.hla.HLAObjectComponent;
 import io.github.vega.hla.SharingModel;
 
 public record ProjectRegistry()
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 
+	public static Set<String> requiredObjects;
 	public static Set<VegaObjectClass> objectClasses = new HashSet<VegaObjectClass>();
 	public static Set<VegaInteractionClass> interactionClasses = new HashSet<VegaInteractionClass>();
 	public static Map<String, IEntityArchetype> archetypes = new HashMap<String, IEntityArchetype>();
 	public static Map<String, IDataConverter> dataConverters = new HashMap<String, IDataConverter>();
 	public static Map<String, IMultiDataConverter> multiDataConverters = new HashMap<String, IMultiDataConverter>();
-
-	public static Set<String> requiredObjects;
+	
+	private static BidiMap<Entity, ObjectInstanceHandle> entityInstances = new DualHashBidiMap<Entity, ObjectInstanceHandle>();
+	
+	private static ComponentMapper<HLAObjectComponent> objectComponentMapper = ComponentMapper.getFor(HLAObjectComponent.class);
 
 	private static final String separatorStyle1 = "========================================";
 	private static final String separatorStyle2 = "****************************************";
@@ -121,6 +131,35 @@ public record ProjectRegistry()
 	{
 		return multiDataConverters.get(converterName);
 	}
+	
+	public static void addEntityObjectInstance(Entity entity, ObjectInstanceHandle instanceHandle)
+	{
+		entityInstances.put(entity, instanceHandle);
+	}
+	
+	public static Entity getRemoteEntity(String objectInstanceName)
+	{
+		for (Entity entity : entityInstances.keySet())
+		{
+			HLAObjectComponent objectComponent = objectComponentMapper.get(entity);
+			
+			if (objectComponent != null && objectComponent.instanceName.equals(objectInstanceName))
+				return entity;
+		}
+		
+		return null;
+	}
+	
+	public static Entity getRemoteEntity(ObjectInstanceHandle instanceHandle)
+	{
+		return entityInstances.getKey(instanceHandle);
+	}
+	
+	
+	public static ObjectInstanceHandle getRemoteEntityHandle(Entity entity)
+	{
+		return entityInstances.get(entity);
+	}
 
 	public static void print()
 	{
@@ -182,14 +221,14 @@ public record ProjectRegistry()
 				{
 					String pubSub = SharingModel.toString(objectClass.getSharingModel(attributeName));
 
-					if (objectClass.isMultiConverter(attributeName))
+					if (objectClass.attributeUsesMultiConverter(attributeName))
 					{
-						String multiConverterName = objectClass.getMultiConverterName(attributeName);
-						System.out.println(attributeName + " -> " + trimClassName(multiConverterName) + " (Trigger: " + objectClass.getConverterTrigger(attributeName, multiConverterName) + ")" + " [" + pubSub + "]");
+						String multiConverterName = objectClass.getAttributeMultiConverterName(attributeName);
+						System.out.println(attributeName + " -> " + trimClassName(multiConverterName) + " (Trigger: " + objectClass.getAttributeConverterTrigger(attributeName, multiConverterName) + ")" + " [" + pubSub + "]");
 					}
-					else if (objectClass.getConverter(attributeName))
+					else if (objectClass.attributeUsesConverter(attributeName))
 					{
-						String adapterName = objectClass.getConverterName(attributeName);
+						String adapterName = objectClass.getAttributeConverterName(attributeName);
 						System.out.println(attributeName + " -> " + trimClassName(adapterName) + " [" + pubSub + "]");
 					}
 				}
@@ -219,14 +258,14 @@ public record ProjectRegistry()
 
 				for (String parameterName : interactionClass.parameterNames)
 				{
-					if (interactionClass.isMultiConverter(parameterName))
+					if (interactionClass.parameterUsesMultiConverter(parameterName))
 					{
-						String multiAdapterName = interactionClass.getMultiConverterName(parameterName);
-						System.out.println(parameterName + " -> " + trimClassName(multiAdapterName) + " (Trigger: " + interactionClass.getMultiConverterTrigger(parameterName, multiAdapterName) + ")");
+						String multiAdapterName = interactionClass.getParameterMultiConverterName(parameterName);
+						System.out.println(parameterName + " -> " + trimClassName(multiAdapterName) + " (Trigger: " + interactionClass.getParameterMultiConverterTrigger(parameterName, multiAdapterName) + ")");
 					}
-					else if (interactionClass.isConverter(parameterName))
+					else if (interactionClass.parameterUsesConverter(parameterName))
 					{
-						String adapterName = interactionClass.getConverterName(parameterName);
+						String adapterName = interactionClass.getParameterConverterName(parameterName);
 						System.out.println(parameterName + " -> " + trimClassName(adapterName));
 					}
 				}

@@ -46,6 +46,8 @@ public record ProjectSettings()
 	public static int MIN_COMPONENTS;
 	public static int MAX_COMPONENTS;
 	
+	public static boolean REDUCED_LOGGING;
+	
 	private static String separatorStyle1 = "========================================";
 
 	public static void print()

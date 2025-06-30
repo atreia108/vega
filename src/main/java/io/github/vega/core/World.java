@@ -34,6 +34,7 @@ package io.github.vega.core;
 import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.PooledEngine;
 
 import io.github.vega.utils.ProjectSettings;
@@ -52,19 +53,54 @@ public class World
 		engine.addEntity(entity);
 	}
 	
+	public static <T extends Component> T createComponent(Class<T> componentType)
+	{
+		return engine.createComponent(componentType);
+	}
+	
+	public static <T extends Component> boolean addComponent(Entity entity, T component)
+	{
+		entity.add(component);
+		
+		if (getComponent(entity, component.getClass()) == null)
+			return false;
+		else
+			return true;
+	}
+	
+	public static <T extends Component> boolean removeComponent(Entity entity, Class<T> componentType)
+	{
+		entity.remove(componentType);
+		
+		if (getComponent(entity, componentType) == null)
+			return true;
+		else
+			return false;
+	}
+	
 	public static <T extends Component> T getComponent(Entity entity, Class<T> componentType)
 	{
 		ComponentMapper<T> mapper = ComponentMapper.getFor(componentType);
 		return mapper.get(entity);
 	}
 	
-	public static void process()
+	public static void addSystem(EntitySystem system)
+	{
+		engine.addSystem(system);
+	}
+	
+	public static void removeSystem(EntitySystem system)
+	{
+		engine.removeSystem(system);
+	}
+	
+	public static void update()
 	{
 		engine.update(1.0f);
 	}
 	
-	public static void init()
-	{
+	protected static void setupEngine()
+	{	
 		if (engine != null)
 			return;
 		
