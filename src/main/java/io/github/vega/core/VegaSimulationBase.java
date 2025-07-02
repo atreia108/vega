@@ -91,7 +91,7 @@ public abstract class VegaSimulationBase
 
 	protected void init()
 	{
-		final int TOTAL_STEPS = 10;
+		final int TOTAL_STEPS = 9;
 		int currentStep = 0;
 
 		connect();
@@ -113,13 +113,13 @@ public abstract class VegaSimulationBase
 		ExecutionLatch.enable();
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("Discovered ExCO object instance");
-
+		
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("({}/{}) Waiting to receive the latest values of the ExCO object instance", ++currentStep, TOTAL_STEPS);
 		ExecutionLatch.enable();
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("Latest values for ExCO have been received");
-
+		
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("({}/{}) Publishing all object and interaction classes used by this federate", ++currentStep, TOTAL_STEPS);
 		publishAllObjectClasses();
@@ -141,6 +141,12 @@ public abstract class VegaSimulationBase
 		subscribeAllInteractionClasses();
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("All object and interaction classes used by this federate have been subscribed to");
+		
+		if (!ProjectSettings.REDUCED_LOGGING)
+			LOGGER.info("({}/{}) Waiting for all required object instances to be discovered", ++currentStep, TOTAL_STEPS);
+		ExecutionLatch.enable();
+		if (!ProjectSettings.REDUCED_LOGGING)
+			LOGGER.info("All required object instances were discovered", ++currentStep, TOTAL_STEPS);
 		
 		// ...
 		execLoop();

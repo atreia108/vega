@@ -31,6 +31,9 @@
 
 package io.github.vega.hla;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -54,44 +57,70 @@ import io.github.vega.utils.ProjectRegistry;
 public class VegaCallbackManager
 {
 	private static final Logger LOGGER = LogManager.getLogger();
-
-	private static boolean initializationComplete = false;
+	
+	private static final String EXCO_CLASS_NAME = "HLAobjectRoot.ExecutionConfiguration";
+	
+	private static final Set<String> OBJECTS_PENDING_DISCOVERY = new HashSet<String>(ProjectRegistry.requiredObjects);
 	private static ComponentMapper<HLAObjectComponent> objectComponentMapper = ComponentMapper.getFor(HLAObjectComponent.class);
 	
-	private static final Object nameReservationSemaphore = new Object();
+	private static final Object NAME_RESERVATION_SEMAPHORE = new Object();
 	private static boolean nameReservationStatus;
 
 	public static void discoverObjectInstance(final ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass, String objectName)
 	{
 		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
 		HLAObjectComponent objectComponent = World.createComponent(HLAObjectComponent.class);
-
+		
+		String className = null;
+		String instanceName = null;
+		
 		try
 		{
-			String className = rtiAmbassador.getObjectClassName(theObjectClass);
-			String instanceName = rtiAmbassador.getObjectInstanceName(theObject);
-			VegaObjectClass objectClass = ProjectRegistry.getObjectClass(className);
-			
-			IEntityArchetype archetype = ProjectRegistry.getArchetype(objectClass.archetypeName);
-
-			Entity entity = archetype.createEntity();
-
-			objectComponent.className = className;
-			objectComponent.instanceName = instanceName;
-			World.addComponent(entity, objectComponent);
-			
-			ProjectRegistry.addEntityObjectInstance(entity, theObject);
-
-			if (!initializationComplete && className.equals("HLAobjectRoot.ExecutionConfiguration"))
-				ExecutionLatch.disable();
-
-			requestLatestAttributeValues(theObject, instanceName, objectClass);
+			className = rtiAmbassador.getObjectClassName(theObjectClass);
+			instanceName = rtiAmbassador.getObjectInstanceName(theObject);
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Failed during the discovery of a new object instance\n[REASON]", e);
+			LOGGER.error("Failed to save a new object instance\n[REASON]", e);
 			System.exit(1);
 		}
+		
+		VegaObjectClass objectClass = ProjectRegistry.getObjectClass(className);
+		
+		if (objectClass == null)
+		{	
+			LOGGER.warn("Failed to create an internalized entity representation of the object instance \"{}\" of class <{}>.\n[REASON] The corresponding object class for the instance was not created at runtime. The definition for this object class may be missing in the project file", instanceName, className);
+			return;
+		}
+		
+		IEntityArchetype archetype = ProjectRegistry.getArchetype(objectClass.archetypeName);
+		Entity entity = archetype.createEntity();
+		
+		if (entity == null)
+		{
+			LOGGER.warn("Failed to create an internalized entity representation of the object instance \"{}\" of class <{}>.\n[REASON] The archetype <{}> returned NULL instead of an entity. Re-check to ensure it returns an entity with the necessary components", instanceName, className, archetype);
+			return;
+		}
+
+		objectComponent.className = className;
+		objectComponent.instanceName = instanceName;
+		
+		World.addComponent(entity, objectComponent);
+		ProjectRegistry.addEntityObjectInstance(entity, theObject);
+		
+		if (className.equals(EXCO_CLASS_NAME))
+			ExecutionLatch.disable();
+		
+		if (OBJECTS_PENDING_DISCOVERY.contains(instanceName))
+		{
+			LOGGER.info("Discovered the object instance \"{}\" of class <{}>", instanceName, className);
+			OBJECTS_PENDING_DISCOVERY.remove(instanceName);
+			
+			if (OBJECTS_PENDING_DISCOVERY.isEmpty())
+				ExecutionLatch.disable();
+		}
+		
+		requestLatestAttributeValues(theObject, instanceName, objectClass);
 	}
 
 	private static void requestLatestAttributeValues(ObjectInstanceHandle instanceHandle, String instanceName, VegaObjectClass objectClass)
@@ -117,28 +146,16 @@ public class VegaCallbackManager
 		String className = objectComponent.className;
 		String instanceName = objectComponent.instanceName;
 		
-		try
-		{
-			VegaObjectClass objectClass = ProjectRegistry.getObjectClass(className);
-			AttributeHandleSet attributeHandles = objectClass.subscribeableAttributeHandles();
-			
-			if (!allAttributesPresent(attributeHandles, theAttributes))
-				LOGGER.warn("Discarded latest values received for the object instance \"{}\" because one or more required attributes are missing", instanceName);
-			else
-				updateObjectInstance(entity, objectClass, theAttributes);
-				
-		}
-		catch (Exception e)
-		{
-			LOGGER.error("Failed to set the latest values for the object instance \"{}\"\n[REASON]", instanceName, e);
-			System.exit(1);
-		}
+		VegaObjectClass objectClass = ProjectRegistry.getObjectClass(className);
+		AttributeHandleSet attributeHandles = objectClass.subscribeableAttributeHandles();
 		
-		if (!initializationComplete && className.equals("HLAobjectRoot.ExecutionConfiguration"))
-		{
-			initializationComplete = true;
+		if (!allAttributesPresent(attributeHandles, theAttributes))
+			LOGGER.warn("Discarded latest values received for the object instance \"{}\" because one or more required attributes are missing", instanceName);
+		else
+			updateObjectInstance(entity, objectClass, theAttributes);
+		
+		if (className.equals(EXCO_CLASS_NAME))
 			ExecutionLatch.disable();
-		}
 	}
 	
 	private static boolean allAttributesPresent(AttributeHandleSet attributeHandles, AttributeHandleValueMap providedAttributeMap)
@@ -179,24 +196,24 @@ public class VegaCallbackManager
 	public static void objectInstanceNameReservationSucceeded(String objectName)
 	{
 		nameReservationStatus = true;
-		synchronized(nameReservationSemaphore)
+		synchronized(NAME_RESERVATION_SEMAPHORE)
 		{
-			nameReservationSemaphore.notify();
+			NAME_RESERVATION_SEMAPHORE.notify();
 		}
 	}
 	
 	public static void objectInstanceNameReservationFailed(String objectName)
 	{
 		nameReservationStatus = false;
-		synchronized(nameReservationSemaphore)
+		synchronized(NAME_RESERVATION_SEMAPHORE)
 		{
-			nameReservationSemaphore.notify();
+			NAME_RESERVATION_SEMAPHORE.notify();
 		}
 	}
 	
 	public static Object getNameReservationSemaphore()
 	{
-		return nameReservationSemaphore;
+		return NAME_RESERVATION_SEMAPHORE;
 	}
 	
 	public static boolean getNameReservationStatus()
