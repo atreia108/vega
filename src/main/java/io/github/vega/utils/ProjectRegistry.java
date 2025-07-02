@@ -52,7 +52,7 @@ import io.github.vega.core.IMultiDataConverter;
 import io.github.vega.hla.VegaInteractionClass;
 import io.github.vega.hla.VegaObjectClass;
 import io.github.vega.hla.HLAObjectComponent;
-import io.github.vega.hla.SharingModel;
+import io.github.vega.hla.HLASharingModel;
 
 public record ProjectRegistry()
 {
@@ -219,7 +219,7 @@ public record ProjectRegistry()
 
 				for (String attributeName : objectClass.attributeNames)
 				{
-					String pubSub = SharingModel.toString(objectClass.getSharingModel(attributeName));
+					String pubSub = HLASharingModel.toString(objectClass.getSharingModel(attributeName));
 
 					if (objectClass.attributeUsesMultiConverter(attributeName))
 					{
@@ -248,7 +248,7 @@ public record ProjectRegistry()
 		{
 			for (VegaInteractionClass interactionClass : interactionClasses)
 			{
-				String pubSub = SharingModel.toString(interactionClass.sharingModel);
+				String pubSub = HLASharingModel.toString(interactionClass.sharingModel);
 				System.out.println("<" + interactionClass.name + ">" + " [" + pubSub + "]");
 				System.out.println("Archetype: " + trimClassName(interactionClass.archetypeName));
 				if (!interactionClass.declareAutomatically)

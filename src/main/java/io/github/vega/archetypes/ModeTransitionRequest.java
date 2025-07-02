@@ -40,7 +40,7 @@ import io.github.vega.core.World;
 public class ModeTransitionRequest implements IEntityArchetype
 {
 	@Override
-	public Entity assemble()
+	public Entity createEntity()
 	{
 		Entity modeTransitionRequest = World.createEntity();
 		MTRComponent mtrComponent = World.createComponent(MTRComponent.class);

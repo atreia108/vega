@@ -40,7 +40,7 @@ import io.github.vega.core.World;
 public class ExecutionConfiguration implements IEntityArchetype
 {
 	@Override
-	public Entity assemble()
+	public Entity createEntity()
 	{
 		Entity exCO = World.createEntity();
 		ExCOComponent exCOComponent = World.createComponent(ExCOComponent.class);

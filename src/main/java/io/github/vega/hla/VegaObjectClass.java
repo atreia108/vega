@@ -52,10 +52,13 @@ public class VegaObjectClass
 	public String archetypeName;
 	public ObjectClassHandle classHandle;
 	public Set<String> attributeNames;
-	public Map<String, String> attributeConverterMap;
-	public Map<String, AttributeHandle> attributeHandleMap;
-	public Map<String, SharingModel> attributeSharingMap;
-	public Map<String, Map<String, Integer>> attributeMultiConverterMap;
+
+	private Map<String, String> attributeConverterMap;
+	private Map<String, AttributeHandle> attributeHandleMap;
+	private Map<String, HLASharingModel> attributeSharingMap;
+	private Map<String, Map<String, Integer>> attributeMultiConverterMap;
+	private AttributeHandleSet publicationHandleSet;
+	private AttributeHandleSet subscriptionHandleSet;
 
 	// A flag used to determine whether an HLA object/interaction type should be
 	// automatically declared to the RTI or not.
@@ -76,7 +79,7 @@ public class VegaObjectClass
 		attributeConverterMap = new HashMap<String, String>();
 
 		attributeHandleMap = new HashMap<String, AttributeHandle>();
-		attributeSharingMap = new HashMap<String, SharingModel>();
+		attributeSharingMap = new HashMap<String, HLASharingModel>();
 
 		attributeMultiConverterMap = new HashMap<String, Map<String, Integer>>();
 
@@ -84,7 +87,7 @@ public class VegaObjectClass
 		isSubscribed = false;
 	}
 
-	public void addAttribute(String attributeName, SharingModel sharingModel)
+	public void addAttribute(String attributeName, HLASharingModel sharingModel)
 	{
 		attributeNames.add(attributeName);
 		attributeSharingMap.put(attributeName, sharingModel);
@@ -156,7 +159,7 @@ public class VegaObjectClass
 			return false;
 	}
 
-	public SharingModel getSharingModel(String attributeName)
+	public HLASharingModel getSharingModel(String attributeName)
 	{
 		return attributeSharingMap.get(attributeName);
 	}
@@ -172,7 +175,7 @@ public class VegaObjectClass
 
 		attributeSharingMap.forEach((attribute, sharing) ->
 		{
-			if (sharing == SharingModel.PUBLISH_ONLY || sharing == SharingModel.PUBLISH_SUBSCRIBE)
+			if (sharing == HLASharingModel.PUBLISH_ONLY || sharing == HLASharingModel.PUBLISH_SUBSCRIBE)
 				result.add(attribute);
 		});
 
@@ -181,27 +184,32 @@ public class VegaObjectClass
 
 	public AttributeHandleSet publisheableAttributeHandles()
 	{
-		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
-		try
+		if (publicationHandleSet == null)
 		{
-			AttributeHandleSet result = rtiAmbassador.getAttributeHandleSetFactory().create();
-
-			attributeHandleMap.forEach((attributeName, handle) ->
+			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			try
 			{
-				SharingModel sharingModel = getSharingModel(attributeName);
+				AttributeHandleSet result = rtiAmbassador.getAttributeHandleSetFactory().create();
 
-				if (sharingModel == SharingModel.PUBLISH_ONLY || sharingModel == SharingModel.PUBLISH_SUBSCRIBE)
-					result.add(handle);
-			});
-			
-			return result;
+				attributeHandleMap.forEach((attributeName, handle) ->
+				{
+					HLASharingModel sharingModel = getSharingModel(attributeName);
+
+					if (sharingModel == HLASharingModel.PUBLISH_ONLY || sharingModel == HLASharingModel.PUBLISH_SUBSCRIBE)
+						result.add(handle);
+				});
+
+				return result;
+			}
+			catch (Exception e)
+			{
+				LOGGER.error("Could not generate attribute handle set containing published attributes for the HLA object class <{}>\n[REASON]", e, name);
+				System.exit(1);
+			}
 		}
-		catch (Exception e)
-		{
-			LOGGER.error("Could not generate attribute handle set containing published attributes for the HLA object class <{}>\n[REASON]", e, name);
-			System.exit(1);
-		}
-		
+		else
+			return publicationHandleSet;
+
 		return null;
 	}
 
@@ -211,36 +219,41 @@ public class VegaObjectClass
 
 		attributeSharingMap.forEach((attribute, sharing) ->
 		{
-			if (sharing == SharingModel.SUBSCRIBE_ONLY || sharing == SharingModel.PUBLISH_SUBSCRIBE)
+			if (sharing == HLASharingModel.SUBSCRIBE_ONLY || sharing == HLASharingModel.PUBLISH_SUBSCRIBE)
 				result.add(attribute);
 		});
 
 		return result;
 	}
-	
+
 	public AttributeHandleSet subscribeableAttributeHandles()
 	{
-		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
-		try
+		if (subscriptionHandleSet == null)
 		{
-			AttributeHandleSet result = rtiAmbassador.getAttributeHandleSetFactory().create();
-
-			attributeHandleMap.forEach((attributeName, handle) ->
+			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			try
 			{
-				SharingModel sharingModel = getSharingModel(attributeName);
+				AttributeHandleSet result = rtiAmbassador.getAttributeHandleSetFactory().create();
 
-				if (sharingModel == SharingModel.SUBSCRIBE_ONLY || sharingModel == SharingModel.PUBLISH_SUBSCRIBE)
-					result.add(handle);
-			});
-			
-			return result;
+				attributeHandleMap.forEach((attributeName, handle) ->
+				{
+					HLASharingModel sharingModel = getSharingModel(attributeName);
+
+					if (sharingModel == HLASharingModel.SUBSCRIBE_ONLY || sharingModel == HLASharingModel.PUBLISH_SUBSCRIBE)
+						result.add(handle);
+				});
+
+				return result;
+			}
+			catch (Exception e)
+			{
+				LOGGER.error("Could not generate attribute handle set containing subscribed attributes for the HLA object class <{}>\n[REASON]", e, name);
+				System.exit(1);
+			}
 		}
-		catch (Exception e)
-		{
-			LOGGER.error("Could not generate attribute handle set containing subscribed attributes for the HLA object class <{}>\n[REASON]", e, name);
-			System.exit(1);
-		}
-		
+		else
+			return subscriptionHandleSet;
+
 		return null;
 	}
 
@@ -265,7 +278,7 @@ public class VegaObjectClass
 			if (classHandle == null)
 				classHandle = rtiAmbassador.getObjectClassHandle(name);
 
-			AttributeHandleSet publicationSetHandle = rtiAmbassador.getAttributeHandleSetFactory().create();
+			AttributeHandleSet publicationHandleSet = rtiAmbassador.getAttributeHandleSetFactory().create();
 
 			for (String attributeName : publisheableAttributeNames())
 			{
@@ -277,10 +290,12 @@ public class VegaObjectClass
 					addAttributeHandle(attributeName, attributeHandle);
 				}
 
-				publicationSetHandle.add(attributeHandle);
+				publicationHandleSet.add(attributeHandle);
 			}
 
-			rtiAmbassador.publishObjectClassAttributes(classHandle, publicationSetHandle);
+			rtiAmbassador.publishObjectClassAttributes(classHandle, publicationHandleSet);
+
+			this.publicationHandleSet = publicationHandleSet;
 		}
 		catch (Exception e)
 		{
@@ -306,7 +321,7 @@ public class VegaObjectClass
 			if (classHandle == null)
 				classHandle = rtiAmbassador.getObjectClassHandle(name);
 
-			AttributeHandleSet subscriptionSetHandle = rtiAmbassador.getAttributeHandleSetFactory().create();
+			AttributeHandleSet subscriptionHandleSet = rtiAmbassador.getAttributeHandleSetFactory().create();
 
 			for (String attributeName : subscribeableAttributeNames())
 			{
@@ -318,10 +333,12 @@ public class VegaObjectClass
 					addAttributeHandle(attributeName, attributeHandle);
 				}
 
-				subscriptionSetHandle.add(attributeHandle);
+				subscriptionHandleSet.add(attributeHandle);
 			}
 
-			rtiAmbassador.subscribeObjectClassAttributes(classHandle, subscriptionSetHandle);
+			rtiAmbassador.subscribeObjectClassAttributes(classHandle, subscriptionHandleSet);
+
+			this.subscriptionHandleSet = subscriptionHandleSet;
 		}
 		catch (Exception e)
 		{

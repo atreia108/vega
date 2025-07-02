@@ -50,7 +50,7 @@ import io.github.vega.core.IEntityArchetype;
 import io.github.vega.core.IMultiDataConverter;
 import io.github.vega.hla.VegaInteractionClass;
 import io.github.vega.hla.VegaObjectClass;
-import io.github.vega.hla.SharingModel;
+import io.github.vega.hla.HLASharingModel;
 
 public class ProjectLoader
 {
@@ -417,7 +417,7 @@ public class ProjectLoader
 
 		String sharingIntentValue = attributeElement.attributeValue("Sharing");
 		nullOrEmptyAttribute("Attribute", "Sharing", objectAttributeName);
-		SharingModel sharingModel = sharingModelValue(sharingIntentValue);
+		HLASharingModel sharingModel = sharingModelValue(sharingIntentValue);
 
 		objectClass.addAttribute(objectAttributeName, sharingModel);
 
@@ -433,18 +433,18 @@ public class ProjectLoader
 			return false;
 	}
 
-	private SharingModel sharingModelValue(String sharingValue)
+	private HLASharingModel sharingModelValue(String sharingValue)
 	{
 		sharingModelCheck(sharingValue);
 
 		switch (sharingValue)
 		{
 			case "Publish":
-				return SharingModel.PUBLISH_ONLY;
+				return HLASharingModel.PUBLISH_ONLY;
 			case "Subscribe":
-				return SharingModel.SUBSCRIBE_ONLY;
+				return HLASharingModel.SUBSCRIBE_ONLY;
 			default:
-				return SharingModel.PUBLISH_SUBSCRIBE;
+				return HLASharingModel.PUBLISH_SUBSCRIBE;
 		}
 	}
 
@@ -579,7 +579,7 @@ public class ProjectLoader
 
 			String sharingIntentValue = interactionClassElement.attributeValue("Sharing");
 			nullOrEmptyAttribute("InteractionClass", "Sharing", sharingIntentValue);
-			SharingModel sharingModel = sharingModelValue(sharingIntentValue);
+			HLASharingModel sharingModel = sharingModelValue(sharingIntentValue);
 
 			Element declarationElement = interactionClassElement.element("DeclarationDisabled");
 			VegaInteractionClass newInteractionClass = null;

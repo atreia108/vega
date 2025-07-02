@@ -31,13 +31,13 @@
 
 package io.github.vega.hla;
 
-public enum SharingModel
+public enum HLASharingModel
 {
 	PUBLISH_ONLY,
 	PUBLISH_SUBSCRIBE,
 	SUBSCRIBE_ONLY;
 	
-	public static String toString(SharingModel pubSub)
+	public static String toString(HLASharingModel pubSub)
 	{
 		switch (pubSub)
 		{

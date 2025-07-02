@@ -57,6 +57,9 @@ public class VegaCallbackManager
 
 	private static boolean initializationComplete = false;
 	private static ComponentMapper<HLAObjectComponent> objectComponentMapper = ComponentMapper.getFor(HLAObjectComponent.class);
+	
+	private static final Object nameReservationSemaphore = new Object();
+	private static boolean nameReservationStatus;
 
 	public static void discoverObjectInstance(final ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass, String objectName)
 	{
@@ -71,7 +74,7 @@ public class VegaCallbackManager
 			
 			IEntityArchetype archetype = ProjectRegistry.getArchetype(objectClass.archetypeName);
 
-			Entity entity = archetype.assemble();
+			Entity entity = archetype.createEntity();
 
 			objectComponent.className = className;
 			objectComponent.instanceName = instanceName;
@@ -171,5 +174,33 @@ public class VegaCallbackManager
 				converter.decode(entity, encoderFactory, value);
 			}
 		}
+	}
+	
+	public static void objectInstanceNameReservationSucceeded(String objectName)
+	{
+		nameReservationStatus = true;
+		synchronized(nameReservationSemaphore)
+		{
+			nameReservationSemaphore.notify();
+		}
+	}
+	
+	public static void objectInstanceNameReservationFailed(String objectName)
+	{
+		nameReservationStatus = false;
+		synchronized(nameReservationSemaphore)
+		{
+			nameReservationSemaphore.notify();
+		}
+	}
+	
+	public static Object getNameReservationSemaphore()
+	{
+		return nameReservationSemaphore;
+	}
+	
+	public static boolean getNameReservationStatus()
+	{
+		return nameReservationStatus;
 	}
 }

@@ -41,7 +41,8 @@ import io.github.vega.archetypes.ExecutionConfiguration;
 import io.github.vega.archetypes.ModeTransitionRequest;
 import io.github.vega.converters.ExCOConverter;
 import io.github.vega.converters.MTRConverter;
-import io.github.vega.hla.SharingModel;
+import io.github.vega.hla.HLASharingModel;
+import io.github.vega.hla.VegaDataManager;
 import io.github.vega.hla.VegaFederateAmbassador;
 import io.github.vega.hla.VegaInteractionClass;
 import io.github.vega.hla.VegaObjectClass;
@@ -54,25 +55,25 @@ import io.github.vega.utils.ProjectSettings;
 public abstract class VegaSimulationBase
 {
 	protected static final Logger LOGGER = LogManager.getLogger();
-	
+
 	public VegaSimulationBase(String projectFilePath, String[] args)
 	{
 		unpackArgs(args);
 		new ProjectLoader(projectFilePath);
 		World.setupEngine();
 	}
-	
+
 	public VegaSimulationBase(String projectFilePath)
 	{
 		new ProjectLoader(projectFilePath);
 		World.setupEngine();
 	}
-	
+
 	private void unpackArgs(String[] args)
 	{
 		if (args == null || args.length == 0)
 			return;
-		
+
 		if (args[0].equals("reduced_logging"))
 			ProjectSettings.REDUCED_LOGGING = true;
 	}
@@ -87,102 +88,160 @@ public abstract class VegaSimulationBase
 	protected abstract void onShutdown();
 
 	protected abstract void onFreeze();
-	
+
 	protected void init()
 	{
 		final int TOTAL_STEPS = 10;
 		int currentStep = 0;
-		
+
 		connect();
-		
+
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("({}/{}) Subscribing to the ExecutionConfiguration (ExCO) object class", ++currentStep, TOTAL_STEPS);
 		subscribeExCO();
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("Subscribed to the ExCO object class");
-		
+
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("({}/{}) Declaring the ModeTransitionRequest (MTR) interaction class", ++currentStep, TOTAL_STEPS);
 		publishMTR();
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("MTR interaction class has been declared");
-		
+
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("({}/{}) Waiting to discover the ExCO object instance", ++currentStep, TOTAL_STEPS);
 		ExecutionLatch.enable();
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("Discovered ExCO object instance");
-		
+
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("({}/{}) Waiting to receive the latest values of the ExCO object instance", ++currentStep, TOTAL_STEPS);
 		ExecutionLatch.enable();
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("Latest values for ExCO have been received");
+
+		if (!ProjectSettings.REDUCED_LOGGING)
+			LOGGER.info("({}/{}) Publishing all object and interaction classes used by this federate", ++currentStep, TOTAL_STEPS);
+		publishAllObjectClasses();
+		publishAllInteractionClasses();
+		if (!ProjectSettings.REDUCED_LOGGING)
+			LOGGER.info("All object and interaction classes used by this federate have been published");
+
+		if (!ProjectSettings.REDUCED_LOGGING)
+			LOGGER.info("({}/{}) Registering federate object instances", ++currentStep, TOTAL_STEPS);
+		onInit();
+
+		int registeredInstancesCount = VegaDataManager.getRegisteredInstancesCount();
+		String verb = registeredInstancesCount == 1 ? " was" : "s were";
+		LOGGER.info("{} object instance{} successfully registered", registeredInstancesCount, verb);
 		
-		//...
+		if (!ProjectSettings.REDUCED_LOGGING)
+			LOGGER.info("({}/{}) Subscribing to all object and interaction classes used by this federate", ++currentStep, TOTAL_STEPS);
+		subscribeAllObjectClasses();
+		subscribeAllInteractionClasses();
+		if (!ProjectSettings.REDUCED_LOGGING)
+			LOGGER.info("All object and interaction classes used by this federate have been subscribed to");
+		
+		// ...
 		execLoop();
 	}
-	
+
 	private void subscribeExCO()
 	{
 		final String className = "HLAobjectRoot.ExecutionConfiguration";
 		final String archetypeName = "io.github.vega.archetypes.ExecutionConfiguration";
 		final String converterName = "io.github.vega.converters.ExCOConverter";
-		
+
 		VegaObjectClass exCoClass = new VegaObjectClass(className, archetypeName, false);
 		final IMultiDataConverter exCoConverter = new ExCOConverter();
 		final IEntityArchetype exCoArchetype = new ExecutionConfiguration();
-		
-		exCoClass.addAttribute("root_frame_name", SharingModel.SUBSCRIBE_ONLY);
+
+		exCoClass.addAttribute("root_frame_name", HLASharingModel.SUBSCRIBE_ONLY);
 		exCoClass.addMultiConverter("root_frame_name", converterName, 0);
-		
-		exCoClass.addAttribute("current_execution_mode", SharingModel.SUBSCRIBE_ONLY);
+
+		exCoClass.addAttribute("current_execution_mode", HLASharingModel.SUBSCRIBE_ONLY);
 		exCoClass.addMultiConverter("current_execution_mode", converterName, 1);
-		
-		exCoClass.addAttribute("next_execution_mode", SharingModel.SUBSCRIBE_ONLY);
+
+		exCoClass.addAttribute("next_execution_mode", HLASharingModel.SUBSCRIBE_ONLY);
 		exCoClass.addMultiConverter("next_execution_mode", converterName, 2);
-		
-		exCoClass.addAttribute("least_common_time_step", SharingModel.SUBSCRIBE_ONLY);
+
+		exCoClass.addAttribute("least_common_time_step", HLASharingModel.SUBSCRIBE_ONLY);
 		exCoClass.addMultiConverter("least_common_time_step", converterName, 3);
-		
+
 		ProjectRegistry.addObjectClass(exCoClass);
 		ProjectRegistry.addArchetype(archetypeName, exCoArchetype);
 		ProjectRegistry.addMultiConverter(converterName, exCoConverter);
-		
+
 		exCoClass.declare();
 	}
-	
+
 	private void publishMTR()
 	{
 		final String className = "HLAinteractionRoot.ModeTransitionRequest";
 		final String archetypeName = "io.github.vega.archetypes.ModeTransitionRequest";
 		final String converterName = "io.github.vega.converters.MTRConverter";
-		
-		VegaInteractionClass mtrClass = new VegaInteractionClass(className, archetypeName, SharingModel.PUBLISH_SUBSCRIBE, false);
+
+		VegaInteractionClass mtrClass = new VegaInteractionClass(className, archetypeName, HLASharingModel.PUBLISH_SUBSCRIBE, false);
 		final IMultiDataConverter mtrConverter = new MTRConverter();
 		final ModeTransitionRequest mtrArchetype = new ModeTransitionRequest();
-		
+
 		mtrClass.addParameter("execution_mode");
-		
+
 		ProjectRegistry.addInteractionClass(mtrClass);
 		ProjectRegistry.addArchetype(archetypeName, mtrArchetype);
 		ProjectRegistry.addMultiConverter(converterName, mtrConverter);
-		
+
 		mtrClass.declare();
 	}
-	
+
+	public static void publishAllObjectClasses()
+	{
+		for (VegaObjectClass objectClass : ProjectRegistry.objectClasses)
+		{
+			if (!objectClass.isPublished)
+				objectClass.publish();
+		}
+	}
+
+	public static void publishAllInteractionClasses()
+	{
+		for (VegaInteractionClass interactionClass : ProjectRegistry.interactionClasses)
+		{
+			if (!interactionClass.isPublished)
+				interactionClass.publish();
+		}
+	}
+
+	public static void subscribeAllObjectClasses()
+	{
+		for (VegaObjectClass objectClass : ProjectRegistry.objectClasses)
+		{
+			if (!objectClass.isSubscribed)
+				objectClass.subscribe();
+		}
+	}
+
+	public static void subscribeAllInteractionClasses()
+	{
+		for (VegaInteractionClass interactionClass : ProjectRegistry.interactionClasses)
+		{
+			if (!interactionClass.isSubscribed)
+				interactionClass.subscribe();
+		}
+	}
+
 	private void execLoop()
 	{
 		while (true)
 		{
-			
+
 		}
 	}
-	
+
 	public static void connect()
 	{
 		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
-		
+
 		try
 		{
 			rtiAmbassador.connect(new VegaFederateAmbassador(), CallbackModel.HLA_IMMEDIATE);
@@ -190,7 +249,7 @@ public abstract class VegaSimulationBase
 				rtiAmbassador.joinFederationExecution(ProjectSettings.FEDERATE_NAME, ProjectSettings.FEDERATION_NAME, ProjectSettings.FOM_MODULES);
 			else
 				rtiAmbassador.joinFederationExecution(ProjectSettings.FEDERATE_NAME, ProjectSettings.FEDERATION_NAME);
-			
+
 			LOGGER.info("Joined the HLA federation <" + ProjectSettings.FEDERATION_NAME + "> with the name \"" + ProjectSettings.FEDERATE_NAME + "\"");
 		}
 		catch (Exception e)
@@ -203,7 +262,7 @@ public abstract class VegaSimulationBase
 	public static void disconnect()
 	{
 		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
-		
+
 		try
 		{
 			rtiAmbassador.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST);
@@ -213,7 +272,8 @@ public abstract class VegaSimulationBase
 		catch (Exception e)
 		{
 			LOGGER.error("Simulation termination attempt failed unexpectedly\n[REASON]", e);
-			// Leave the option to manually terminate the program to the user (for debugging purposes)
+			// Leave the option to manually terminate the program to the user (for debugging
+			// purposes)
 			// System.exit(1);
 		}
 	}

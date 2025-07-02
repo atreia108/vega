@@ -49,7 +49,7 @@ public class VegaInteractionClass
 
 	public String name;
 	public String archetypeName;
-	public SharingModel sharingModel;
+	public HLASharingModel sharingModel;
 	public InteractionClassHandle classHandle;
 	public Set<String> parameterNames;
 	public Map<String, String> parameterConverterNameMap;
@@ -65,7 +65,7 @@ public class VegaInteractionClass
 	public boolean isPublished;
 	public boolean isSubscribed;
 
-	public VegaInteractionClass(String name, String archetypeName, SharingModel sharingModel, boolean declareAutomatically)
+	public VegaInteractionClass(String name, String archetypeName, HLASharingModel sharingModel, boolean declareAutomatically)
 	{
 		this.name = name;
 		this.archetypeName = archetypeName;
@@ -162,7 +162,7 @@ public class VegaInteractionClass
 
 	public boolean publisheable()
 	{
-		if (sharingModel == SharingModel.PUBLISH_ONLY || sharingModel == SharingModel.PUBLISH_SUBSCRIBE)
+		if (sharingModel == HLASharingModel.PUBLISH_ONLY || sharingModel == HLASharingModel.PUBLISH_SUBSCRIBE)
 			return true;
 		else
 			return false;
@@ -170,7 +170,7 @@ public class VegaInteractionClass
 
 	public boolean subscribeable()
 	{
-		if (sharingModel == SharingModel.SUBSCRIBE_ONLY || sharingModel == SharingModel.PUBLISH_SUBSCRIBE)
+		if (sharingModel == HLASharingModel.SUBSCRIBE_ONLY || sharingModel == HLASharingModel.PUBLISH_SUBSCRIBE)
 			return true;
 		else
 			return false;
@@ -178,9 +178,9 @@ public class VegaInteractionClass
 	
 	public void declare()
 	{
-		if (sharingModel == SharingModel.PUBLISH_ONLY)
+		if (sharingModel == HLASharingModel.PUBLISH_ONLY)
 			publish();
-		else if (sharingModel == SharingModel.SUBSCRIBE_ONLY)
+		else if (sharingModel == HLASharingModel.SUBSCRIBE_ONLY)
 			subscribe();
 		else
 		{

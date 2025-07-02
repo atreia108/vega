@@ -52,4 +52,16 @@ public class VegaFederateAmbassador extends NullFederateAmbassador
 	{
 		VegaCallbackManager.reflectAttributeValues(theObject, theAttributes);
 	}
+	
+	@Override
+	public void objectInstanceNameReservationSucceeded(String objectName)
+	{
+		VegaCallbackManager.objectInstanceNameReservationSucceeded(objectName);
+	}
+	
+	@Override
+	public void objectInstanceNameReservationFailed(String objectName)
+	{
+		VegaCallbackManager.objectInstanceNameReservationFailed(objectName);
+	}
 }
