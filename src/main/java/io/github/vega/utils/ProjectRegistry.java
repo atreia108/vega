@@ -180,7 +180,7 @@ public record ProjectRegistry()
 		System.out.println(separatorStyle1);
 
 		if (requiredObjects == null || requiredObjects.isEmpty())
-			System.out.println("None");
+			System.out.println("None\n");
 		else
 		{
 			int counter = 0;

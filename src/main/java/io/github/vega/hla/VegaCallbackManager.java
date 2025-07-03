@@ -43,37 +43,49 @@ import com.badlogic.ashley.core.Entity;
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.AttributeHandleValueMap;
+import hla.rti1516e.LogicalTime;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.exceptions.FederateInternalError;
+import hla.rti1516e.time.HLAinteger64Time;
 import io.github.vega.core.IDataConverter;
 import io.github.vega.core.IEntityArchetype;
 import io.github.vega.core.IMultiDataConverter;
 import io.github.vega.core.World;
+import io.github.vega.data.ExCO;
 import io.github.vega.utils.ExecutionLatch;
 import io.github.vega.utils.ProjectRegistry;
 
 public class VegaCallbackManager
 {
 	private static final Logger LOGGER = LogManager.getLogger();
-	
+
 	private static final String EXCO_CLASS_NAME = "HLAobjectRoot.ExecutionConfiguration";
-	
-	private static final Set<String> OBJECTS_PENDING_DISCOVERY = new HashSet<String>(ProjectRegistry.requiredObjects);
-	private static ComponentMapper<HLAObjectComponent> objectComponentMapper = ComponentMapper.getFor(HLAObjectComponent.class);
-	
+
+	private static Set<String> OBJECTS_PENDING_DISCOVERY;
+
+	static
+	{
+		Set<String> requiredObjects = ProjectRegistry.requiredObjects;
+		if (requiredObjects != null)
+			OBJECTS_PENDING_DISCOVERY = new HashSet<String>(requiredObjects);
+	}
+
+	private static final ComponentMapper<HLAObjectComponent> OBJECT_COMPONENT_MAPPER = ComponentMapper.getFor(HLAObjectComponent.class);
+
 	private static final Object NAME_RESERVATION_SEMAPHORE = new Object();
 	private static boolean nameReservationStatus;
 
 	public static void discoverObjectInstance(final ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass, String objectName)
 	{
 		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
-		HLAObjectComponent objectComponent = World.createComponent(HLAObjectComponent.class);
-		
+
 		String className = null;
 		String instanceName = null;
-		
+		Entity entity = null;
+
 		try
 		{
 			className = rtiAmbassador.getObjectClassName(theObjectClass);
@@ -84,42 +96,48 @@ public class VegaCallbackManager
 			LOGGER.error("Failed to save a new object instance\n[REASON]", e);
 			System.exit(1);
 		}
-		
+
 		VegaObjectClass objectClass = ProjectRegistry.getObjectClass(className);
-		
+
 		if (objectClass == null)
-		{	
+		{
 			LOGGER.warn("Failed to create an internalized entity representation of the object instance \"{}\" of class <{}>.\n[REASON] The corresponding object class for the instance was not created at runtime. The definition for this object class may be missing in the project file", instanceName, className);
 			return;
 		}
-		
-		IEntityArchetype archetype = ProjectRegistry.getArchetype(objectClass.archetypeName);
-		Entity entity = archetype.createEntity();
-		
-		if (entity == null)
+
+		if (className.equals(EXCO_CLASS_NAME) && ExecutionLatch.active())
 		{
-			LOGGER.warn("Failed to create an internalized entity representation of the object instance \"{}\" of class <{}>.\n[REASON] The archetype <{}> returned NULL instead of an entity. Re-check to ensure it returns an entity with the necessary components", instanceName, className, archetype);
-			return;
+			entity = ExCO.getEntity();
+			ExecutionLatch.disable();
+		}
+		else
+		{
+			IEntityArchetype archetype = ProjectRegistry.getArchetype(objectClass.archetypeName);
+			entity = archetype.createEntity();
+
+			if (entity == null)
+			{
+				LOGGER.warn("Failed to create an internalized entity representation of the object instance \"{}\" of class <{}>.\n[REASON] The archetype <{}> returned NULL instead of an entity. Re-check to ensure it returns an entity with the necessary components", instanceName, className, archetype);
+				return;
+			}
+
+			ProjectRegistry.addEntityObjectInstance(entity, theObject);
+
+			if (OBJECTS_PENDING_DISCOVERY != null && OBJECTS_PENDING_DISCOVERY.contains(instanceName))
+			{
+				LOGGER.info("Discovered the object instance \"{}\" of class <{}>", instanceName, className);
+				OBJECTS_PENDING_DISCOVERY.remove(instanceName);
+
+				if (OBJECTS_PENDING_DISCOVERY.isEmpty() && ExecutionLatch.active())
+					ExecutionLatch.disable();
+			}
 		}
 
+		HLAObjectComponent objectComponent = World.createComponent(HLAObjectComponent.class);
 		objectComponent.className = className;
 		objectComponent.instanceName = instanceName;
-		
 		World.addComponent(entity, objectComponent);
-		ProjectRegistry.addEntityObjectInstance(entity, theObject);
-		
-		if (className.equals(EXCO_CLASS_NAME))
-			ExecutionLatch.disable();
-		
-		if (OBJECTS_PENDING_DISCOVERY.contains(instanceName))
-		{
-			LOGGER.info("Discovered the object instance \"{}\" of class <{}>", instanceName, className);
-			OBJECTS_PENDING_DISCOVERY.remove(instanceName);
-			
-			if (OBJECTS_PENDING_DISCOVERY.isEmpty())
-				ExecutionLatch.disable();
-		}
-		
+
 		requestLatestAttributeValues(theObject, instanceName, objectClass);
 	}
 
@@ -134,88 +152,133 @@ public class VegaCallbackManager
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Failed to get the latest values for the object instance \"{}\"\n[REASON]", instanceName);
+			LOGGER.error("Failed to request the latest values for the object instance \"{}\"\n[REASON]", instanceName);
 			System.exit(1);
 		}
 	}
 
 	public static void reflectAttributeValues(ObjectInstanceHandle theObject, AttributeHandleValueMap theAttributes)
 	{
-		Entity entity = ProjectRegistry.getRemoteEntity(theObject);
-		HLAObjectComponent objectComponent = objectComponentMapper.get(entity);
-		String className = objectComponent.className;
-		String instanceName = objectComponent.instanceName;
+		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+
+		ObjectClassHandle classHandle = null;
+		String className = null;
+		String instanceName = null;
+
+		try
+		{
+			classHandle = rtiAmbassador.getKnownObjectClassHandle(theObject);
+			className = rtiAmbassador.getObjectClassName(classHandle);
+			instanceName = rtiAmbassador.getObjectInstanceName(theObject);
+		}
+		catch (Exception e)
+		{
+			if (instanceName != null)
+				LOGGER.info("Failed to set the latest incoming values for the object instance\"{}\"\n[REASON]", instanceName, e);
+			else
+				LOGGER.info("Failed to set the latest incoming values for an unknown object instance\n[REASON]", e);
+			System.exit(1);
+		}
 		
-		VegaObjectClass objectClass = ProjectRegistry.getObjectClass(className);
-		AttributeHandleSet attributeHandles = objectClass.subscribeableAttributeHandles();
-		
-		if (!allAttributesPresent(attributeHandles, theAttributes))
-			LOGGER.warn("Discarded latest values received for the object instance \"{}\" because one or more required attributes are missing", instanceName);
+		Entity entity = null;
+		if (instanceName.equals("ExCO"))
+			entity = ExCO.getEntity();
 		else
-			updateObjectInstance(entity, objectClass, theAttributes);
+			entity = ProjectRegistry.getRemoteEntity(theObject);
 		
-		if (className.equals(EXCO_CLASS_NAME))
+		if (entity == null)
+		{
+			LOGGER.warn("Discarding the latest incoming values for the object instance\"{}\"\n[REASON] No corresponding entity was created for the object instance", instanceName);
+			return;
+		}
+
+		VegaObjectClass objectClass = ProjectRegistry.getObjectClass(className);
+		
+		if (objectClass == null)
+		{
+			LOGGER.warn("Discarding the latest incoming values for the object instance\"{}\"\n[REASON] The object instance is of an unknown class <{}>", instanceName, className);
+			return;
+		}
+
+		updateObjectInstance(entity, instanceName, objectClass, theAttributes);
+		
+		if (instanceName.equals("ExCO") && ExecutionLatch.active())
 			ExecutionLatch.disable();
 	}
-	
-	private static boolean allAttributesPresent(AttributeHandleSet attributeHandles, AttributeHandleValueMap providedAttributeMap)
-	{
-		for (AttributeHandle attributeHandle : attributeHandles)
-		{
-			if (!providedAttributeMap.containsKey(attributeHandle))
-				return false;
-		}
-		return true;
-	}
-	
-	private static void updateObjectInstance(Entity entity, VegaObjectClass objectClass, AttributeHandleValueMap latestValues)
+
+	private static void updateObjectInstance(Entity entity, String instanceName, VegaObjectClass objectClass, AttributeHandleValueMap latestValues)
 	{
 		EncoderFactory encoderFactory = VegaEncoderFactory.instance();
-		
+
 		for (String attributeName : objectClass.attributeNames)
 		{
 			AttributeHandle attributeHandle = objectClass.getAttributeHandle(attributeName);
-			byte[] value = latestValues.get(attributeHandle);
-			
+
+			if (!latestValues.containsKey(attributeHandle))
+				return;
+
+			byte[] newValue = latestValues.get(attributeHandle);
+
 			if (objectClass.attributeUsesMultiConverter(attributeName))
 			{
 				String converterName = objectClass.getAttributeMultiConverterName(attributeName);
 				IMultiDataConverter converter = ProjectRegistry.getMultiConverter(converterName);
 				int trigger = objectClass.getAttributeConverterTrigger(attributeName, converterName);
-				converter.decode(entity, encoderFactory, value, trigger);
+				converter.decode(entity, encoderFactory, newValue, trigger);
 			}
 			else
 			{
 				String converterName = objectClass.getAttributeConverterName(attributeName);
 				IDataConverter converter = ProjectRegistry.getDataConverter(converterName);
-				converter.decode(entity, encoderFactory, value);
+				converter.decode(entity, encoderFactory, newValue);
 			}
 		}
 	}
-	
+
 	public static void objectInstanceNameReservationSucceeded(String objectName)
 	{
 		nameReservationStatus = true;
-		synchronized(NAME_RESERVATION_SEMAPHORE)
+		synchronized (NAME_RESERVATION_SEMAPHORE)
 		{
 			NAME_RESERVATION_SEMAPHORE.notify();
 		}
 	}
-	
+
 	public static void objectInstanceNameReservationFailed(String objectName)
 	{
 		nameReservationStatus = false;
-		synchronized(NAME_RESERVATION_SEMAPHORE)
+		synchronized (NAME_RESERVATION_SEMAPHORE)
 		{
 			NAME_RESERVATION_SEMAPHORE.notify();
 		}
 	}
-	
+
+	@SuppressWarnings("rawtypes")
+	public static void timeConstrainedEnabled(LogicalTime time) throws FederateInternalError
+	{
+		LOGGER.info("The federate is now HLA time constrained");
+		ExecutionLatch.disable();
+	}
+
+	@SuppressWarnings("rawtypes")
+	public static void timeRegulationEnabled(LogicalTime time) throws FederateInternalError
+	{
+		LOGGER.info("HLA time regulation has been enabled");
+		ExecutionLatch.disable();
+	}
+
+	@SuppressWarnings("rawtypes")
+	public static void timeAdvanceGrant(LogicalTime theTime) throws FederateInternalError
+	{
+		VegaTimeManager.setPresentTime((HLAinteger64Time) theTime);
+		ExecutionLatch.disable();
+	}
+
 	public static Object getNameReservationSemaphore()
 	{
 		return NAME_RESERVATION_SEMAPHORE;
 	}
-	
+
 	public static boolean getNameReservationStatus()
 	{
 		return nameReservationStatus;

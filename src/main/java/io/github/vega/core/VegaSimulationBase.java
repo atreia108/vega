@@ -39,14 +39,18 @@ import hla.rti1516e.RTIambassador;
 import hla.rti1516e.ResignAction;
 import io.github.vega.archetypes.ExecutionConfiguration;
 import io.github.vega.archetypes.ModeTransitionRequest;
+import io.github.vega.components.ExCOComponent;
 import io.github.vega.converters.ExCOConverter;
 import io.github.vega.converters.MTRConverter;
+import io.github.vega.data.ExCO;
+import io.github.vega.data.ExecutionMode;
 import io.github.vega.hla.HLASharingModel;
 import io.github.vega.hla.VegaDataManager;
 import io.github.vega.hla.VegaFederateAmbassador;
 import io.github.vega.hla.VegaInteractionClass;
 import io.github.vega.hla.VegaObjectClass;
 import io.github.vega.hla.VegaRTIAmbassador;
+import io.github.vega.hla.VegaTimeManager;
 import io.github.vega.utils.ExecutionLatch;
 import io.github.vega.utils.ProjectLoader;
 import io.github.vega.utils.ProjectRegistry;
@@ -113,10 +117,14 @@ public abstract class VegaSimulationBase
 		ExecutionLatch.enable();
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("Discovered ExCO object instance");
-		
+
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("({}/{}) Waiting to receive the latest values of the ExCO object instance", ++currentStep, TOTAL_STEPS);
 		ExecutionLatch.enable();
+		System.out.println("Root Frame Name: " + ExCO.getRootFrameName());
+		System.out.println("Current Execution Mode: " + ExCO.getCurrentExecutionMode());
+		System.out.println("Next Execution Mode: " + ExCO.getNextExecutionMode());
+		System.out.println("Least Common Time Step: " + ExCO.getLeastCommonTimeStep());
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("Latest values for ExCO have been received");
 		
@@ -134,21 +142,29 @@ public abstract class VegaSimulationBase
 		int registeredInstancesCount = VegaDataManager.getRegisteredInstancesCount();
 		String verb = registeredInstancesCount == 1 ? " was" : "s were";
 		LOGGER.info("{} object instance{} successfully registered", registeredInstancesCount, verb);
-		
+
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("({}/{}) Subscribing to all object and interaction classes used by this federate", ++currentStep, TOTAL_STEPS);
 		subscribeAllObjectClasses();
 		subscribeAllInteractionClasses();
 		if (!ProjectSettings.REDUCED_LOGGING)
 			LOGGER.info("All object and interaction classes used by this federate have been subscribed to");
-		
+
+		if (ProjectRegistry.requiredObjects != null)
+		{	
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.info("({}/{}) Waiting for all required object instances to be discovered", ++currentStep, TOTAL_STEPS);
+			ExecutionLatch.enable();
+			if (!ProjectSettings.REDUCED_LOGGING)
+				LOGGER.info("All required object instances were discovered", ++currentStep, TOTAL_STEPS);
+		}
 		if (!ProjectSettings.REDUCED_LOGGING)
-			LOGGER.info("({}/{}) Waiting for all required object instances to be discovered", ++currentStep, TOTAL_STEPS);
-		ExecutionLatch.enable();
+			LOGGER.info("({}/{}) Aligning simulation timeline with the HLA federation");
+		setupTimeManagement();
 		if (!ProjectSettings.REDUCED_LOGGING)
-			LOGGER.info("All required object instances were discovered", ++currentStep, TOTAL_STEPS);
+			LOGGER.info("Simulation timeline is now in sync with the federation");
 		
-		// ...
+		LOGGER.info("Starting execution of the simulation");
 		execLoop();
 	}
 
@@ -200,7 +216,7 @@ public abstract class VegaSimulationBase
 		mtrClass.declare();
 	}
 
-	public static void publishAllObjectClasses()
+	private static void publishAllObjectClasses()
 	{
 		for (VegaObjectClass objectClass : ProjectRegistry.objectClasses)
 		{
@@ -209,7 +225,7 @@ public abstract class VegaSimulationBase
 		}
 	}
 
-	public static void publishAllInteractionClasses()
+	private static void publishAllInteractionClasses()
 	{
 		for (VegaInteractionClass interactionClass : ProjectRegistry.interactionClasses)
 		{
@@ -227,7 +243,7 @@ public abstract class VegaSimulationBase
 		}
 	}
 
-	public static void subscribeAllInteractionClasses()
+	private static void subscribeAllInteractionClasses()
 	{
 		for (VegaInteractionClass interactionClass : ProjectRegistry.interactionClasses)
 		{
@@ -236,18 +252,29 @@ public abstract class VegaSimulationBase
 		}
 	}
 
+	private static void setupTimeManagement()
+	{
+		VegaTimeManager.enableTimeConstrained();
+		ExecutionLatch.enable();
+		VegaTimeManager.enableTimeRegulation();
+		ExecutionLatch.enable();
+		VegaTimeManager.advanceTime(VegaTimeManager.getLogicalTimeBoundary());
+		ExecutionLatch.enable();
+	}
+
 	private void execLoop()
 	{
 		while (true)
 		{
-
+			
+			
 		}
 	}
 
 	public static void connect()
 	{
 		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
-
+		
 		try
 		{
 			rtiAmbassador.connect(new VegaFederateAmbassador(), CallbackModel.HLA_IMMEDIATE);
@@ -268,7 +295,7 @@ public abstract class VegaSimulationBase
 	public static void disconnect()
 	{
 		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
-
+		
 		try
 		{
 			rtiAmbassador.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST);

@@ -32,6 +32,7 @@
 package io.github.vega.hla;
 
 import hla.rti1516e.AttributeHandleValueMap;
+import hla.rti1516e.LogicalTime;
 import hla.rti1516e.NullFederateAmbassador;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
@@ -46,22 +47,43 @@ public class VegaFederateAmbassador extends NullFederateAmbassador
 	{
 		VegaCallbackManager.discoverObjectInstance(theObject, theObjectClass, objectName);
 	}
-	
+
 	@Override
 	public void reflectAttributeValues(ObjectInstanceHandle theObject, AttributeHandleValueMap theAttributes, byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport, SupplementalReflectInfo reflectInfo) throws FederateInternalError
 	{
 		VegaCallbackManager.reflectAttributeValues(theObject, theAttributes);
 	}
-	
+
 	@Override
 	public void objectInstanceNameReservationSucceeded(String objectName)
 	{
 		VegaCallbackManager.objectInstanceNameReservationSucceeded(objectName);
 	}
-	
+
 	@Override
 	public void objectInstanceNameReservationFailed(String objectName)
 	{
 		VegaCallbackManager.objectInstanceNameReservationFailed(objectName);
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public void timeConstrainedEnabled(LogicalTime time) throws FederateInternalError
+	{
+		VegaCallbackManager.timeConstrainedEnabled(time);
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public void timeRegulationEnabled(LogicalTime time) throws FederateInternalError
+	{
+		VegaCallbackManager.timeRegulationEnabled(time);
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public void timeAdvanceGrant(LogicalTime theTime) throws FederateInternalError
+	{
+		VegaCallbackManager.timeAdvanceGrant(theTime);
 	}
 }
