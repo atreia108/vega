@@ -29,7 +29,7 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.components;
 
 import com.badlogic.ashley.core.Component;
 
@@ -39,5 +39,5 @@ public class HLAObjectComponent implements Component
 {
 	public String className = null;
 	public String instanceName = null;
-	public ObjectInstanceHandle handle = null;
+	public ObjectInstanceHandle instanceHandle = null;
 }

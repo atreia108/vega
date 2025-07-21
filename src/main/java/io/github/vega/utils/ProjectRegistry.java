@@ -37,8 +37,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.commons.collections4.BidiMap;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -46,12 +44,12 @@ import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 
 import hla.rti1516e.ObjectInstanceHandle;
+import io.github.vega.components.HLAObjectComponent;
 import io.github.vega.core.IDataConverter;
 import io.github.vega.core.IEntityArchetype;
 import io.github.vega.core.IMultiDataConverter;
 import io.github.vega.hla.VegaInteractionClass;
 import io.github.vega.hla.VegaObjectClass;
-import io.github.vega.hla.HLAObjectComponent;
 import io.github.vega.hla.HLASharingModel;
 
 public record ProjectRegistry()
@@ -65,12 +63,13 @@ public record ProjectRegistry()
 	public static Map<String, IDataConverter> dataConverters = new HashMap<String, IDataConverter>();
 	public static Map<String, IMultiDataConverter> multiDataConverters = new HashMap<String, IMultiDataConverter>();
 	
-	private static BidiMap<Entity, ObjectInstanceHandle> entityInstances = new DualHashBidiMap<Entity, ObjectInstanceHandle>();
+	// private static BidiMap<Entity, ObjectInstanceHandle> remoteEntityMap = new DualHashBidiMap<Entity, ObjectInstanceHandle>();
+	private static Set<Entity> remoteEntitySet = new HashSet<Entity>();
 	
-	private static ComponentMapper<HLAObjectComponent> objectComponentMapper = ComponentMapper.getFor(HLAObjectComponent.class);
+	private static final ComponentMapper<HLAObjectComponent> OBJECT_COMPONENT_MAPPER = ComponentMapper.getFor(HLAObjectComponent.class);
 
-	private static final String separatorStyle1 = "========================================";
-	private static final String separatorStyle2 = "****************************************";
+	private static final String SEPARATOR_STYLE_1 = "========================================";
+	private static final String SEPARATOR_STYLE_2 = "****************************************";
 
 	public static void addArchetype(String archetypeName, IEntityArchetype archetype)
 	{
@@ -132,16 +131,33 @@ public record ProjectRegistry()
 		return multiDataConverters.get(converterName);
 	}
 	
+	/*
 	public static void addEntityObjectInstance(Entity entity, ObjectInstanceHandle instanceHandle)
 	{
-		entityInstances.put(entity, instanceHandle);
+		remoteEntityMap.put(entity, instanceHandle);
+	}
+	*/
+	
+	public static void addRemoteEntity(Entity entity)
+	{
+		remoteEntitySet.add(entity);
 	}
 	
-	public static Entity getRemoteEntity(String objectInstanceName)
+	public static Entity getRemoteEntityByName(String objectInstanceName)
 	{
-		for (Entity entity : entityInstances.keySet())
+		/*
+		for (Entity entity : remoteEntityMap.keySet())
 		{
 			HLAObjectComponent objectComponent = objectComponentMapper.get(entity);
+			
+			if (objectComponent != null && objectComponent.instanceName.equals(objectInstanceName))
+				return entity;
+		}
+		*/
+		
+		for (Entity entity : remoteEntitySet)
+		{
+			HLAObjectComponent objectComponent = OBJECT_COMPONENT_MAPPER.get(entity);
 			
 			if (objectComponent != null && objectComponent.instanceName.equals(objectInstanceName))
 				return entity;
@@ -150,22 +166,41 @@ public record ProjectRegistry()
 		return null;
 	}
 	
-	public static Entity getRemoteEntity(ObjectInstanceHandle instanceHandle)
+	public static Entity getRemoteEntityByHandle(ObjectInstanceHandle instanceHandle)
 	{
-		return entityInstances.getKey(instanceHandle);
+		for (Entity entity : remoteEntitySet)
+		{
+			HLAObjectComponent objectComponent = OBJECT_COMPONENT_MAPPER.get(entity);
+			
+			if (objectComponent != null && (objectComponent.instanceHandle == instanceHandle))
+				return entity;
+		}
+		
+		return null;
+		
+		// return remoteEntityMap.getKey(instanceHandle);
 	}
 	
-	
+	/*
 	public static ObjectInstanceHandle getRemoteEntityHandle(Entity entity)
 	{
-		return entityInstances.get(entity);
+		return remoteEntityMap.get(entity);
 	}
-
+	*/
+	
+	public static boolean isRemoteEntity(Entity entity)
+	{
+		if (remoteEntitySet.contains(entity))
+			return true;
+		else
+			return false;
+	}
+	
 	public static void print()
 	{
-		System.out.println(separatorStyle1);
+		System.out.println(SEPARATOR_STYLE_1);
 		System.out.println("Registry for <" + ProjectSettings.FEDERATE_NAME + ">");
-		System.out.println(separatorStyle1 + "\n");
+		System.out.println(SEPARATOR_STYLE_1 + "\n");
 		printRequiredObjects();
 		printObjectClasses();
 		printInteractionClasses();
@@ -174,10 +209,10 @@ public record ProjectRegistry()
 		printMultiConverters();
 	}
 
-	public static void printRequiredObjects()
+	private static void printRequiredObjects()
 	{
 		System.out.println("Required Objects");
-		System.out.println(separatorStyle1);
+		System.out.println(SEPARATOR_STYLE_1);
 
 		if (requiredObjects == null || requiredObjects.isEmpty())
 			System.out.println("None\n");
@@ -198,10 +233,10 @@ public record ProjectRegistry()
 		}
 	}
 
-	public static void printObjectClasses()
+	private static void printObjectClasses()
 	{
 		System.out.println("HLA Object Classes");
-		System.out.println(separatorStyle1);
+		System.out.println(SEPARATOR_STYLE_1);
 
 		if (objectClasses.isEmpty())
 			System.out.println("None");
@@ -215,7 +250,7 @@ public record ProjectRegistry()
 				if (!objectClass.declareAutomatically)
 					System.out.println("AUTO-DECLARATION DISABLED");
 
-				System.out.println(separatorStyle2);
+				System.out.println(SEPARATOR_STYLE_2);
 
 				for (String attributeName : objectClass.attributeNames)
 				{
@@ -237,10 +272,10 @@ public record ProjectRegistry()
 		}
 	}
 
-	public static void printInteractionClasses()
+	private static void printInteractionClasses()
 	{
 		System.out.println("HLA Interaction Classes");
-		System.out.println(separatorStyle1);
+		System.out.println(SEPARATOR_STYLE_1);
 
 		if (interactionClasses.isEmpty())
 			System.out.println("None");
@@ -254,7 +289,7 @@ public record ProjectRegistry()
 				if (!interactionClass.declareAutomatically)
 					System.out.println("AUTO-DECLARATION DISABLED");
 
-				System.out.println(separatorStyle2);
+				System.out.println(SEPARATOR_STYLE_2);
 
 				for (String parameterName : interactionClass.parameterNames)
 				{
@@ -274,10 +309,10 @@ public record ProjectRegistry()
 		}
 	}
 
-	public static void printArchetypes()
+	private static void printArchetypes()
 	{
 		System.out.println("Entity Archetypes");
-		System.out.println(separatorStyle1);
+		System.out.println(SEPARATOR_STYLE_1);
 
 		if (archetypes.isEmpty())
 			System.out.println("None");
@@ -288,10 +323,10 @@ public record ProjectRegistry()
 		System.out.println();
 	}
 
-	public static void printConverters()
+	private static void printConverters()
 	{
 		System.out.println("Data Converters in-use");
-		System.out.println(separatorStyle1);
+		System.out.println(SEPARATOR_STYLE_1);
 
 		if (dataConverters.isEmpty())
 			System.out.println("None");
@@ -303,10 +338,10 @@ public record ProjectRegistry()
 		System.out.println();
 	}
 
-	public static void printMultiConverters()
+	private static void printMultiConverters()
 	{
 		System.out.println("Multi Data Converters in-use");
-		System.out.println(separatorStyle1);
+		System.out.println(SEPARATOR_STYLE_1);
 
 		for (String multiAdapterName : multiDataConverters.keySet())
 			System.out.println(trimClassName(multiAdapterName));

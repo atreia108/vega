@@ -10,6 +10,7 @@ import hla.rti1516e.time.HLAinteger64Interval;
 import hla.rti1516e.time.HLAinteger64Time;
 import hla.rti1516e.time.HLAinteger64TimeFactory;
 import io.github.vega.data.ExCO;
+
 public class VegaTimeManager
 {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -84,19 +85,46 @@ public class VegaTimeManager
 		return null;
 	}
 
-	public static void advanceTime(HLAinteger64Time requestedTime)
+	public static void advanceTime()
 	{
+		HLAinteger64Time nextTimeStep = getNextTimeStep();
+
 		try
 		{
-			RTI_AMBASSADOR.timeAdvanceRequest(requestedTime);
+			RTI_AMBASSADOR.timeAdvanceRequest(nextTimeStep);
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Failed to request time advance to <{}>", requestedTime, e);
+			LOGGER.error("Failed to request time advance to the next time step\n[REASON]", e);
 			System.exit(1);
 		}
 	}
-	
+
+	public static void advanceToLogicalTimeBoundary()
+	{
+		try
+		{
+			presentTime = getLogicalTimeBoundary();
+			RTI_AMBASSADOR.timeAdvanceRequest(presentTime);
+		}
+		catch (Exception e)
+		{
+			LOGGER.error("Failed to advance to HLA logical time boundary\n[REASON]", e);
+			System.exit(1);
+		}
+	}
+
+	private static HLAinteger64Time getNextTimeStep()
+	{
+		long present = presentTime.getValue();
+		long stepIncrement = lookAheadTime.getValue();
+		long future = present + stepIncrement;
+
+		HLAinteger64Time nextTimeStep = TIME_FACTORY.makeTime(future);
+		System.out.println("Next Time Step: " + nextTimeStep.getValue());
+		return nextTimeStep;
+	}
+
 	public static void setPresentTime(HLAinteger64Time newTime)
 	{
 		presentTime = newTime;

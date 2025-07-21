@@ -40,6 +40,8 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.MarkerManager;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -55,6 +57,7 @@ import io.github.vega.hla.HLASharingModel;
 public class ProjectLoader
 {
 	private static final Logger LOGGER = LogManager.getLogger();
+	private static final Marker PROJECT_INIT_MARKER = MarkerManager.getMarker("PROJECT_INIT");
 
 	private Document projectFile;
 
@@ -77,7 +80,7 @@ public class ProjectLoader
 		long startTime = System.currentTimeMillis();
 		readFile(projectFilePath);
 		loadElements();
-		LOGGER.info("Successfully loaded the project \"{}\" in {}s", ProjectSettings.FEDERATE_NAME, duration(startTime));
+		LOGGER.info(PROJECT_INIT_MARKER, "Successfully loaded the project \"{}\" in {}s", ProjectSettings.FEDERATE_NAME, duration(startTime));
 	}
 
 	private void readFile(String filePath)
@@ -87,11 +90,11 @@ public class ProjectLoader
 		try
 		{
 			projectFile = reader.read(filePath);
-			LOGGER.info("Loading project information from \"{}\"", filePath);
+			LOGGER.info(PROJECT_INIT_MARKER, "Loading project information from \"{}\"", filePath);
 		}
 		catch (DocumentException e)
 		{
-			LOGGER.error("Project initialization failed\n[REASON]", e);
+			LOGGER.error(PROJECT_INIT_MARKER, "Project initialization failed\n[REASON]", e);
 			System.exit(1);
 		}
 	}
@@ -117,7 +120,7 @@ public class ProjectLoader
 
 		if (simulationElement == null)
 		{
-			LOGGER.error("Project initialization failed\n[REASON] The project file does not contain a root <Simulation> element");
+			LOGGER.error(PROJECT_INIT_MARKER, "Project initialization failed\n[REASON] The project file does not contain a root <Simulation> element");
 			System.exit(1);
 		}
 
@@ -131,7 +134,7 @@ public class ProjectLoader
 
 		if (rtiConfigurationElement == null)
 		{
-			LOGGER.error("Project initialization failed\n[REASON] The project file does not contain an <RtiConfiguration> element");
+			LOGGER.error(PROJECT_INIT_MARKER, "Project initialization failed\n[REASON] The project file does not contain an <RtiConfiguration> element");
 			System.exit(1);
 		}
 
@@ -153,7 +156,7 @@ public class ProjectLoader
 	{
 		if (attributeValue == null || attributeValue.isEmpty())
 		{
-			LOGGER.error("Project initialization failed\n[REASON] The <{}> element is missing the \"{}\" attribute", elementName, attributeName);
+			LOGGER.error(PROJECT_INIT_MARKER, "Project initialization failed\n[REASON] The <{}> element is missing the \"{}\" attribute", elementName, attributeName);
 			System.exit(1);
 		}
 	}
@@ -164,8 +167,7 @@ public class ProjectLoader
 
 		if (fomModulesElement == null)
 		{
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("No FOM modules are specified. Assuming no FOM data extensions are used in this simulation");
+			LOGGER.warn(PROJECT_INIT_MARKER, "No FOM modules are specified. Assuming no FOM data extensions are used in this simulation");
 			return;
 		}
 
@@ -173,8 +175,7 @@ public class ProjectLoader
 
 		if (!iterator.hasNext())
 		{
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("No FOM modules are specified. Assuming no FOM data extensions are used in this simulation");
+			LOGGER.warn(PROJECT_INIT_MARKER, "No FOM modules are specified. Assuming no FOM data extensions are used in this simulation");
 			return;
 		}
 
@@ -200,7 +201,7 @@ public class ProjectLoader
 
 		if (!file.exists())
 		{
-			LOGGER.error("Project initialization failed\n[REASON] The file \"{}\" was not found", filePath);
+			LOGGER.error(PROJECT_INIT_MARKER, "Project initialization failed\n[REASON] The file \"{}\" was not found", filePath);
 			System.exit(1);
 		}
 
@@ -212,7 +213,7 @@ public class ProjectLoader
 		}
 		catch (MalformedURLException e)
 		{
-			LOGGER.error("Project initialization failed\n[REASON]", e);
+			LOGGER.error(PROJECT_INIT_MARKER, "Project initialization failed\n[REASON]", e);
 			System.exit(1);
 		}
 		return fileUrl;
@@ -237,8 +238,7 @@ public class ProjectLoader
 
 		if (requiredObjectsElement == null)
 		{
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("No required objects are specified. Assuming there are no object instances that must be discovered before starting the simulation.");
+			LOGGER.warn(PROJECT_INIT_MARKER, "No required objects are specified. Assuming there are no object instances that must be discovered before starting the simulation.");
 			return;
 		}
 
@@ -246,8 +246,7 @@ public class ProjectLoader
 
 		if (!iterator.hasNext())
 		{
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("No required objects are specified. Assuming there are no object instances that must be discovered before starting the simulation.");
+			LOGGER.warn(PROJECT_INIT_MARKER, "No required objects are specified. Assuming there are no object instances that must be discovered before starting the simulation.");
 			return;
 		}
 
@@ -284,8 +283,7 @@ public class ProjectLoader
 
 		if (objectClassesElement == null)
 		{
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("No HLA object classes are specified. Automatic publish/subscribe will be skipped and no updates will be sent or received for any object");
+			LOGGER.warn(PROJECT_INIT_MARKER, "No HLA object classes are specified. Automatic publish/subscribe will be skipped and no updates will be sent or received for any object");
 			return;
 		}
 
@@ -293,8 +291,7 @@ public class ProjectLoader
 
 		if (!iterator.hasNext())
 		{
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("No HLA object classes are specified. Automatic publish/subscribe will be skipped and no updates will be sent or received for any object");
+			LOGGER.warn(PROJECT_INIT_MARKER, "No HLA object classes are specified. Automatic publish/subscribe will be skipped and no updates will be sent or received for any object");
 			return;
 		}
 
@@ -311,8 +308,7 @@ public class ProjectLoader
 
 			if (duplicateObjectClass(className))
 			{
-				if (!ProjectSettings.REDUCED_LOGGING)
-					LOGGER.warn("Skipping duplicate definition for the HLA object class <{}>", className);
+				LOGGER.warn(PROJECT_INIT_MARKER, "Skipping duplicate definition for the HLA object class <{}>", className);
 				return;
 			}
 
@@ -371,14 +367,14 @@ public class ProjectLoader
 			IEntityArchetype archetype = (IEntityArchetype) archetypeClass.getDeclaredConstructor().newInstance();
 			ProjectRegistry.addArchetype(archetypeName, archetype);
 		}
-		catch (ClassCastException e) 
+		catch (ClassCastException e)
 		{
-			LOGGER.error("Project Initialization failed\n[REASON] Could not create the Entity Archetype \"{}\". The Java class provided as source is not of the type <IEntityArchetype>", archetypeName);
+			LOGGER.error(PROJECT_INIT_MARKER, "Project Initialization failed\n[REASON] Could not create the Entity Archetype \"{}\". The Java class provided as source is not of the type <IEntityArchetype>", archetypeName);
 			System.exit(1);
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Project initialization failed\n[REASON]", e);
+			LOGGER.error(PROJECT_INIT_MARKER, "Project initialization failed\n[REASON]", e);
 			System.exit(1);
 		}
 	}
@@ -389,8 +385,7 @@ public class ProjectLoader
 
 		if (!iterator.hasNext())
 		{
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("No attributes specified for the HLA object class <" + objectClass.name + ">. Updates for instances of this type will likely not be sent or received");
+			LOGGER.warn(PROJECT_INIT_MARKER, "No attributes specified for the HLA object class <" + objectClass.name + ">. Updates for instances of this type will likely not be sent or received");
 			return;
 		}
 
@@ -410,8 +405,7 @@ public class ProjectLoader
 
 		if (duplicateObjectAttribute(objectClass, objectAttributeName))
 		{
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("Skipping duplicate attribute definition \"{}\" in the HLA object class <{}>", objectAttributeName, objectClass.name);
+			LOGGER.warn(PROJECT_INIT_MARKER, "Skipping duplicate attribute definition \"{}\" in the HLA object class <{}>", objectAttributeName, objectClass.name);
 			return;
 		}
 
@@ -452,7 +446,7 @@ public class ProjectLoader
 	{
 		if (!(sharingValue.equals("Publish") || sharingValue.equals("Subscribe") || sharingValue.equals("PublishSubscribe")))
 		{
-			LOGGER.error("Project initialization failed\n[REASON] Unrecognized value \"{}\" for the \"Sharing\" attribute. Only \"Publish\", \"Subscribe\" or \"PublishSubscribe\" are considered valid", sharingValue);
+			LOGGER.error(PROJECT_INIT_MARKER, "Project initialization failed\n[REASON] Unrecognized value \"{}\" for the \"Sharing\" attribute. Only \"Publish\", \"Subscribe\" or \"PublishSubscribe\" are considered valid", sharingValue);
 			System.exit(1);
 		}
 	}
@@ -495,14 +489,14 @@ public class ProjectLoader
 			IDataConverter converter = (IDataConverter) converterClass.getDeclaredConstructor().newInstance();
 			ProjectRegistry.addDataConverter(converterName, converter);
 		}
-		catch (ClassCastException e) 
+		catch (ClassCastException e)
 		{
-			LOGGER.error("Project Initialization failed\n[REASON] Could not create the data converter \"{}\". The Java class provided as source is not of the type <IDataConverter>", converterName);
+			LOGGER.error(PROJECT_INIT_MARKER, "Project Initialization failed\n[REASON] Could not create the data converter \"{}\". The Java class provided as source is not of the type <IDataConverter>", converterName);
 			System.exit(1);
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Project initialization failed\n[REASON]", e);
+			LOGGER.error(PROJECT_INIT_MARKER, "Project initialization failed\n[REASON]", e);
 			System.exit(1);
 		}
 	}
@@ -515,14 +509,14 @@ public class ProjectLoader
 			IMultiDataConverter multiConverter = (IMultiDataConverter) multiConverterClass.getDeclaredConstructor().newInstance();
 			ProjectRegistry.addMultiConverter(converterName, multiConverter);
 		}
-		catch (ClassCastException e) 
+		catch (ClassCastException e)
 		{
-			LOGGER.error("Project Initialization failed\n[REASON] Could not create the data converter \"{}\". The Java class provided as source is not of the type <IMultiDataConverter>", converterName);
+			LOGGER.error(PROJECT_INIT_MARKER, "Project Initialization failed\n[REASON] Could not create the data converter \"{}\". The Java class provided as source is not of the type <IMultiDataConverter>", converterName);
 			System.exit(1);
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Project initialization failed\n[REASON]", e);
+			LOGGER.error(PROJECT_INIT_MARKER, "Project initialization failed\n[REASON]", e);
 			System.exit(1);
 		}
 	}
@@ -533,8 +527,7 @@ public class ProjectLoader
 
 		if (interactionClassesElement == null)
 		{
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("No HLA interaction classes are specified. Automatic publish/subscribe will be skipped and no interactions will be sent or received");
+			LOGGER.warn(PROJECT_INIT_MARKER, "No HLA interaction classes are specified. Automatic publish/subscribe will be skipped and no interactions will be sent or received");
 			return;
 		}
 
@@ -542,8 +535,7 @@ public class ProjectLoader
 
 		if (!iterator.hasNext())
 		{
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("No HLA interaction classes are specified. Automatic publish/subscribe will be skipped and no interactions will be sent or received");
+			LOGGER.warn(PROJECT_INIT_MARKER, "No HLA interaction classes are specified. Automatic publish/subscribe will be skipped and no interactions will be sent or received");
 			return;
 		}
 
@@ -560,8 +552,7 @@ public class ProjectLoader
 
 			if (duplicateInteractionClass(className))
 			{
-				if (!ProjectSettings.REDUCED_LOGGING)
-					LOGGER.warn("Skipping duplicate definition for the HLA interaction class <{}>", className);
+				LOGGER.warn(PROJECT_INIT_MARKER, "Skipping duplicate definition for the HLA interaction class <{}>", className);
 				return;
 			}
 
@@ -570,7 +561,7 @@ public class ProjectLoader
 
 			if (!classExists(archetypeName))
 			{
-				LOGGER.error("Project initialization failed\n[REASON] The Java class definition for the archetype \"{}\" was not found", archetypeName);
+				LOGGER.error(PROJECT_INIT_MARKER, "Project initialization failed\n[REASON] The Java class definition for the archetype \"{}\" was not found", archetypeName);
 				System.exit(1);
 			}
 
@@ -617,8 +608,7 @@ public class ProjectLoader
 
 		if (!iterator.hasNext())
 		{
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("No parameters specified for the HLA interaction class <" + interactionClass.name + ">. Interactions of this type will likely not be received");
+			LOGGER.warn(PROJECT_INIT_MARKER, "No parameters specified for the HLA interaction class <" + interactionClass.name + ">. Interactions of this type will likely not be received");
 			return;
 		}
 
@@ -637,8 +627,7 @@ public class ProjectLoader
 
 		if (duplicateInteractionParameter(interactionClass, interactionParameterName))
 		{
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("Skipping duplicate parameter definition \"{}\" in the HLA interaction class <{}>", interactionParameterName, interactionClass.name);
+			LOGGER.warn(PROJECT_INIT_MARKER, "Skipping duplicate parameter definition \"{}\" in the HLA interaction class <{}>", interactionParameterName, interactionClass.name);
 			return;
 		}
 
@@ -657,13 +646,13 @@ public class ProjectLoader
 	}
 
 	private void loadParameterConverter(Element parameterElement, String parameterName, VegaInteractionClass interactionClass)
-	{	
+	{
 		Element converterElement = parameterElement.element("DataConverter");
 		String converterClassName = converterElement.attributeValue("Source");
 		nullOrEmptyAttribute("DataConverter", "Source", converterClassName);
 
 		String converterTrigger = converterElement.attributeValue("Trigger");
-		
+
 		if (converterTrigger == null)
 		{
 			if (!converterCreated(converterClassName))
@@ -710,8 +699,7 @@ public class ProjectLoader
 		// these are absent from the project file, load stored defaults.
 		if (engineElement == null)
 		{
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("No parameters are specified for the simulation engine. Using default values instead.");
+			LOGGER.warn(PROJECT_INIT_MARKER, "No parameters are specified for the simulation engine. Using default values instead.");
 			loadEngineElementDefaults();
 			return;
 		}
@@ -724,8 +712,7 @@ public class ProjectLoader
 		if (minEntities == null || minEntities.isEmpty())
 		{
 			ProjectSettings.MIN_ENTITIES = DEFAULT_MIN_ENTITIES;
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("Missing MinEntities attribute for <Engine> element. Using default value ({}) instead", DEFAULT_MIN_ENTITIES);
+			LOGGER.warn(PROJECT_INIT_MARKER, "Missing MinEntities attribute for <Engine> element. Using default value ({}) instead", DEFAULT_MIN_ENTITIES);
 		}
 		else
 			ProjectSettings.MIN_ENTITIES = toInteger("MinEntities", minEntities);
@@ -733,8 +720,7 @@ public class ProjectLoader
 		if (maxEntities == null || maxEntities.isEmpty())
 		{
 			ProjectSettings.MAX_ENTITIES = DEFAULT_MAX_ENTITIES;
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("Missing MaxEntities attribute for <Engine> element. Using default value ({}) instead", DEFAULT_MAX_ENTITIES);
+			LOGGER.warn(PROJECT_INIT_MARKER, "Missing MaxEntities attribute for <Engine> element. Using default value ({}) instead", DEFAULT_MAX_ENTITIES);
 		}
 		else
 			ProjectSettings.MAX_ENTITIES = toInteger("MaxEntities", maxEntities);
@@ -742,8 +728,7 @@ public class ProjectLoader
 		if (minComponents == null || minComponents.isEmpty())
 		{
 			ProjectSettings.MIN_COMPONENTS = DEFAULT_MIN_COMPONENTS;
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("Missing MinComponents attribute for <Engine> element. Using default value ({}) instead", DEFAULT_MIN_COMPONENTS);
+			LOGGER.warn(PROJECT_INIT_MARKER, "Missing MinComponents attribute for <Engine> element. Using default value ({}) instead", DEFAULT_MIN_COMPONENTS);
 		}
 		else
 			ProjectSettings.MIN_COMPONENTS = toInteger("MinComponents", minComponents);
@@ -751,8 +736,7 @@ public class ProjectLoader
 		if (maxComponents == null || maxComponents.isEmpty())
 		{
 			ProjectSettings.MAX_COMPONENTS = DEFAULT_MAX_COMPONENTS;
-			if (!ProjectSettings.REDUCED_LOGGING)
-				LOGGER.warn("Missing MaxComponents attribute for <Engine> element. Using default value ({}) instead", DEFAULT_MAX_COMPONENTS);
+			LOGGER.warn(PROJECT_INIT_MARKER, "Missing MaxComponents attribute for <Engine> element. Using default value ({}) instead", DEFAULT_MAX_COMPONENTS);
 		}
 		else
 			ProjectSettings.MAX_COMPONENTS = toInteger("MaxComponents", maxComponents);
@@ -773,19 +757,19 @@ public class ProjectLoader
 	{
 		if (min < 0)
 		{
-			LOGGER.error("Project initialization failed\n[REASON] Cannot accept value a value ({}) for \"{}\" that is negative", min, minName);
+			LOGGER.error(PROJECT_INIT_MARKER, "Project initialization failed\n[REASON] Cannot accept value a value ({}) for \"{}\" that is negative", min, minName);
 			System.exit(1);
 		}
 
 		if (max < 0)
 		{
-			LOGGER.error("Project initialization failed\n[REASON] Cannot accept value a value ({}) for \"{}\" that is negative", max, maxName);
+			LOGGER.error(PROJECT_INIT_MARKER, "Project initialization failed\n[REASON] Cannot accept value a value ({}) for \"{}\" that is negative", max, maxName);
 			System.exit(1);
 		}
 
 		if (!(min < max))
 		{
-			LOGGER.error("Project initialization failed\n[REASON] Cannot accept a value ({}) for \"{}\" which exceeds the value of \"{}\" ({})", min, minName, maxName, max);
+			LOGGER.error(PROJECT_INIT_MARKER, "Project initialization failed\n[REASON] Cannot accept a value ({}) for \"{}\" which exceeds the value of \"{}\" ({})", min, minName, maxName, max);
 			System.exit(1);
 		}
 	}
@@ -800,7 +784,7 @@ public class ProjectLoader
 		}
 		catch (NumberFormatException e)
 		{
-			LOGGER.error("Project initialization failed\n[REASON] Encountered unexpected value \"{}\" for \"{}\" that cannot be converted to an integer value", value, attributeName);
+			LOGGER.error(PROJECT_INIT_MARKER, "Project initialization failed\n[REASON] Encountered unexpected value \"{}\" for \"{}\" that cannot be converted to an integer value", value, attributeName);
 			System.exit(1);
 		}
 

@@ -31,79 +31,85 @@
 
 package io.github.vega.core;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.MarkerManager;
+
 import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.PooledEngine;
 
+import io.github.vega.components.HLAObjectComponent;
 import io.github.vega.utils.ProjectSettings;
 
 public class World
 {
+	protected static final Logger LOGGER = LogManager.getLogger();
+	protected static final Marker SIMUL_MARKER = MarkerManager.getMarker("SIMUL");
+
 	private static PooledEngine engine;
-	
+	private static final ComponentMapper<HLAObjectComponent> OBJECT_COMPONENT_MAPPER = ComponentMapper.getFor(HLAObjectComponent.class);
+
 	public static Entity createEntity()
 	{
 		return engine.createEntity();
 	}
-	
+
 	public static void addEntity(Entity entity)
 	{
 		engine.addEntity(entity);
 	}
-	
+
 	public static <T extends Component> T createComponent(Class<T> componentType)
 	{
 		return engine.createComponent(componentType);
 	}
-	
+
 	public static <T extends Component> boolean addComponent(Entity entity, T component)
 	{
 		entity.add(component);
-		
+
 		if (getComponent(entity, component.getClass()) == null)
 			return false;
 		else
 			return true;
 	}
-	
+
 	public static <T extends Component> boolean removeComponent(Entity entity, Class<T> componentType)
 	{
-		entity.remove(componentType);
-		
-		if (getComponent(entity, componentType) == null)
-			return true;
-		else
-			return false;
+		LOGGER.warn(SIMUL_MARKER, "Failed to remove the component type <{}> from the entity <{}>\n[REASON] The supplied component type is absent from the entity", componentType, entity);
+		return false;
 	}
-	
+
 	public static <T extends Component> T getComponent(Entity entity, Class<T> componentType)
 	{
 		ComponentMapper<T> mapper = ComponentMapper.getFor(componentType);
 		return mapper.get(entity);
 	}
-	
+
 	public static void addSystem(EntitySystem system)
 	{
 		engine.addSystem(system);
 	}
-	
+
 	public static void removeSystem(EntitySystem system)
 	{
 		engine.removeSystem(system);
 	}
-	
+
 	public static void update()
 	{
 		engine.update(1.0f);
 	}
-	
+
 	protected static void setupEngine()
-	{	
+	{
 		if (engine != null)
 			return;
-		
+
 		engine = new PooledEngine(ProjectSettings.MIN_ENTITIES, ProjectSettings.MAX_ENTITIES, ProjectSettings.MIN_COMPONENTS, ProjectSettings.MAX_COMPONENTS);
 	}
 }

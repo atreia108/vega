@@ -38,6 +38,8 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.MarkerManager;
 
 import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.ParameterHandle;
@@ -46,6 +48,7 @@ import hla.rti1516e.RTIambassador;
 public class VegaInteractionClass
 {
 	private static final Logger LOGGER = LogManager.getLogger();
+	private static final Marker HLA_MARKER = MarkerManager.getMarker("HLA");
 
 	public String name;
 	public String archetypeName;
@@ -193,7 +196,7 @@ public class VegaInteractionClass
 	{
 		if (isPublished)
 		{
-			LOGGER.warn("The HLA interaction class <{}> was not published since this intention has already been shared with the RTI", name);
+			LOGGER.warn(HLA_MARKER, "The HLA interaction class <{}> was not published since this intention has already been shared with the RTI", name);
 			return;
 		}
 
@@ -217,18 +220,19 @@ public class VegaInteractionClass
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Failed to publish the HLA interaction class <{}>\n[REASON]", name, e);
+			LOGGER.error(HLA_MARKER, "Failed to publish the HLA interaction class <{}>\n[REASON]", name, e);
 			System.exit(1);
 		}
 		
 		isPublished = true;
+		LOGGER.info(HLA_MARKER, "The HLA interaction class <{}> was successfully published", name);
 	}
 
 	public void subscribe()
 	{
 		if (isSubscribed)
 		{
-			LOGGER.warn("The HLA interaction class <{}> was not subscribed to since this intention has already been shared with the RTI", name);
+			LOGGER.warn(HLA_MARKER, "The HLA interaction class <{}> was not subscribed to since this intention has already been shared with the RTI", name);
 			return;
 		}
 
@@ -252,10 +256,11 @@ public class VegaInteractionClass
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Failed to subscribe to the HLA interaction class <{}>\n[REASON]", name, e);
+			LOGGER.error(HLA_MARKER, "Failed to subscribe to the HLA interaction class <{}>\n[REASON]", name, e);
 			System.exit(1);
 		}
 		
 		isSubscribed = true;
+		LOGGER.info(HLA_MARKER, "The HLA interaction class <{}> was successfully subscribed to", name);
 	}
 }

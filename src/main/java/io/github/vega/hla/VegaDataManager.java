@@ -33,6 +33,8 @@ package io.github.vega.hla;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.MarkerManager;
 
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
@@ -40,24 +42,33 @@ import com.badlogic.ashley.core.Entity;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.RTIambassador;
+import io.github.vega.components.HLAInteractionComponent;
+import io.github.vega.components.HLAObjectComponent;
 import io.github.vega.utils.ProjectRegistry;
 
 public class VegaDataManager
 {
 	private static final Logger LOGGER = LogManager.getLogger();
+	private static final Marker SIMUL_MARKER = MarkerManager.getMarker("SIMUL");
 	
-	private static final ComponentMapper<HLAObjectComponent> objectComponentMapper = ComponentMapper.getFor(HLAObjectComponent.class);
-	private static final ComponentMapper<HLAInteractionComponent> interactionComponentMapper = ComponentMapper.getFor(HLAInteractionComponent.class);
+	private static final ComponentMapper<HLAObjectComponent> OBJECT_COMPONENT_MAPPER = ComponentMapper.getFor(HLAObjectComponent.class);
+	private static final ComponentMapper<HLAInteractionComponent> INTERACTION_COMPONENT_MAPPER = ComponentMapper.getFor(HLAInteractionComponent.class);
 	
 	private static int registeredInstancesCount = 0;
 	
 	public static boolean registerObjectInstance(Entity entity)
 	{
-		HLAObjectComponent objectComponent = objectComponentMapper.get(entity);
+		HLAObjectComponent objectComponent = OBJECT_COMPONENT_MAPPER.get(entity);
 		
-		if (isInstanceAlive(objectComponent))
+		if (ProjectRegistry.isRemoteEntity(entity))
 		{
-			LOGGER.warn("Omitted registration for the object instance <{}>\n[REASON]It has already been registered with the RTI", objectComponent.instanceName);
+			LOGGER.warn(SIMUL_MARKER, "Omitted registration for the entity <{}>\n[REASON] An object instance for this entity already exists as a REMOTE entity", objectComponent.instanceName);
+			return false;
+		}
+		
+		if (objectComponent.instanceHandle != null)
+		{
+			LOGGER.warn("Omitted registration for the entity <{}>\n[REASON]It has already been registered as an object instance", objectComponent.instanceName);
 			return false;
 		}
 		
@@ -83,7 +94,7 @@ public class VegaDataManager
 			ObjectClassHandle classHandle = objectClass.classHandle;
 			
 			ObjectInstanceHandle instanceHandle = rtiAmbassador.registerObjectInstance(classHandle, objectComponent.instanceName);
-			objectComponent.handle = instanceHandle;
+			objectComponent.instanceHandle = instanceHandle;
 			
 			LOGGER.info("Created the HLA object instance \"{}\" of the class <{}>", objectComponent.instanceName, objectComponent.className);
 			registeredInstancesCount += 1;
@@ -113,14 +124,6 @@ public class VegaDataManager
 			LOGGER.error("Unexpected interrupt while waiting for the reservation of an object instance's name\n[REASON]", e);
 			System.exit(1);
 		}
-	}
-	
-	private static boolean isInstanceAlive(HLAObjectComponent objectComponent)
-	{
-		if (objectComponent.handle != null)
-			return true;
-		
-		return false;
 	}
 	
 	public static boolean destroyObjectInstance(Entity entity)

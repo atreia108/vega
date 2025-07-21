@@ -38,6 +38,8 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.MarkerManager;
 
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
@@ -47,6 +49,7 @@ import hla.rti1516e.RTIambassador;
 public class VegaObjectClass
 {
 	private static final Logger LOGGER = LogManager.getLogger();
+	private static final Marker HLA_MARKER = MarkerManager.getMarker("HLA");
 
 	public String name;
 	public String archetypeName;
@@ -203,7 +206,7 @@ public class VegaObjectClass
 			}
 			catch (Exception e)
 			{
-				LOGGER.error("Could not generate attribute handle set containing published attributes for the HLA object class <{}>\n[REASON]", e, name);
+				LOGGER.error(HLA_MARKER, "Could not generate attribute handle set containing published attributes for the HLA object class <{}>\n[REASON]", e, name);
 				System.exit(1);
 			}
 		}
@@ -247,7 +250,7 @@ public class VegaObjectClass
 			}
 			catch (Exception e)
 			{
-				LOGGER.error("Could not generate attribute handle set containing subscribed attributes for the HLA object class <{}>\n[REASON]", e, name);
+				LOGGER.error(HLA_MARKER, "Could not generate attribute handle set containing subscribed attributes for the HLA object class <{}>\n[REASON]", e, name);
 				System.exit(1);
 			}
 		}
@@ -267,7 +270,7 @@ public class VegaObjectClass
 	{
 		if (isPublished)
 		{
-			LOGGER.warn("The HLA object class <{}> was not published since this intention has already been shared with the RTI", name);
+			LOGGER.warn(HLA_MARKER, "The HLA object class <{}> was not published since this intention has already been shared with the RTI", name);
 			return;
 		}
 
@@ -299,18 +302,19 @@ public class VegaObjectClass
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Failed to publish the HLA object class <{}>\n[REASON]", name, e);
+			LOGGER.error(HLA_MARKER, "Failed to publish the HLA object class <{}>\n[REASON]", name, e);
 			System.exit(1);
 		}
 
 		isPublished = true;
+		LOGGER.info(HLA_MARKER, "The HLA object class <{}> was successfully published", name);
 	}
 
 	public void subscribe()
 	{
 		if (isSubscribed)
 		{
-			LOGGER.warn("The HLA object class <{}> was not subscribed to since this intention has already been shared with the RTI", name);
+			LOGGER.warn(HLA_MARKER, "The HLA object class <{}> was not subscribed to since this intention has already been shared with the RTI", name);
 			return;
 		}
 
@@ -342,10 +346,11 @@ public class VegaObjectClass
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Failed to subscribe to the HLA object class <{}>\n[REASON]", name, e);
+			LOGGER.error(HLA_MARKER, "Failed to subscribe to the HLA object class <{}>\n[REASON]", name, e);
 			System.exit(1);
 		}
 
 		isSubscribed = true;
+		LOGGER.info(HLA_MARKER, "The HLA object class <{}> was successfully subscribed to", name);
 	}
 }

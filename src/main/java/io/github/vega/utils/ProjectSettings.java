@@ -46,17 +46,15 @@ public record ProjectSettings()
 	public static int MIN_COMPONENTS;
 	public static int MAX_COMPONENTS;
 	
-	public static boolean REDUCED_LOGGING;
-	
-	private static String separatorStyle1 = "========================================";
+	private static final String SEPARATOR_STYLE_1 = "========================================";
 
 	public static void print()
 	{
-		System.out.println(separatorStyle1);
+		System.out.println(SEPARATOR_STYLE_1);
 		System.out.println("Settings for <" + FEDERATE_NAME + ">");
-		System.out.println(separatorStyle1 + "\n");
+		System.out.println(SEPARATOR_STYLE_1 + "\n");
 		System.out.println("RTI Connection");
-		System.out.println(separatorStyle1);
+		System.out.println(SEPARATOR_STYLE_1);
 		System.out.println("Host: " + HOST_NAME);
 		System.out.println("Port: " + PORT_NUMBER);
 		System.out.println("Federation: " + FEDERATION_NAME + "\n");
@@ -64,10 +62,10 @@ public record ProjectSettings()
 		printEngineParameters();
 	}
 
-	public static void printFomModules()
+	private static void printFomModules()
 	{
 		System.out.println("HLA FOM Modules");
-		System.out.println(separatorStyle1);
+		System.out.println(SEPARATOR_STYLE_1);
 		
 		if (FOM_MODULES == null)
 		{
@@ -83,10 +81,10 @@ public record ProjectSettings()
 		System.out.println();
 	}
 	
-	public static void printEngineParameters()
+	private static void printEngineParameters()
 	{
 		System.out.println("Simulation Engine Parameters");
-		System.out.println(separatorStyle1);
+		System.out.println(SEPARATOR_STYLE_1);
 		
 		System.out.println("Minimum Entities: " + MIN_ENTITIES);
 		System.out.println("Maximum Entities: " + MAX_ENTITIES);

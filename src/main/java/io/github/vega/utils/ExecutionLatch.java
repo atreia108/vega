@@ -44,7 +44,7 @@ public class ExecutionLatch
 
 	public static void enable()
 	{
-		if (active())
+		if (isActive())
 			LOGGER.warn("The execution latch cannot be enabled until the currently executing operation is terminated.");
 
 		latch = new CountDownLatch(1);
@@ -60,18 +60,22 @@ public class ExecutionLatch
 		}
 	}
 
-	public static void disable()
+	public static boolean disable()
 	{
-		if (!active())
+		if (!isActive())
+		{
 			LOGGER.warn("Cannot disable the execution latch since it has yet to be enabled.");
+			return false;
+		}
 		else
 		{
 			latch.countDown();
 			latch = null;
+			return true;
 		}
 	}
 
-	public static boolean active()
+	public static boolean isActive()
 	{
 		if (latch != null)
 			return true;

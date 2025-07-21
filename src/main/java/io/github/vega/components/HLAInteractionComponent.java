@@ -29,7 +29,7 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.components;
 
 import com.badlogic.ashley.core.Component;
 

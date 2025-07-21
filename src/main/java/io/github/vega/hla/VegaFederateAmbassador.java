@@ -45,13 +45,13 @@ public class VegaFederateAmbassador extends NullFederateAmbassador
 	@Override
 	public void discoverObjectInstance(final ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass, String objectName)
 	{
-		VegaCallbackManager.discoverObjectInstance(theObject, theObjectClass, objectName);
+		VegaCallbackManager.discoverObjectInstance2(theObject, theObjectClass, objectName);
 	}
 
 	@Override
 	public void reflectAttributeValues(ObjectInstanceHandle theObject, AttributeHandleValueMap theAttributes, byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport, SupplementalReflectInfo reflectInfo) throws FederateInternalError
 	{
-		VegaCallbackManager.reflectAttributeValues(theObject, theAttributes);
+		VegaCallbackManager.reflectAttributeValues2(theObject, theAttributes);
 	}
 
 	@Override
