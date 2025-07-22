@@ -29,39 +29,39 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.core;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import hla.rti1516e.RTIambassador;
 import hla.rti1516e.RtiFactory;
 import hla.rti1516e.RtiFactoryFactory;
+import hla.rti1516e.encoding.EncoderFactory;
 
-public class VegaRTIAmbassador
+public class VegaEncoderFactory
 {
 	private static final Logger LOGGER = LogManager.getLogger();
-	
-	private static RTIambassador rtiAmbassador;
 
-	private VegaRTIAmbassador()
+	private static EncoderFactory encoderFactory;
+
+	private VegaEncoderFactory()
 	{
 		try
 		{
 			RtiFactory rtiFactory = RtiFactoryFactory.getRtiFactory();
-			rtiAmbassador = rtiFactory.getRtiAmbassador();
+			encoderFactory = rtiFactory.getEncoderFactory();
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("[REASON]", e);
+			LOGGER.error("[REASON]");
 			System.exit(1);
 		}
 	}
 
-	synchronized public static RTIambassador instance()
+	synchronized public static EncoderFactory instance()
 	{
-		if (rtiAmbassador == null)
-			new VegaRTIAmbassador();
-		return rtiAmbassador;
+		if (encoderFactory == null)
+			new VegaEncoderFactory();
+		return encoderFactory;
 	}
 }

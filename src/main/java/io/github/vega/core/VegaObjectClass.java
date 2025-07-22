@@ -29,13 +29,15 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.core;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
@@ -57,7 +59,7 @@ public class VegaObjectClass
 	public Set<String> attributeNames;
 
 	private Map<String, String> attributeConverterMap;
-	private Map<String, AttributeHandle> attributeHandleMap;
+	private BidiMap<String, AttributeHandle> attributeHandleMap;
 	private Map<String, HLASharingModel> attributeSharingMap;
 	private Map<String, Map<String, Integer>> attributeMultiConverterMap;
 	private AttributeHandleSet publicationHandleSet;
@@ -81,7 +83,7 @@ public class VegaObjectClass
 		attributeNames = new HashSet<String>();
 		attributeConverterMap = new HashMap<String, String>();
 
-		attributeHandleMap = new HashMap<String, AttributeHandle>();
+		attributeHandleMap = new DualHashBidiMap<String, AttributeHandle>();
 		attributeSharingMap = new HashMap<String, HLASharingModel>();
 
 		attributeMultiConverterMap = new HashMap<String, Map<String, Integer>>();
@@ -147,9 +149,14 @@ public class VegaObjectClass
 			return false;
 	}
 
-	public AttributeHandle getAttributeHandle(String attributeName)
+	public AttributeHandle getHandleForAttribute(String attributeName)
 	{
 		return attributeHandleMap.get(attributeName);
+	}
+	
+	public String getAttributeNameForHandle(AttributeHandle attributeHandle)
+	{
+		return attributeHandleMap.getKey(attributeHandle);
 	}
 
 	public boolean attributeUsesMultiConverter(String attributeName)

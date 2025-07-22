@@ -42,16 +42,15 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.PooledEngine;
 
-import io.github.vega.components.HLAObjectComponent;
 import io.github.vega.utils.ProjectSettings;
 
 public class World
 {
-	protected static final Logger LOGGER = LogManager.getLogger();
-	protected static final Marker SIMUL_MARKER = MarkerManager.getMarker("SIMUL");
+	private static final Logger LOGGER = LogManager.getLogger();
+	private static final Marker SIMUL_MARKER = MarkerManager.getMarker("SIMUL");
 
 	private static PooledEngine engine;
-	private static final ComponentMapper<HLAObjectComponent> OBJECT_COMPONENT_MAPPER = ComponentMapper.getFor(HLAObjectComponent.class);
+	// private static final ComponentMapper<HLAObjectComponent> OBJECT_COMPONENT_MAPPER = ComponentMapper.getFor(HLAObjectComponent.class);
 
 	public static Entity createEntity()
 	{

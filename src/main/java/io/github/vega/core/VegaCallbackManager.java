@@ -29,7 +29,7 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.core;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -54,11 +54,6 @@ import hla.rti1516e.exceptions.FederateInternalError;
 import hla.rti1516e.time.HLAinteger64Time;
 import io.github.vega.components.ExCOComponent;
 import io.github.vega.components.HLAObjectComponent;
-import io.github.vega.core.IDataConverter;
-import io.github.vega.core.IEntityArchetype;
-import io.github.vega.core.IMultiDataConverter;
-import io.github.vega.core.World;
-import io.github.vega.data.ExCO;
 import io.github.vega.data.ExecutionMode;
 import io.github.vega.utils.ExecutionLatch;
 import io.github.vega.utils.ProjectRegistry;
@@ -69,13 +64,9 @@ public class VegaCallbackManager
 	private static final Marker HLA_MARKER = MarkerManager.getMarker("HLA");
 	private static final Marker SIMUL_MARKER = MarkerManager.getMarker("SIMUL");
 	
-	private static final RTIambassador RTI_AMBASSADOR = VegaRTIAmbassador.instance();
 	private static final String EXCO_CLASS_NAME = "HLAobjectRoot.ExecutionConfiguration";
-	private static boolean exCoInitialized = false;
 
 	private static Set<String> objectsPendingDiscovery;
-
-	private static final ComponentMapper<HLAObjectComponent> OBJECT_COMPONENT_MAPPER = ComponentMapper.getFor(HLAObjectComponent.class);
 
 	private static final Object NAME_RESERVATION_SEMAPHORE = new Object();
 	private static boolean nameReservationStatus;
@@ -87,7 +78,7 @@ public class VegaCallbackManager
 			objectsPendingDiscovery = new HashSet<String>(requiredObjects);
 	}
 
-	public static void discoverObjectInstance2(final ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass, String objectName)
+	protected static void discoverObjectInstance(final ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass, String objectName)
 	{
 		String className = null;
 		VegaObjectClass objectClass = null;
@@ -96,7 +87,8 @@ public class VegaCallbackManager
 		
 		try
 		{
-			className = RTI_AMBASSADOR.getObjectClassName(theObjectClass);
+			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			className = rtiAmbassador.getObjectClassName(theObjectClass);
 		}
 		catch (Exception e)
 		{
@@ -148,72 +140,6 @@ public class VegaCallbackManager
 		objectComponent.instanceHandle = instanceHandle;
 		World.addComponent(entity, objectComponent);
 	}
-
-	/*
-	public static void discoverObjectInstance(final ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass, String objectName)
-	{
-		// TODO - Why are you getting the instance name again? It's provided already!
-		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
-
-		String className = null;
-		String instanceName = null;
-		Entity entity = null;
-
-		try
-		{
-			className = rtiAmbassador.getObjectClassName(theObjectClass);
-			instanceName = rtiAmbassador.getObjectInstanceName(theObject);
-		}
-		catch (Exception e)
-		{
-			LOGGER.error("Failed to save a new object instance\n[REASON]", e);
-			System.exit(1);
-		}
-
-		VegaObjectClass objectClass = ProjectRegistry.getObjectClass(className);
-
-		if (objectClass == null)
-		{
-			LOGGER.warn("Failed to create an internalized entity representation of the object instance \"{}\" of class <{}>.\n[REASON] The corresponding object class for the instance was not created at runtime. The definition for this object class may be missing in the project file", instanceName, className);
-			return;
-		}
-
-		if (className.equals(EXCO_CLASS_NAME) && !exCoInitialized)
-		{
-			entity = ExCO.getEntity();
-			ExecutionLatch.disable();
-		}
-		else
-		{
-			IEntityArchetype archetype = ProjectRegistry.getArchetype(objectClass.archetypeName);
-			entity = archetype.createEntity();
-
-			if (entity == null)
-			{
-				LOGGER.warn("Failed to create an internalized entity representation of the object instance \"{}\" of class <{}>.\n[REASON] The archetype <{}> returned NULL instead of an entity. Re-check to ensure it returns an entity with the necessary components", instanceName, className, archetype);
-				return;
-			}
-
-			ProjectRegistry.addRemoteEntity(entity);
-
-			if (objectsPendingDiscovery != null && objectsPendingDiscovery.contains(instanceName))
-			{
-				LOGGER.info("Discovered the object instance \"{}\" of class <{}>", instanceName, className);
-				objectsPendingDiscovery.remove(instanceName);
-
-				if (objectsPendingDiscovery.isEmpty() && ExecutionLatch.isActive())
-					ExecutionLatch.disable();
-			}
-		}
-
-		HLAObjectComponent objectComponent = World.createComponent(HLAObjectComponent.class);
-		objectComponent.className = className;
-		objectComponent.instanceName = instanceName;
-		World.addComponent(entity, objectComponent);
-
-		requestLatestAttributeValues(theObject, instanceName, objectClass);
-	}
-	*/
 	
 	private static void requestLatestAttributeValues(ObjectInstanceHandle instanceHandle, String instanceName, VegaObjectClass objectClass)
 	{
@@ -221,16 +147,54 @@ public class VegaCallbackManager
 
 		try
 		{
-			RTI_AMBASSADOR.requestAttributeValueUpdate(instanceHandle, attributeHandles, null);
+			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			rtiAmbassador.requestAttributeValueUpdate(instanceHandle, attributeHandles, null);
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Failed to request the latest values for the object instance \"{}\"\n[REASON]", instanceName, e);
+			LOGGER.error(HLA_MARKER, "Failed to request the latest values for the object instance \"{}\"\n[REASON]", instanceName, e);
 			System.exit(1);
 		}
 	}
+	
+	protected static void removeObjectInstance(ObjectInstanceHandle theObject)
+	{
+		if (!exCOExists())
+		{
+			final Entity exCO = ProjectRegistry.getRemoteEntityByName("ExCO");
+			final ComponentMapper<ExCOComponent> exCOMapper = ComponentMapper.getFor(ExCOComponent.class);
+			ExCOComponent exCOComponent = exCOMapper.get(exCO);
+			
+			exCOComponent.nextExecutionMode = ExecutionMode.EXEC_MODE_SHUTDOWN;
+		}
+			
+		if (!ProjectRegistry.removeRemoteEntityByHandle(theObject))
+		{
+			LOGGER.warn(HLA_MARKER, "Failed to remove the requested object instance <{}>\n[REASON] It is absent from the registry and may have been deleted previously", theObject);
+			return;
+		}
+	}
+	
+	// The change in ExCO execution mode to SHUTDOWN is faster than we can detect.
+	// Therefore, this method helps us determine if ExCO is still present or not
+	// i.e., it will throw an exception because the ExCO object will have disappeared
+	// when SpaceMaster leaves the federation. We manually set the [next] execution
+	// mode to SHUTDOWN ourselves and have the simulation loop terminate normally.
+	private static boolean exCOExists()
+	{
+		try
+		{
+			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			rtiAmbassador.getObjectInstanceHandle("ExCO");
+			return true;
+		}
+		catch (Exception e) 
+		{
+			return false;
+		}
+	}
 
-	public static void reflectAttributeValues2(ObjectInstanceHandle theObject, AttributeHandleValueMap theAttributes)
+	protected static void reflectAttributeValues(ObjectInstanceHandle theObject, AttributeHandleValueMap theAttributes)
 	{
 		String className = null;
 		ObjectClassHandle classHandle = null;
@@ -238,9 +202,10 @@ public class VegaCallbackManager
 		
 		try
 		{
-			instanceName = RTI_AMBASSADOR.getObjectInstanceName(theObject);
-			classHandle = RTI_AMBASSADOR.getKnownObjectClassHandle(theObject);
-			className = RTI_AMBASSADOR.getObjectClassName(classHandle);
+			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			instanceName = rtiAmbassador.getObjectInstanceName(theObject);
+			classHandle = rtiAmbassador.getKnownObjectClassHandle(theObject);
+			className = rtiAmbassador.getObjectClassName(classHandle);
 		}
 		catch (Exception e) 
 		{
@@ -281,71 +246,20 @@ public class VegaCallbackManager
 			ExecutionLatch.disable();
 		}
 	}
-
-	public static void reflectAttributeValues(ObjectInstanceHandle theObject, AttributeHandleValueMap theAttributes)
-	{
-		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
-
-		ObjectClassHandle classHandle = null;
-		String className = null;
-		String instanceName = null;
-
-		try
-		{
-			classHandle = rtiAmbassador.getKnownObjectClassHandle(theObject);
-			className = rtiAmbassador.getObjectClassName(classHandle);
-			instanceName = rtiAmbassador.getObjectInstanceName(theObject);
-		}
-		catch (Exception e)
-		{
-			if (instanceName != null)
-				LOGGER.info("Failed to set the latest incoming values for the object instance\"{}\"\n[REASON]", instanceName, e);
-			else
-				LOGGER.info("Failed to set the latest incoming values for an unknown object instance\n[REASON]", e);
-			System.exit(1);
-		}
-
-		System.out.println("Updates for " + instanceName);
-
-		Entity entity = null;
-		if (instanceName.equals("ExCO"))
-			entity = ExCO.getEntity();
-		else
-			entity = ProjectRegistry.getRemoteEntityByHandle(theObject);
-
-		if (entity == null)
-		{
-			LOGGER.warn("Discarding the latest incoming values for the object instance\"{}\"\n[REASON] No corresponding entity was created for the object instance", instanceName);
-			return;
-		}
-
-		VegaObjectClass objectClass = ProjectRegistry.getObjectClass(className);
-
-		if (objectClass == null)
-		{
-			LOGGER.warn("Discarding the latest incoming values for the object instance\"{}\"\n[REASON] The object instance is of an unknown class <{}>", instanceName, className);
-			return;
-		}
-
-		updateObjectInstance(entity, instanceName, objectClass, theAttributes);
-
-		if (instanceName.equals("ExCO") && !exCoInitialized)
-		{
-			exCoInitialized = true;
-			ExecutionLatch.disable();
-		}
-	}
-
+	
 	private static void updateObjectInstance(Entity entity, String instanceName, VegaObjectClass objectClass, AttributeHandleValueMap latestValues)
 	{
 		EncoderFactory encoderFactory = VegaEncoderFactory.instance();
 
 		for (String attributeName : objectClass.attributeNames)
 		{
-			AttributeHandle attributeHandle = objectClass.getAttributeHandle(attributeName);
+			AttributeHandle attributeHandle = objectClass.getHandleForAttribute(attributeName);
 
 			if (!latestValues.containsKey(attributeHandle))
+			{
+				LOGGER.warn(HLA_MARKER, "New values for the object instance from the RTI \"{}\" is missing ", instanceName);
 				return;
+			}
 
 			byte[] newValue = latestValues.get(attributeHandle);
 
@@ -365,7 +279,7 @@ public class VegaCallbackManager
 		}
 	}
 
-	public static void objectInstanceNameReservationSucceeded(String objectName)
+	protected static void objectInstanceNameReservationSucceeded(String objectName)
 	{
 		nameReservationStatus = true;
 		synchronized (NAME_RESERVATION_SEMAPHORE)
@@ -374,7 +288,7 @@ public class VegaCallbackManager
 		}
 	}
 
-	public static void objectInstanceNameReservationFailed(String objectName)
+	protected static void objectInstanceNameReservationFailed(String objectName)
 	{
 		nameReservationStatus = false;
 		synchronized (NAME_RESERVATION_SEMAPHORE)
@@ -384,39 +298,32 @@ public class VegaCallbackManager
 	}
 
 	@SuppressWarnings("rawtypes")
-	public static void timeConstrainedEnabled(LogicalTime time) throws FederateInternalError
+	protected static void timeConstrainedEnabled(LogicalTime time) throws FederateInternalError
 	{
-		LOGGER.info("The federate is now HLA time constrained");
+		LOGGER.info(HLA_MARKER, "The federate is now HLA time constrained");
 		ExecutionLatch.disable();
 	}
 
 	@SuppressWarnings("rawtypes")
-	public static void timeRegulationEnabled(LogicalTime time) throws FederateInternalError
+	protected static void timeRegulationEnabled(LogicalTime time) throws FederateInternalError
 	{
-		LOGGER.info("HLA time regulation has been enabled");
+		LOGGER.info(HLA_MARKER, "HLA time regulation has been enabled");
 		ExecutionLatch.disable();
 	}
 
 	@SuppressWarnings("rawtypes")
-	public static void timeAdvanceGrant(LogicalTime theTime) throws FederateInternalError
+	protected static void timeAdvanceGrant(LogicalTime theTime) throws FederateInternalError
 	{
-		ExecutionMode currentMode = ExCO.getCurrentExecutionMode();
-		ExecutionMode nextMode = ExCO.getNextExecutionMode();
-
-		System.out.println("[TAG] current mode: " + ExCO.getCurrentExecutionMode());
-		System.out.println("[TAG] next mode: " + ExCO.getNextExecutionMode());
-
 		VegaTimeManager.setPresentTime((HLAinteger64Time) theTime);
-		System.out.println("Disabling latch");
 		ExecutionLatch.disable();
 	}
 
-	public static Object getNameReservationSemaphore()
+	protected static Object getNameReservationSemaphore()
 	{
 		return NAME_RESERVATION_SEMAPHORE;
 	}
 
-	public static boolean getNameReservationStatus()
+	protected static boolean getNameReservationStatus()
 	{
 		return nameReservationStatus;
 	}

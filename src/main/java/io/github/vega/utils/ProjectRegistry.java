@@ -45,12 +45,12 @@ import com.badlogic.ashley.core.Entity;
 
 import hla.rti1516e.ObjectInstanceHandle;
 import io.github.vega.components.HLAObjectComponent;
+import io.github.vega.core.HLASharingModel;
 import io.github.vega.core.IDataConverter;
 import io.github.vega.core.IEntityArchetype;
 import io.github.vega.core.IMultiDataConverter;
-import io.github.vega.hla.VegaInteractionClass;
-import io.github.vega.hla.VegaObjectClass;
-import io.github.vega.hla.HLASharingModel;
+import io.github.vega.core.VegaInteractionClass;
+import io.github.vega.core.VegaObjectClass;
 
 public record ProjectRegistry()
 {
@@ -143,18 +143,26 @@ public record ProjectRegistry()
 		remoteEntitySet.add(entity);
 	}
 	
+	public static boolean removeRemoteEntity(Entity entity)
+	{
+		if (remoteEntitySet.remove(entity))
+			return true;
+		else
+			return false;
+	}
+	
+	public static boolean removeRemoteEntityByHandle(ObjectInstanceHandle instanceHandle)
+	{
+		Entity remoteEntity = getRemoteEntityByHandle(instanceHandle);
+		
+		if (removeRemoteEntity(remoteEntity))
+			return true;
+		else
+			return false;
+	}
+	
 	public static Entity getRemoteEntityByName(String objectInstanceName)
 	{
-		/*
-		for (Entity entity : remoteEntityMap.keySet())
-		{
-			HLAObjectComponent objectComponent = objectComponentMapper.get(entity);
-			
-			if (objectComponent != null && objectComponent.instanceName.equals(objectInstanceName))
-				return entity;
-		}
-		*/
-		
 		for (Entity entity : remoteEntitySet)
 		{
 			HLAObjectComponent objectComponent = OBJECT_COMPONENT_MAPPER.get(entity);
@@ -177,16 +185,7 @@ public record ProjectRegistry()
 		}
 		
 		return null;
-		
-		// return remoteEntityMap.getKey(instanceHandle);
 	}
-	
-	/*
-	public static ObjectInstanceHandle getRemoteEntityHandle(Entity entity)
-	{
-		return remoteEntityMap.get(entity);
-	}
-	*/
 	
 	public static boolean isRemoteEntity(Entity entity)
 	{

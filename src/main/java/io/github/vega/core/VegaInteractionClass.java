@@ -29,7 +29,7 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.core;
 
 import java.util.HashMap;
 import java.util.HashSet;

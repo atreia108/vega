@@ -36,22 +36,18 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
 
+import com.badlogic.ashley.core.ComponentMapper;
+import com.badlogic.ashley.core.Entity;
+
 import hla.rti1516e.CallbackModel;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.ResignAction;
 import io.github.vega.archetypes.ExecutionConfiguration;
 import io.github.vega.archetypes.ModeTransitionRequest;
+import io.github.vega.components.ExCOComponent;
 import io.github.vega.converters.ExCOConverter;
 import io.github.vega.converters.MTRConverter;
-import io.github.vega.data.ExCO;
 import io.github.vega.data.ExecutionMode;
-import io.github.vega.hla.HLASharingModel;
-import io.github.vega.hla.VegaDataManager;
-import io.github.vega.hla.VegaFederateAmbassador;
-import io.github.vega.hla.VegaInteractionClass;
-import io.github.vega.hla.VegaObjectClass;
-import io.github.vega.hla.VegaRTIAmbassador;
-import io.github.vega.hla.VegaTimeManager;
 import io.github.vega.utils.ExecutionLatch;
 import io.github.vega.utils.ProjectLoader;
 import io.github.vega.utils.ProjectRegistry;
@@ -62,6 +58,8 @@ public abstract class VegaSimulationBase
 	protected static final Logger LOGGER = LogManager.getLogger();
 	protected static final Marker SPACEFOM_INIT_MARKER = MarkerManager.getMarker("SPACEFOM_INIT");
 	protected static final Marker HLA_MARKER = MarkerManager.getMarker("HLA");
+	
+	protected ExCOComponent exCOComponent;
 
 	public VegaSimulationBase(String projectFilePath)
 	{
@@ -98,13 +96,12 @@ public abstract class VegaSimulationBase
 		LOGGER.info(SPACEFOM_INIT_MARKER, "({}/{}) Waiting to discover the ExCO object instance", ++currentStep, TOTAL_STEPS);
 		ExecutionLatch.enable();
 		LOGGER.info(SPACEFOM_INIT_MARKER, "Discovered ExCO object instance");
-
-		
+	
 		LOGGER.info(SPACEFOM_INIT_MARKER, "({}/{}) Waiting to receive the latest values of the ExCO object instance", ++currentStep, TOTAL_STEPS);
 		ExecutionLatch.enable();
+		getExCOData();
 		LOGGER.info(SPACEFOM_INIT_MARKER, "Latest values for ExCO have been received");
 
-		/* Temporarily disabled
 		LOGGER.info(SPACEFOM_INIT_MARKER, "({}/{}) Publishing all object and interaction classes used by this federate", ++currentStep, TOTAL_STEPS);
 		publishAllObjectClasses();
 		publishAllInteractionClasses();
@@ -129,14 +126,12 @@ public abstract class VegaSimulationBase
 			LOGGER.info(SPACEFOM_INIT_MARKER, "All required object instances were discovered");
 		}
 		
-		
 		LOGGER.info(SPACEFOM_INIT_MARKER, "({}/{}) Aligning simulation timeline with the HLA federation", ++currentStep, TOTAL_STEPS);
 		setupTimeManagement();
 		LOGGER.info(SPACEFOM_INIT_MARKER, "Simulation timeline is now in sync with the federation");
 
 		LOGGER.info("Starting execution of the simulation");
 		tick();
-		*/
 	}
 
 	private void subscribeExCO()
@@ -186,8 +181,15 @@ public abstract class VegaSimulationBase
 
 		mtrClass.declare();
 	}
+	
+	private void getExCOData()
+	{
+		final Entity exCO = ProjectRegistry.getRemoteEntityByName("ExCO");
+		final ComponentMapper<ExCOComponent> exCOMapper = ComponentMapper.getFor(ExCOComponent.class);
+		exCOComponent = exCOMapper.get(exCO);
+	}
 
-	private static void publishAllObjectClasses()
+	private void publishAllObjectClasses()
 	{
 		for (VegaObjectClass objectClass : ProjectRegistry.objectClasses)
 		{
@@ -214,7 +216,7 @@ public abstract class VegaSimulationBase
 		}
 	}
 
-	private static void subscribeAllInteractionClasses()
+	private void subscribeAllInteractionClasses()
 	{
 		for (VegaInteractionClass interactionClass : ProjectRegistry.interactionClasses)
 		{
@@ -223,18 +225,35 @@ public abstract class VegaSimulationBase
 		}
 	}
 
-	private static void setupTimeManagement()
+	private void setupTimeManagement()
 	{
 		VegaTimeManager.enableTimeConstrained();
-		ExecutionLatch.enable();
 		VegaTimeManager.enableTimeRegulation();
-		ExecutionLatch.enable();
-		VegaTimeManager.advanceToLogicalTimeBoundary();
-		ExecutionLatch.enable();
+		// VegaTimeManager.advanceToLogicalTimeBoundary();
+		VegaTimeManager.advanceTime();
 	}
 
 	private void tick()
 	{
+		
+		while (true)
+		{
+			ExecutionMode currentMode = exCOComponent.currentExecutionMode;
+			ExecutionMode nextMode = exCOComponent.nextExecutionMode;
+			
+			if (currentMode == ExecutionMode.EXEC_MODE_RUNNING && nextMode == ExecutionMode.EXEC_MODE_RUNNING)
+			{
+				onRun();
+				VegaTimeManager.advanceTime();
+			}
+			else if (currentMode == ExecutionMode.EXEC_MODE_RUNNING && nextMode == ExecutionMode.EXEC_MODE_SHUTDOWN)
+			{
+				onShutdown();
+				disconnect();
+			}
+		}
+		
+		/*
 		int runCounter = 0;
 
 		while (true)
@@ -272,11 +291,12 @@ public abstract class VegaSimulationBase
 			 * ExecutionLatch.enable(); } else LOGGER.
 			 * warn("Unknown execution mode encountered. Federate will not engage in any potential mode transition"
 			 * );
-			 */
+			 
 		}
+		*/
 	}
 
-	public static void connect()
+	public void connect()
 	{
 		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
 
@@ -297,7 +317,7 @@ public abstract class VegaSimulationBase
 		}
 	}
 
-	public static void disconnect()
+	public void disconnect()
 	{
 		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
 

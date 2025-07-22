@@ -29,7 +29,7 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.core;
 
 import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.LogicalTime;
@@ -45,13 +45,19 @@ public class VegaFederateAmbassador extends NullFederateAmbassador
 	@Override
 	public void discoverObjectInstance(final ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass, String objectName)
 	{
-		VegaCallbackManager.discoverObjectInstance2(theObject, theObjectClass, objectName);
+		VegaCallbackManager.discoverObjectInstance(theObject, theObjectClass, objectName);
+	}
+	
+	@Override
+	public void removeObjectInstance(ObjectInstanceHandle theObject, byte[] userSuppliedTag, OrderType sentOrdering, SupplementalRemoveInfo removeInfo) throws FederateInternalError
+	{
+		VegaCallbackManager.removeObjectInstance(theObject);
 	}
 
 	@Override
 	public void reflectAttributeValues(ObjectInstanceHandle theObject, AttributeHandleValueMap theAttributes, byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport, SupplementalReflectInfo reflectInfo) throws FederateInternalError
 	{
-		VegaCallbackManager.reflectAttributeValues2(theObject, theAttributes);
+		VegaCallbackManager.reflectAttributeValues(theObject, theAttributes);
 	}
 
 	@Override

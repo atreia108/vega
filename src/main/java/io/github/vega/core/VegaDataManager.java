@@ -29,7 +29,7 @@
  * 
  */
 
-package io.github.vega.hla;
+package io.github.vega.core;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
