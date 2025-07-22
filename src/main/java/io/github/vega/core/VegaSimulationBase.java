@@ -49,6 +49,7 @@ import io.github.vega.converters.ExCOConverter;
 import io.github.vega.converters.MTRConverter;
 import io.github.vega.data.ExecutionMode;
 import io.github.vega.utils.ExecutionLatch;
+import io.github.vega.utils.HLASharingModel;
 import io.github.vega.utils.ProjectLoader;
 import io.github.vega.utils.ProjectRegistry;
 import io.github.vega.utils.ProjectSettings;
@@ -229,7 +230,6 @@ public abstract class VegaSimulationBase
 	{
 		VegaTimeManager.enableTimeConstrained();
 		VegaTimeManager.enableTimeRegulation();
-		// VegaTimeManager.advanceToLogicalTimeBoundary();
 		VegaTimeManager.advanceTime();
 	}
 
@@ -252,48 +252,6 @@ public abstract class VegaSimulationBase
 				disconnect();
 			}
 		}
-		
-		/*
-		int runCounter = 0;
-
-		while (true)
-		{
-			ExecutionMode currentMode = ExCO.getCurrentExecutionMode();
-			ExecutionMode nextMode = ExCO.getNextExecutionMode();
-
-			System.out.println("[TAR] current mode: " + currentMode);
-			System.out.println("[TAR] next mode: " + nextMode);
-
-			if (runCounter > 30)
-				disconnect();
-			else
-			{
-				onRun();
-				VegaTimeManager.advanceTime();
-				ExecutionLatch.enable();
-			}
-
-			runCounter++;
-			/*
-			 * if (currentMode == ExecutionMode.EXEC_MODE_RUNNING && nextMode ==
-			 * ExecutionMode.EXEC_MODE_RUNNING) { onRun(); VegaTimeManager.advanceTime();
-			 * System.out.println("Attempting to enable"); ExecutionLatch.enable();
-			 * System.out.println("Post-enablement"); } else if ((currentMode ==
-			 * ExecutionMode.EXEC_MODE_RUNNING || currentMode ==
-			 * ExecutionMode.EXEC_MODE_FREEZE) && nextMode ==
-			 * ExecutionMode.EXEC_MODE_SHUTDOWN) { LOGGER.
-			 * info("Federate has been advised to shut down. Terminating simulation now");
-			 * onShutdown(); disconnect(); } else if (currentMode ==
-			 * ExecutionMode.EXEC_MODE_RUNNING && nextMode ==
-			 * ExecutionMode.EXEC_MODE_FREEZE) onFreeze(); else if (currentMode ==
-			 * ExecutionMode.EXEC_MODE_FREEZE && nextMode ==
-			 * ExecutionMode.EXEC_MODE_RUNNING) { onRun(); VegaTimeManager.advanceTime();
-			 * ExecutionLatch.enable(); } else LOGGER.
-			 * warn("Unknown execution mode encountered. Federate will not engage in any potential mode transition"
-			 * );
-			 
-		}
-		*/
 	}
 
 	public void connect()

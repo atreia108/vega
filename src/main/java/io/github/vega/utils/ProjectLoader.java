@@ -47,7 +47,6 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
-import io.github.vega.core.HLASharingModel;
 import io.github.vega.core.IDataConverter;
 import io.github.vega.core.IEntityArchetype;
 import io.github.vega.core.IMultiDataConverter;

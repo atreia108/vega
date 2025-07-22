@@ -47,6 +47,7 @@ import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.RTIambassador;
+import io.github.vega.utils.HLASharingModel;
 
 public class VegaObjectClass
 {
@@ -179,7 +180,7 @@ public class VegaObjectClass
 		attributeHandleMap.put(attributeName, attributeHandle);
 	}
 
-	public Set<String> publisheableAttributeNames()
+	public Set<String> getPublisheableAttributeNames()
 	{
 		Set<String> result = new HashSet<String>();
 
@@ -192,7 +193,7 @@ public class VegaObjectClass
 		return result;
 	}
 
-	public AttributeHandleSet publisheableAttributeHandles()
+	public AttributeHandleSet getPublisheableAttributeHandles()
 	{
 		if (publicationHandleSet == null)
 		{
@@ -223,7 +224,7 @@ public class VegaObjectClass
 		return null;
 	}
 
-	public Set<String> subscribeableAttributeNames()
+	public Set<String> getSubscribeableAttributeNames()
 	{
 		Set<String> result = new HashSet<String>();
 
@@ -236,7 +237,7 @@ public class VegaObjectClass
 		return result;
 	}
 
-	public AttributeHandleSet subscribeableAttributeHandles()
+	public AttributeHandleSet getSubscribeableAttributeHandles()
 	{
 		if (subscriptionHandleSet == null)
 		{
@@ -290,7 +291,7 @@ public class VegaObjectClass
 
 			AttributeHandleSet publicationHandleSet = rtiAmbassador.getAttributeHandleSetFactory().create();
 
-			for (String attributeName : publisheableAttributeNames())
+			for (String attributeName : getPublisheableAttributeNames())
 			{
 				AttributeHandle attributeHandle = attributeHandleMap.get(attributeName);
 
@@ -334,7 +335,7 @@ public class VegaObjectClass
 
 			AttributeHandleSet subscriptionHandleSet = rtiAmbassador.getAttributeHandleSetFactory().create();
 
-			for (String attributeName : subscribeableAttributeNames())
+			for (String attributeName : getSubscribeableAttributeNames())
 			{
 				AttributeHandle attributeHandle = attributeHandleMap.get(attributeName);
 
@@ -359,5 +360,15 @@ public class VegaObjectClass
 
 		isSubscribed = true;
 		LOGGER.info(HLA_MARKER, "The HLA object class <{}> was successfully subscribed to", name);
+	}
+	
+	public int getNumberOfPublisheableAttributes()
+	{
+		return publicationHandleSet.size();
+	}
+	
+	public int getNumberOfSubscribeableAttributes()
+	{
+		return subscriptionHandleSet.size();
 	}
 }

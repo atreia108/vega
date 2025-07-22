@@ -65,6 +65,7 @@ public class VegaCallbackManager
 	private static final Marker SIMUL_MARKER = MarkerManager.getMarker("SIMUL");
 	
 	private static final String EXCO_CLASS_NAME = "HLAobjectRoot.ExecutionConfiguration";
+	private static boolean exCOInitialized = false;
 
 	private static Set<String> objectsPendingDiscovery;
 
@@ -128,7 +129,7 @@ public class VegaCallbackManager
 		createRemoteEntity(className, objectName, theObject, entity);
 		requestLatestAttributeValues(theObject, objectName, objectClass);
 		
-		if (className.equals(EXCO_CLASS_NAME) && ExecutionLatch.isActive())
+		if (className.equals(EXCO_CLASS_NAME) && !exCOInitialized)
 			ExecutionLatch.disable();
 	}
 	
@@ -143,7 +144,7 @@ public class VegaCallbackManager
 	
 	private static void requestLatestAttributeValues(ObjectInstanceHandle instanceHandle, String instanceName, VegaObjectClass objectClass)
 	{
-		AttributeHandleSet attributeHandles = objectClass.subscribeableAttributeHandles();
+		AttributeHandleSet attributeHandles = objectClass.getSubscribeableAttributeHandles();
 
 		try
 		{
@@ -233,16 +234,18 @@ public class VegaCallbackManager
 		
 		updateObjectInstance(entity, instanceName, objectClass, theAttributes);
 		
-		if (instanceName.equals("ExCO") && ExecutionLatch.isActive())
+		if (instanceName.equals("ExCO") && !exCOInitialized)
 		{
-			Entity exCO = ProjectRegistry.getRemoteEntityByName("ExCO");
-			ComponentMapper<ExCOComponent> exComponentMapper = ComponentMapper.getFor(ExCOComponent.class);
-			ExCOComponent exCOComponent = exComponentMapper.get(exCO);
+			// Entity exCO = ProjectRegistry.getRemoteEntityByName("ExCO");
+			// ComponentMapper<ExCOComponent> exComponentMapper = ComponentMapper.getFor(ExCOComponent.class);
+			// ExCOComponent exCOComponent = exComponentMapper.get(exCO);
 			
-			System.out.println("Frame: " + exCOComponent.rootFrameName);
-			System.out.println("LCTS: " + exCOComponent.leastCommonTimeStep);
-			System.out.println("Current Mode: " + exCOComponent.currentExecutionMode);
-			System.out.println("Next Mode: " + exCOComponent.nextExecutionMode);
+			// System.out.println("Frame: " + exCOComponent.rootFrameName);
+			// System.out.println("LCTS: " + exCOComponent.leastCommonTimeStep);
+			// System.out.println("Current Mode: " + exCOComponent.currentExecutionMode);
+			// System.out.println("Next Mode: " + exCOComponent.nextExecutionMode);
+			
+			exCOInitialized = true;
 			ExecutionLatch.disable();
 		}
 	}

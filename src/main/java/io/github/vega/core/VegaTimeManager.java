@@ -128,21 +128,6 @@ public class VegaTimeManager
 		}
 	}
 
-	protected static void advanceToLogicalTimeBoundary()
-	{
-		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
-		try
-		{
-			presentTime = getLogicalTimeBoundary();
-			rtiAmbassador.timeAdvanceRequest(presentTime);
-		}
-		catch (Exception e)
-		{
-			LOGGER.error(HLA_MARKER, "Failed to advance to HLA logical time boundary\n[REASON]", e);
-			System.exit(1);
-		}
-	}
-
 	protected static HLAinteger64Time getNextTimeStep()
 	{
 		long present = presentTime.getValue();
@@ -150,7 +135,6 @@ public class VegaTimeManager
 		long future = present + stepIncrement;
 
 		HLAinteger64Time nextTimeStep = TIME_FACTORY.makeTime(future);
-		// System.out.println("Next Time Step: " + nextTimeStep.getValue());
 		return nextTimeStep;
 	}
 

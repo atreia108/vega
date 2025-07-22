@@ -44,6 +44,7 @@ import org.apache.logging.log4j.MarkerManager;
 import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.ParameterHandle;
 import hla.rti1516e.RTIambassador;
+import io.github.vega.utils.HLASharingModel;
 
 public class VegaInteractionClass
 {

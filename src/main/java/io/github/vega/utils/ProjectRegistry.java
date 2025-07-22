@@ -45,7 +45,6 @@ import com.badlogic.ashley.core.Entity;
 
 import hla.rti1516e.ObjectInstanceHandle;
 import io.github.vega.components.HLAObjectComponent;
-import io.github.vega.core.HLASharingModel;
 import io.github.vega.core.IDataConverter;
 import io.github.vega.core.IEntityArchetype;
 import io.github.vega.core.IMultiDataConverter;

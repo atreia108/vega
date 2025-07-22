@@ -149,7 +149,8 @@ public class ExCOConverter implements IMultiDataConverter
 	@Override
 	public byte[] encode(Entity entity, EncoderFactory encoder, int trigger)
 	{
-		// TODO Auto-generated method stub
+		// SpaceMaster alone manages the ExCO object.
+		// We will not be publishing any encoded data for it.
 		return null;
 	}
 

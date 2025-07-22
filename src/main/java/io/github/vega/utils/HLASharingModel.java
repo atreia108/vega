@@ -29,7 +29,7 @@
  * 
  */
 
-package io.github.vega.core;
+package io.github.vega.utils;
 
 public enum HLASharingModel
 {
