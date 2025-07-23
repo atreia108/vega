@@ -49,7 +49,7 @@ import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.RTIambassador;
 import io.github.vega.utils.HLASharingModel;
 
-public class VegaObjectClass
+public final class VegaObjectClass
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Marker HLA_MARKER = MarkerManager.getMarker("HLA");

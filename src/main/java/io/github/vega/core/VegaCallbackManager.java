@@ -41,24 +41,27 @@ import org.apache.logging.log4j.MarkerManager;
 
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
-
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.AttributeHandleValueMap;
+import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.LogicalTime;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
+import hla.rti1516e.ParameterHandle;
+import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.exceptions.FederateInternalError;
 import hla.rti1516e.time.HLAinteger64Time;
 import io.github.vega.components.ExCOComponent;
+import io.github.vega.components.HLAInteractionComponent;
 import io.github.vega.components.HLAObjectComponent;
 import io.github.vega.data.ExecutionMode;
 import io.github.vega.utils.ExecutionLatch;
 import io.github.vega.utils.ProjectRegistry;
 
-public class VegaCallbackManager
+public final class VegaCallbackManager
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Marker HLA_MARKER = MarkerManager.getMarker("HLA");
@@ -319,6 +322,69 @@ public class VegaCallbackManager
 	{
 		VegaTimeManager.setPresentTime((HLAinteger64Time) theTime);
 		ExecutionLatch.disable();
+	}
+	
+	protected static void receiveInteraction(InteractionClassHandle interactionClass, ParameterHandleValueMap theParameters)
+	{
+		try
+		{
+			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			String className = rtiAmbassador.getInteractionClassName(interactionClass);
+			
+			VegaInteractionClass interactionClassType = null;
+			if ((interactionClassType = ProjectRegistry.getInteractionClass(className)) == null)
+			{
+				LOGGER.error("Incoming interaction was discarded because the class <{}> is unrecognized", className);
+				return;
+			}
+			
+			IEntityArchetype archetype = ProjectRegistry.getArchetype(interactionClassType.archetypeName);
+			Entity interaction = null;
+			
+			if ((interaction = archetype.createEntity()) == null)
+			{
+				LOGGER.error("An incoming interaction could not be processed the archetype <{}> returned NULL instead of an entity", archetype);
+				return;
+			}
+			
+			unpackInteractionData(interaction, interactionClassType, theParameters);
+			
+			HLAInteractionComponent interactionComponent = World.createComponent(HLAInteractionComponent.class);
+			interactionComponent.className = className;
+			World.addComponent(interaction, interactionComponent);
+			
+			VegaInteractionQueue.addInteraction(interaction);
+		}
+		catch (Exception e)
+		{
+			LOGGER.warn("Incoming interaction was discarded\n[REASON]", e);
+		}
+	}
+	
+	private static void unpackInteractionData(Entity entity, VegaInteractionClass interactionClass, ParameterHandleValueMap parameterHandleValueMap)
+	{
+		for (String parameterName : interactionClass.parameterNames)
+		{
+			EncoderFactory encoderFactory = VegaEncoderFactory.instance();
+			
+			ParameterHandle parameterHandle = interactionClass.getParameterHandle(parameterName);
+			byte[] encodedValue = parameterHandleValueMap.get(parameterHandle);
+			String converterName = null;
+			
+			if (interactionClass.parameterUsesMultiConverter(parameterName))
+			{
+				converterName = interactionClass.getParameterMultiConverterName(parameterName);
+				IMultiDataConverter multiDataConverter = ProjectRegistry.getMultiConverter(converterName);
+				int trigger = interactionClass.getParameterMultiConverterTrigger(parameterName, converterName);
+				multiDataConverter.decode(entity, encoderFactory, encodedValue, trigger);
+			}
+			else
+			{
+				converterName = interactionClass.getParameterConverterName(parameterName);
+				IDataConverter dataConverter = ProjectRegistry.getDataConverter(converterName);
+				dataConverter.decode(entity, encoderFactory, encodedValue);
+			}
+		}
 	}
 
 	protected static Object getNameReservationSemaphore()

@@ -44,13 +44,12 @@ import com.badlogic.ashley.core.PooledEngine;
 
 import io.github.vega.utils.ProjectSettings;
 
-public class World
+public final class World
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Marker SIMUL_MARKER = MarkerManager.getMarker("SIMUL");
 
 	private static PooledEngine engine;
-	// private static final ComponentMapper<HLAObjectComponent> OBJECT_COMPONENT_MAPPER = ComponentMapper.getFor(HLAObjectComponent.class);
 
 	public static Entity createEntity()
 	{
@@ -60,6 +59,11 @@ public class World
 	public static void addEntity(Entity entity)
 	{
 		engine.addEntity(entity);
+	}
+	
+	public static void removeEntity(Entity entity)
+	{
+		engine.removeEntity(entity);
 	}
 
 	public static <T extends Component> T createComponent(Class<T> componentType)

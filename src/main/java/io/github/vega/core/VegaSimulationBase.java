@@ -111,7 +111,7 @@ public abstract class VegaSimulationBase
 		LOGGER.info(SPACEFOM_INIT_MARKER, "({}/{}) Registering federate object instances", ++currentStep, TOTAL_STEPS);
 		onInit();
 
-		int registeredInstancesCount = VegaDataManager.getRegisteredInstancesCount();
+		int registeredInstancesCount = VegaObjectManager.getRegisteredInstancesCount();
 		String verb = registeredInstancesCount == 1 ? " was" : "s were";
 		LOGGER.info(SPACEFOM_INIT_MARKER, "{} object instance{} successfully registered", registeredInstancesCount, verb);
 

@@ -18,7 +18,7 @@ import io.github.vega.components.ExCOComponent;
 import io.github.vega.utils.ExecutionLatch;
 import io.github.vega.utils.ProjectRegistry;
 
-public class VegaTimeManager
+public final class VegaTimeManager
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Marker HLA_MARKER = MarkerManager.getMarker("HLA");

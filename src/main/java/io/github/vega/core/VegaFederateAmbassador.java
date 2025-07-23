@@ -32,11 +32,13 @@
 package io.github.vega.core;
 
 import hla.rti1516e.AttributeHandleValueMap;
+import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.LogicalTime;
 import hla.rti1516e.NullFederateAmbassador;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.OrderType;
+import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.TransportationTypeHandle;
 import hla.rti1516e.exceptions.FederateInternalError;
 
@@ -91,5 +93,11 @@ public class VegaFederateAmbassador extends NullFederateAmbassador
 	public void timeAdvanceGrant(LogicalTime theTime) throws FederateInternalError
 	{
 		VegaCallbackManager.timeAdvanceGrant(theTime);
+	}
+	
+	@Override
+	public void receiveInteraction(InteractionClassHandle interactionClass, ParameterHandleValueMap theParameters, byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport, SupplementalReceiveInfo receiveInfo) throws FederateInternalError
+	{
+		VegaCallbackManager.receiveInteraction(interactionClass, theParameters);
 	}
 }

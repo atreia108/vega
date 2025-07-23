@@ -46,7 +46,7 @@ import hla.rti1516e.ParameterHandle;
 import hla.rti1516e.RTIambassador;
 import io.github.vega.utils.HLASharingModel;
 
-public class VegaInteractionClass
+public final class VegaInteractionClass
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Marker HLA_MARKER = MarkerManager.getMarker("HLA");
@@ -106,6 +106,7 @@ public class VegaInteractionClass
 
 	public String getParameterConverterName(String parameterName)
 	{
+		System.out.println(parameterConverterNameMap);
 		return parameterConverterNameMap.get(parameterName);
 	}
 
@@ -263,5 +264,15 @@ public class VegaInteractionClass
 		
 		isSubscribed = true;
 		LOGGER.info(HLA_MARKER, "The HLA interaction class <{}> was successfully subscribed to", name);
+	}
+	
+	public Map<String, ParameterHandle> getParameterHandleMap()
+	{
+		return parameterHandleMap;
+	}
+	
+	public int getNumberOfParameters()
+	{
+		return parameterNames.size();
 	}
 }

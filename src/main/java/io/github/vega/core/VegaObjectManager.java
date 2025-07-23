@@ -46,24 +46,22 @@ import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.encoding.EncoderFactory;
-import io.github.vega.components.HLAInteractionComponent;
 import io.github.vega.components.HLAObjectComponent;
 import io.github.vega.utils.ProjectRegistry;
 
-public class VegaDataManager
+public final class VegaObjectManager
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Marker SIMUL_MARKER = MarkerManager.getMarker("SIMUL");
 	private static final Marker HLA_MARKER = MarkerManager.getMarker("HLA");
 
-	private static final ComponentMapper<HLAObjectComponent> OBJECT_COMPONENT_MAPPER = ComponentMapper.getFor(HLAObjectComponent.class);
-	private static final ComponentMapper<HLAInteractionComponent> INTERACTION_COMPONENT_MAPPER = ComponentMapper.getFor(HLAInteractionComponent.class);
-
+	private static final ComponentMapper<HLAObjectComponent> OBJECT_MAPPER = ComponentMapper.getFor(HLAObjectComponent.class);
+	
 	private static int registeredInstancesCount = 0;
 
 	public static boolean registerObjectInstance(Entity entity)
 	{
-		HLAObjectComponent objectComponent = OBJECT_COMPONENT_MAPPER.get(entity);
+		HLAObjectComponent objectComponent = OBJECT_MAPPER.get(entity);
 
 		if (ProjectRegistry.isRemoteEntity(entity))
 		{
@@ -140,7 +138,7 @@ public class VegaDataManager
 			LOGGER.warn(SIMUL_MARKER, "Failed to destroy object instance for the entity <{}>\n[REASON] This is a remote entity and cannot be destroyed since the federate does not have the required privileges to do so", entity);
 			return false;
 		}
-		else if ((objectComponent = OBJECT_COMPONENT_MAPPER.get(entity)) == null)
+		else if ((objectComponent = OBJECT_MAPPER.get(entity)) == null)
 		{
 			LOGGER.warn(SIMUL_MARKER, "Failed to destroy object instance for the entity <{}>\n[REASON] Its lacks an HLAObjectComponent and may not be a registered HLA object instance", entity);
 			return false;
@@ -161,7 +159,7 @@ public class VegaDataManager
 			LOGGER.warn(HLA_MARKER, "Failed to destroy object instance for the entity <{}>\n[REASON]", e);
 			return false;
 		}
-		
+
 		--registeredInstancesCount;
 		return true;
 	}
@@ -170,13 +168,13 @@ public class VegaDataManager
 	{
 		HLAObjectComponent objectComponent = null;
 		VegaObjectClass objectClass = null;
-		
-		if (ProjectRegistry.isRemoteEntity(entity)) 
+
+		if (ProjectRegistry.isRemoteEntity(entity))
 		{
 			LOGGER.warn("Failed to send update for the entity <{}>\n[REASON] This is a remote entity and cannot be updated by the federate as it does not have the required privileges to do so", entity);
 			return false;
 		}
-		else if ((objectComponent = OBJECT_COMPONENT_MAPPER.get(entity)) == null)
+		else if ((objectComponent = OBJECT_MAPPER.get(entity)) == null)
 		{
 			LOGGER.warn("Failed to send update for the entity <{}>\n[REASON] It lacks an HLAObjectComponent and may not be a registered HLA object instance", entity);
 			return false;
@@ -192,11 +190,11 @@ public class VegaDataManager
 			return false;
 		}
 		
-		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
 		try
 		{
-			AttributeHandleValueMap instanceAttributes = getObjectInstanceAttributes(entity, objectClass);
-			
+			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			AttributeHandleValueMap instanceAttributes = getObjectInstanceAttributes(entity, objectClass, rtiAmbassador);
+
 			if ((instanceAttributes == null) || (instanceAttributes.size() == 0))
 			{
 				LOGGER.warn("Failed to send update for the entity <{}>\n[REASON] No object instance attributes were found for this entity", entity);
@@ -209,34 +207,33 @@ public class VegaDataManager
 				return true;
 			}
 		}
-		catch (Exception e) 
+		catch (Exception e)
 		{
 			LOGGER.warn("Failed to send update for the entity <{}>\n[REASON]", e);
 			return false;
 		}
 	}
-	
-	private static AttributeHandleValueMap getObjectInstanceAttributes(Entity entity, VegaObjectClass objectClass)
+
+	private static AttributeHandleValueMap getObjectInstanceAttributes(Entity entity, VegaObjectClass objectClass, RTIambassador rtiAmbassador)
 	{
-		int numberOfAttributes = objectClass.getNumberOfPublisheableAttributes();
-		
-		if (numberOfAttributes == 0)
-			return null;
-		
-		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
-		EncoderFactory encoderFactory = VegaEncoderFactory.instance();
 		AttributeHandleValueMap attributeValues = null;
+		int numberOfAttributes = objectClass.getNumberOfPublisheableAttributes();
+
+		if (numberOfAttributes < 1)
+			return attributeValues;
+
+		EncoderFactory encoderFactory = VegaEncoderFactory.instance();
 		try
 		{
 			attributeValues = rtiAmbassador.getAttributeHandleValueMapFactory().create(numberOfAttributes);
 			AttributeHandleSet attributeHandles = objectClass.getPublisheableAttributeHandles();
-			
+
 			for (AttributeHandle attributeHandle : attributeHandles)
 			{
 				String attributeName = objectClass.getAttributeNameForHandle(attributeHandle);
 				String dataConverterName = objectClass.getAttributeConverterName(attributeName);
 				byte[] encodedValue = null;
-				
+
 				if (objectClass.attributeUsesMultiConverter(attributeName))
 				{
 					IMultiDataConverter multiDataConverter = ProjectRegistry.getMultiConverter(dataConverterName);
@@ -248,7 +245,7 @@ public class VegaDataManager
 					IDataConverter dataConverter = ProjectRegistry.getDataConverter(dataConverterName);
 					encodedValue = dataConverter.encode(entity, encoderFactory);
 				}
-				
+
 				attributeValues.put(attributeHandle, encodedValue);
 			}
 		}
@@ -256,16 +253,11 @@ public class VegaDataManager
 		{
 			LOGGER.error("RTI ambassador failed to provide a AttributeHandleValueMap for packing object instance data\n[REASON]", e);
 		}
-		
+
 		return attributeValues;
 	}
-
-	public static boolean sendInteraction(Entity entity)
-	{
-		return false;
-	}
-
-	public static int getRegisteredInstancesCount()
+	
+	protected static int getRegisteredInstancesCount()
 	{
 		return registeredInstancesCount;
 	}

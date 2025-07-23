@@ -130,13 +130,6 @@ public record ProjectRegistry()
 		return multiDataConverters.get(converterName);
 	}
 	
-	/*
-	public static void addEntityObjectInstance(Entity entity, ObjectInstanceHandle instanceHandle)
-	{
-		remoteEntityMap.put(entity, instanceHandle);
-	}
-	*/
-	
 	public static void addRemoteEntity(Entity entity)
 	{
 		remoteEntitySet.add(entity);
@@ -330,8 +323,8 @@ public record ProjectRegistry()
 			System.out.println("None");
 		else
 		{
-			for (String adapterName : dataConverters.keySet())
-				System.out.println(trimClassName(adapterName));
+			for (String converterName : dataConverters.keySet())
+				System.out.println(trimClassName(converterName));
 		}
 		System.out.println();
 	}
@@ -341,8 +334,8 @@ public record ProjectRegistry()
 		System.out.println("Multi Data Converters in-use");
 		System.out.println(SEPARATOR_STYLE_1);
 
-		for (String multiAdapterName : multiDataConverters.keySet())
-			System.out.println(trimClassName(multiAdapterName));
+		for (String multiConverterName : multiDataConverters.keySet())
+			System.out.println(trimClassName(multiConverterName));
 
 		System.out.println();
 	}

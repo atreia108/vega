@@ -38,7 +38,7 @@ import hla.rti1516e.RtiFactory;
 import hla.rti1516e.RtiFactoryFactory;
 import hla.rti1516e.encoding.EncoderFactory;
 
-public class VegaEncoderFactory
+public final class VegaEncoderFactory
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 
