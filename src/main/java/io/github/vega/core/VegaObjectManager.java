@@ -59,7 +59,7 @@ public final class VegaObjectManager
 	
 	private static int registeredInstancesCount = 0;
 
-	public static boolean registerObjectInstance(Entity entity)
+	public static boolean registerInstance(Entity entity)
 	{
 		HLAObjectComponent objectComponent = OBJECT_MAPPER.get(entity);
 
@@ -73,6 +73,17 @@ public final class VegaObjectManager
 		{
 			LOGGER.warn("Omitted registration for the entity <{}>\n[REASON] It has already been registered as an object instance", objectComponent.instanceName);
 			return false;
+		}
+		
+		if (objectComponent.instanceName == null)
+		{
+			LOGGER.warn("Omitted registration for the entity <{}>\n[REASON] Got NULL instead of a valid instance name for this entity");
+			return false;
+		}
+		
+		if (objectComponent.className == null)
+		{
+			LOGGER.warn("Omitted registration for the entity <{}>\n[REASON] Got NULL instead of a valid HLA object class name for this entity");
 		}
 
 		Object nameReservationSemaphore = VegaCallbackManager.getNameReservationSemaphore();
@@ -129,7 +140,7 @@ public final class VegaObjectManager
 		}
 	}
 
-	public static boolean destroyObjectInstance(Entity entity)
+	public static boolean destroyInstance(Entity entity)
 	{
 		HLAObjectComponent objectComponent = null;
 
@@ -164,7 +175,7 @@ public final class VegaObjectManager
 		return true;
 	}
 
-	public static boolean sendObjectInstanceUpdate(Entity entity)
+	public static boolean updateInstance(Entity entity)
 	{
 		HLAObjectComponent objectComponent = null;
 		VegaObjectClass objectClass = null;

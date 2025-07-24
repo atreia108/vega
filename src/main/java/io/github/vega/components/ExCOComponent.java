@@ -32,13 +32,23 @@
 package io.github.vega.components;
 
 import com.badlogic.ashley.core.Component;
+import com.badlogic.gdx.utils.Pool.Poolable;
 
 import io.github.vega.data.ExecutionMode;
 
-public class ExCOComponent implements Component
+public class ExCOComponent implements Component, Poolable
 {
 	public String rootFrameName = null;
 	public ExecutionMode currentExecutionMode = null;
 	public ExecutionMode nextExecutionMode = null;
 	public long leastCommonTimeStep = 0L;
+	
+	@Override
+	public void reset()
+	{
+		rootFrameName = null;
+		currentExecutionMode = null;
+		nextExecutionMode = null;
+		leastCommonTimeStep = 0L;
+	}
 }

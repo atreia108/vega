@@ -32,12 +32,21 @@
 package io.github.vega.components;
 
 import com.badlogic.ashley.core.Component;
+import com.badlogic.gdx.utils.Pool.Poolable;
 
 import hla.rti1516e.ObjectInstanceHandle;
 
-public class HLAObjectComponent implements Component
+public class HLAObjectComponent implements Component, Poolable
 {
 	public String className = null;
 	public String instanceName = null;
 	public ObjectInstanceHandle instanceHandle = null;
+	
+	@Override
+	public void reset()
+	{
+		className = null;
+		instanceName = null;
+		instanceHandle = null;
+	}
 }
