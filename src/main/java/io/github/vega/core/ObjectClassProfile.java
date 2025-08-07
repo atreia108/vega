@@ -40,19 +40,16 @@ import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.MarkerManager;
 
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.RTIambassador;
-import io.github.vega.utils.HLASharingModel;
+import io.github.vega.utils.FrameworkObjects;
 
-public final class VegaObjectClass
+public final class ObjectClassProfile
 {
 	private static final Logger LOGGER = LogManager.getLogger();
-	private static final Marker HLA_MARKER = MarkerManager.getMarker("HLA");
 
 	public String name;
 	public String archetypeName;
@@ -75,7 +72,7 @@ public final class VegaObjectClass
 	public boolean isPublished;
 	public boolean isSubscribed;
 
-	public VegaObjectClass(String name, String archetypeName, boolean declareAutomatically)
+	public ObjectClassProfile(String name, String archetypeName, boolean declareAutomatically)
 	{
 		this.name = name;
 		this.archetypeName = archetypeName;
@@ -197,7 +194,7 @@ public final class VegaObjectClass
 	{
 		if (publicationHandleSet == null)
 		{
-			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 			try
 			{
 				AttributeHandleSet result = rtiAmbassador.getAttributeHandleSetFactory().create();
@@ -214,7 +211,7 @@ public final class VegaObjectClass
 			}
 			catch (Exception e)
 			{
-				LOGGER.error(HLA_MARKER, "Could not generate attribute handle set containing published attributes for the HLA object class <{}>\n[REASON]", e, name);
+				LOGGER.error("Could not generate attribute handle set containing published attributes for the HLA object class <{}>\n[REASON]", e, name);
 				System.exit(1);
 			}
 		}
@@ -241,7 +238,7 @@ public final class VegaObjectClass
 	{
 		if (subscriptionHandleSet == null)
 		{
-			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 			try
 			{
 				AttributeHandleSet result = rtiAmbassador.getAttributeHandleSetFactory().create();
@@ -258,7 +255,7 @@ public final class VegaObjectClass
 			}
 			catch (Exception e)
 			{
-				LOGGER.error(HLA_MARKER, "Could not generate attribute handle set containing subscribed attributes for the HLA object class <{}>\n[REASON]", e, name);
+				LOGGER.error("Could not generate attribute handle set containing subscribed attributes for the HLA object class <{}>\n[REASON]", e, name);
 				System.exit(1);
 			}
 		}
@@ -278,11 +275,11 @@ public final class VegaObjectClass
 	{
 		if (isPublished)
 		{
-			LOGGER.warn(HLA_MARKER, "The HLA object class <{}> was not published since this intention has already been shared with the RTI", name);
+			LOGGER.warn("The HLA object class <{}> was not published since this intention has already been shared with the RTI", name);
 			return;
 		}
 
-		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+		RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 
 		try
 		{
@@ -310,23 +307,23 @@ public final class VegaObjectClass
 		}
 		catch (Exception e)
 		{
-			LOGGER.error(HLA_MARKER, "Failed to publish the HLA object class <{}>\n[REASON]", name, e);
+			LOGGER.error("Failed to publish the HLA object class <{}>\n[REASON]", name, e);
 			System.exit(1);
 		}
 
 		isPublished = true;
-		LOGGER.info(HLA_MARKER, "The HLA object class <{}> was successfully published", name);
+		LOGGER.info("The HLA object class <{}> was successfully published", name);
 	}
 
 	public void subscribe()
 	{
 		if (isSubscribed)
 		{
-			LOGGER.warn(HLA_MARKER, "The HLA object class <{}> was not subscribed to since this intention has already been shared with the RTI", name);
+			LOGGER.warn("The HLA object class <{}> was not subscribed to since this intention has already been shared with the RTI", name);
 			return;
 		}
 
-		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+		RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 
 		try
 		{
@@ -354,12 +351,12 @@ public final class VegaObjectClass
 		}
 		catch (Exception e)
 		{
-			LOGGER.error(HLA_MARKER, "Failed to subscribe to the HLA object class <{}>\n[REASON]", name, e);
+			LOGGER.error("Failed to subscribe to the HLA object class <{}>\n[REASON]", name, e);
 			System.exit(1);
 		}
 
 		isSubscribed = true;
-		LOGGER.info(HLA_MARKER, "The HLA object class <{}> was successfully subscribed to", name);
+		LOGGER.info("The HLA object class <{}> was successfully subscribed to", name);
 	}
 	
 	public int getNumberOfPublisheableAttributes()

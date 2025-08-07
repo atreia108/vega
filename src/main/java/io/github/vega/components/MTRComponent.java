@@ -36,7 +36,7 @@ import com.badlogic.gdx.utils.Pool.Poolable;
 
 import io.github.vega.data.MTRMode;
 
-public class MTRComponent implements Component, Poolable
+public final class MTRComponent implements Component, Poolable
 {
 	public MTRMode executionMode = null;
 	

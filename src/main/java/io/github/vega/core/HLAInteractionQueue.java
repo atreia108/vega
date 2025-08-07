@@ -7,12 +7,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.badlogic.ashley.core.ComponentMapper;
+import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 
 import io.github.vega.components.HLAInteractionComponent;
-import io.github.vega.utils.ProjectRegistry;
+import io.github.vega.utils.FrameworkObjects;
 
-public final class VegaInteractionQueue
+public final class HLAInteractionQueue
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -93,10 +94,12 @@ public final class VegaInteractionQueue
 	
 	public static void free(ArrayList<Entity> queue)
 	{
+		Engine engine = FrameworkObjects.getEngine();
+		
 		queue.forEach((entity) ->
 		{
 			entity.removeAll();
-			World.removeEntity(entity);
+			engine.removeEntity(entity);
 		});
 	}
 }

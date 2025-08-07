@@ -46,7 +46,7 @@ import io.github.vega.components.ExCOComponent;
 import io.github.vega.core.IMultiDataConverter;
 import io.github.vega.data.ExecutionMode;
 
-public class ExCOConverter implements IMultiDataConverter
+public final class ExCOConverter implements IMultiDataConverter
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 
@@ -150,7 +150,7 @@ public class ExCOConverter implements IMultiDataConverter
 	public byte[] encode(Entity entity, EncoderFactory encoder, int trigger)
 	{
 		// SpaceMaster alone manages the ExCO object.
-		// We will not be publishing any encoded data for it.
+		// We will not be publishing any encoded data for it, so returning a NULL is OK.
 		return null;
 	}
 

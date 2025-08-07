@@ -14,9 +14,9 @@ import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.encoding.EncoderFactory;
 import io.github.vega.components.HLAInteractionComponent;
-import io.github.vega.utils.ProjectRegistry;
+import io.github.vega.utils.FrameworkObjects;
 
-public class VegaInteractionManager
+public final class HLAInteractionManager
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final ComponentMapper<HLAInteractionComponent> INTERACTION_MAPPER = ComponentMapper.getFor(HLAInteractionComponent.class);
@@ -24,7 +24,7 @@ public class VegaInteractionManager
 	public static boolean sendInteraction(Entity entity)
 	{
 		HLAInteractionComponent interactionComponent = INTERACTION_MAPPER.get(entity);
-		VegaInteractionClass interactionClass = null ;
+		InteractionClassProfile interactionClass = null ;
 
 		if (interactionComponent == null || (interactionClass = ProjectRegistry.getInteractionClass(interactionComponent.className)) == null)
 		{
@@ -36,7 +36,7 @@ public class VegaInteractionManager
 		ParameterHandleValueMap parameterHandleValueMap = null;
 		try
 		{
-			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 			parameterHandleValueMap = getInteractionParameters(entity, interactionClass, rtiAmbassador);
 
 			if ((parameterHandleValueMap == null) || (parameterHandleValueMap.size() == 0))
@@ -48,6 +48,8 @@ public class VegaInteractionManager
 			{
 				rtiAmbassador.sendInteraction(classHandle, parameterHandleValueMap, null);
 				LOGGER.info("The interaction <{}> was successfully sent", entity);
+				
+				clearInteraction(entity);
 				return true;
 			}
 		}
@@ -59,7 +61,7 @@ public class VegaInteractionManager
 		
 	}
 
-	private static ParameterHandleValueMap getInteractionParameters(Entity entity, VegaInteractionClass interactionClass, RTIambassador rtiAmbassador)
+	private static ParameterHandleValueMap getInteractionParameters(Entity entity, InteractionClassProfile interactionClass, RTIambassador rtiAmbassador)
 	{
 		ParameterHandleValueMap parameterHandleValueMap = null;
 
@@ -69,7 +71,7 @@ public class VegaInteractionManager
 			return parameterHandleValueMap;
 
 		Map<String, ParameterHandle> parameterHandleMap = interactionClass.getParameterHandleMap();
-		EncoderFactory encoderFactory = VegaEncoderFactory.instance();
+		EncoderFactory encoderFactory = FrameworkObjects.getEncoderFactory();
 
 		try
 		{
@@ -104,5 +106,16 @@ public class VegaInteractionManager
 		}
 
 		return parameterHandleValueMap;
+	}
+	
+	/**
+	 * Deletes all components from the entity that represents the HLA interaction to free them up for
+	 * use by other entities.
+	 * @param interaction The entity representing the HLA interaction that is to be freed
+	 * @since 1.0
+	 */
+	private static void clearInteraction(Entity interaction)
+	{
+		interaction.removeAll();
 	}
 }

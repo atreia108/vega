@@ -36,11 +36,10 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.MarkerManager;
 
-import com.badlogic.ashley.core.ComponentMapper;
+import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
+
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.AttributeHandleValueMap;
@@ -59,13 +58,11 @@ import io.github.vega.components.HLAInteractionComponent;
 import io.github.vega.components.HLAObjectComponent;
 import io.github.vega.data.ExecutionMode;
 import io.github.vega.utils.ExecutionLatch;
-import io.github.vega.utils.ProjectRegistry;
+import io.github.vega.utils.FrameworkObjects;
 
-public final class VegaCallbackManager
+public final class HLACallbackManager
 {
 	private static final Logger LOGGER = LogManager.getLogger();
-	private static final Marker HLA_MARKER = MarkerManager.getMarker("HLA");
-	private static final Marker SIMUL_MARKER = MarkerManager.getMarker("SIMUL");
 	
 	private static final String EXCO_CLASS_NAME = "HLAobjectRoot.ExecutionConfiguration";
 	private static boolean exCOInitialized = false;
@@ -85,36 +82,36 @@ public final class VegaCallbackManager
 	protected static void discoverObjectInstance(final ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass, String objectName)
 	{
 		String className = null;
-		VegaObjectClass objectClass = null;
+		ObjectClassProfile objectClass = null;
 		IEntityArchetype archetype = null;
 		Entity entity = null;
 		
 		try
 		{
-			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 			className = rtiAmbassador.getObjectClassName(theObjectClass);
 		}
 		catch (Exception e)
 		{
-			LOGGER.warn(HLA_MARKER, "The newly discovered object instance \"{}\" was discarded\n[REASON] Failed to acquire name of its associated object class", objectName);
+			LOGGER.warn("The newly discovered object instance \"{}\" was discarded\n[REASON] Failed to acquire name of its associated object class", objectName);
 			return;
 		}
 		
 		if ((objectClass = ProjectRegistry.getObjectClass(className)) == null)
 		{
-			LOGGER.warn(SIMUL_MARKER, "The newly discovered object instance \"{}\" was discarded\n[REASON] Failed to acquire name of its associated object class", objectName);
+			LOGGER.warn("The newly discovered object instance \"{}\" was discarded\n[REASON] Failed to acquire name of its associated object class", objectName);
 			return;
 		}
 		
 		if ((archetype = ProjectRegistry.getArchetype(objectClass.archetypeName)) == null)
 		{
-			LOGGER.warn(SIMUL_MARKER, "The newly discovered object instance \"{}\" was discarded\n[REASON]The archetype <{}> defined for the HLA object class <{}> is not defined", objectName, objectClass.name, objectClass.archetypeName);
+			LOGGER.warn("The newly discovered object instance \"{}\" was discarded\n[REASON]The archetype <{}> defined for the HLA object class <{}> is not defined", objectName, objectClass.name, objectClass.archetypeName);
 			return;
 		}
 		
 		if ((entity = archetype.createEntity()) == null)
 		{
-			LOGGER.error(SIMUL_MARKER, "The newly discovered object instance \"{}\" was discarded\n[REASON] The archetype produced NULL instead of a valid entity", objectName);
+			LOGGER.error("The newly discovered object instance \"{}\" was discarded\n[REASON] The archetype produced NULL instead of a valid entity", objectName);
 			return;
 		}
 		
@@ -122,7 +119,7 @@ public final class VegaCallbackManager
 		
 		if (objectsPendingDiscovery != null && objectsPendingDiscovery.contains(objectName))
 		{
-			LOGGER.info(HLA_MARKER, "Discovered a new object instance \"{}\" of the class <{}>", objectName, className);
+			LOGGER.info("Discovered a new object instance \"{}\" of the class <{}>", objectName, className);
 			objectsPendingDiscovery.remove(objectName);
 			
 			if (objectsPendingDiscovery.isEmpty() && ExecutionLatch.isActive())
@@ -138,25 +135,27 @@ public final class VegaCallbackManager
 	
 	private static void createRemoteEntity(String className, String objectName, ObjectInstanceHandle instanceHandle, Entity entity)
 	{
-		HLAObjectComponent objectComponent = World.createComponent(HLAObjectComponent.class);
+		Engine engine = FrameworkObjects.getEngine();
+		
+		HLAObjectComponent objectComponent = engine.createComponent(HLAObjectComponent.class);
 		objectComponent.className = className;
 		objectComponent.instanceName = objectName;
 		objectComponent.instanceHandle = instanceHandle;
-		World.addComponent(entity, objectComponent);
+		entity.add(objectComponent);
 	}
 	
-	private static void requestLatestAttributeValues(ObjectInstanceHandle instanceHandle, String instanceName, VegaObjectClass objectClass)
+	private static void requestLatestAttributeValues(ObjectInstanceHandle instanceHandle, String instanceName, ObjectClassProfile objectClass)
 	{
 		AttributeHandleSet attributeHandles = objectClass.getSubscribeableAttributeHandles();
 
 		try
 		{
-			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 			rtiAmbassador.requestAttributeValueUpdate(instanceHandle, attributeHandles, null);
 		}
 		catch (Exception e)
 		{
-			LOGGER.error(HLA_MARKER, "Failed to request the latest values for the object instance \"{}\"\n[REASON]", instanceName, e);
+			LOGGER.error("Failed to request the latest values for the object instance \"{}\"\n[REASON]", instanceName, e);
 			System.exit(1);
 		}
 	}
@@ -166,15 +165,14 @@ public final class VegaCallbackManager
 		if (!exCOExists())
 		{
 			final Entity exCO = ProjectRegistry.getRemoteEntityByName("ExCO");
-			final ComponentMapper<ExCOComponent> exCOMapper = ComponentMapper.getFor(ExCOComponent.class);
-			ExCOComponent exCOComponent = exCOMapper.get(exCO);
+			ExCOComponent exCOComponent = FrameworkObjects.getExCOComponentMapper().get(exCO);
 			
 			exCOComponent.nextExecutionMode = ExecutionMode.EXEC_MODE_SHUTDOWN;
 		}
 			
 		if (!ProjectRegistry.removeRemoteEntityByHandle(theObject))
 		{
-			LOGGER.warn(HLA_MARKER, "Failed to remove the requested object instance <{}>\n[REASON] It is absent from the registry and may have been deleted previously", theObject);
+			LOGGER.warn("Failed to remove the requested object instance <{}>\n[REASON] It is absent from the registry and may have been deleted previously", theObject);
 			return;
 		}
 	}
@@ -188,7 +186,7 @@ public final class VegaCallbackManager
 	{
 		try
 		{
-			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 			rtiAmbassador.getObjectInstanceHandle("ExCO");
 			return true;
 		}
@@ -206,7 +204,7 @@ public final class VegaCallbackManager
 		
 		try
 		{
-			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 			instanceName = rtiAmbassador.getObjectInstanceName(theObject);
 			classHandle = rtiAmbassador.getKnownObjectClassHandle(theObject);
 			className = rtiAmbassador.getObjectClassName(classHandle);
@@ -214,14 +212,14 @@ public final class VegaCallbackManager
 		catch (Exception e) 
 		{
 			if (instanceName != null)
-				LOGGER.warn(HLA_MARKER, "New values for the object instance \"{}\" were discarded\n[REASON]", e);
+				LOGGER.warn("New values for the object instance \"{}\" were discarded\n[REASON]", e);
 			else
-				LOGGER.warn(HLA_MARKER, "New values for the object instance <{}> were discarded\nREASON]", e);
+				LOGGER.warn("New values for the object instance <{}> were discarded\nREASON]", e);
 			
 			return;
 		}
 		
-		VegaObjectClass objectClass = null;
+		ObjectClassProfile objectClass = null;
 		if ((objectClass = ProjectRegistry.getObjectClass(className)) == null)
 		{
 			LOGGER.warn("New values for the object instance \"{}\" were discarded\n[REASON] Associated object class for this instance was not found", instanceName);
@@ -253,9 +251,9 @@ public final class VegaCallbackManager
 		}
 	}
 	
-	private static void updateObjectInstance(Entity entity, String instanceName, VegaObjectClass objectClass, AttributeHandleValueMap latestValues)
+	private static void updateObjectInstance(Entity entity, String instanceName, ObjectClassProfile objectClass, AttributeHandleValueMap latestValues)
 	{
-		EncoderFactory encoderFactory = VegaEncoderFactory.instance();
+		EncoderFactory encoderFactory = FrameworkObjects.getEncoderFactory();
 
 		for (String attributeName : objectClass.attributeNames)
 		{
@@ -263,7 +261,7 @@ public final class VegaCallbackManager
 
 			if (!latestValues.containsKey(attributeHandle))
 			{
-				LOGGER.warn(HLA_MARKER, "New values for the object instance from the RTI \"{}\" is missing ", instanceName);
+				LOGGER.warn("New values for the object instance from the RTI \"{}\" is missing ", instanceName);
 				return;
 			}
 
@@ -306,21 +304,21 @@ public final class VegaCallbackManager
 	@SuppressWarnings("rawtypes")
 	protected static void timeConstrainedEnabled(LogicalTime time) throws FederateInternalError
 	{
-		LOGGER.info(HLA_MARKER, "The federate is now HLA time constrained");
+		LOGGER.info("The federate is now HLA time constrained");
 		ExecutionLatch.disable();
 	}
 
 	@SuppressWarnings("rawtypes")
 	protected static void timeRegulationEnabled(LogicalTime time) throws FederateInternalError
 	{
-		LOGGER.info(HLA_MARKER, "HLA time regulation has been enabled");
+		LOGGER.info("HLA time regulation has been enabled");
 		ExecutionLatch.disable();
 	}
 
 	@SuppressWarnings("rawtypes")
 	protected static void timeAdvanceGrant(LogicalTime theTime) throws FederateInternalError
 	{
-		VegaTimeManager.setPresentTime((HLAinteger64Time) theTime);
+		HLATimeManager.setPresentTime((HLAinteger64Time) theTime);
 		ExecutionLatch.disable();
 	}
 	
@@ -328,10 +326,12 @@ public final class VegaCallbackManager
 	{
 		try
 		{
-			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
+			Engine engine = FrameworkObjects.getEngine();
+			
 			String className = rtiAmbassador.getInteractionClassName(interactionClass);
 			
-			VegaInteractionClass interactionClassType = null;
+			InteractionClassProfile interactionClassType = null;
 			if ((interactionClassType = ProjectRegistry.getInteractionClass(className)) == null)
 			{
 				LOGGER.error("Incoming interaction was discarded because the class <{}> is unrecognized", className);
@@ -349,11 +349,11 @@ public final class VegaCallbackManager
 			
 			unpackInteractionData(interaction, interactionClassType, theParameters);
 			
-			HLAInteractionComponent interactionComponent = World.createComponent(HLAInteractionComponent.class);
+			HLAInteractionComponent interactionComponent = engine.createComponent(HLAInteractionComponent.class);
 			interactionComponent.className = className;
-			World.addComponent(interaction, interactionComponent);
+			interaction.add(interactionComponent);
 			
-			VegaInteractionQueue.addInteraction(interaction);
+			HLAInteractionQueue.addInteraction(interaction);
 		}
 		catch (Exception e)
 		{
@@ -361,11 +361,11 @@ public final class VegaCallbackManager
 		}
 	}
 	
-	private static void unpackInteractionData(Entity entity, VegaInteractionClass interactionClass, ParameterHandleValueMap parameterHandleValueMap)
+	private static void unpackInteractionData(Entity entity, InteractionClassProfile interactionClass, ParameterHandleValueMap parameterHandleValueMap)
 	{
 		for (String parameterName : interactionClass.parameterNames)
 		{
-			EncoderFactory encoderFactory = VegaEncoderFactory.instance();
+			EncoderFactory encoderFactory = FrameworkObjects.getEncoderFactory();
 			
 			ParameterHandle parameterHandle = interactionClass.getParameterHandle(parameterName);
 			byte[] encodedValue = parameterHandleValueMap.get(parameterHandle);

@@ -2,8 +2,6 @@ package io.github.vega.core;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.MarkerManager;
 
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
@@ -16,12 +14,11 @@ import hla.rti1516e.time.HLAinteger64Time;
 import hla.rti1516e.time.HLAinteger64TimeFactory;
 import io.github.vega.components.ExCOComponent;
 import io.github.vega.utils.ExecutionLatch;
-import io.github.vega.utils.ProjectRegistry;
+import io.github.vega.utils.FrameworkObjects;
 
-public final class VegaTimeManager
+public final class HLATimeManager
 {
 	private static final Logger LOGGER = LogManager.getLogger();
-	private static final Marker HLA_MARKER = MarkerManager.getMarker("HLA");
 	
 	private static final HLAinteger64TimeFactory TIME_FACTORY = LogicalTimeFactoryFactory.getLogicalTimeFactory(HLAinteger64TimeFactory.class);
 	private static HLAinteger64Time presentTime;
@@ -31,13 +28,13 @@ public final class VegaTimeManager
 	{
 		try
 		{
-			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 			rtiAmbassador.enableTimeConstrained();
 			ExecutionLatch.enable();
 		}
 		catch (Exception e)
 		{
-			LOGGER.error(HLA_MARKER, "Failed to enable HLA time constrained\n[REASON]", e);
+			LOGGER.error("Failed to enable HLA time constrained\n[REASON]", e);
 			System.exit(1);
 		}
 	}
@@ -53,13 +50,13 @@ public final class VegaTimeManager
 
 		try
 		{
-			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 			rtiAmbassador.enableTimeRegulation(lookAheadInterval);
 			ExecutionLatch.enable();
 		}
 		catch (Exception e)
 		{
-			LOGGER.error(HLA_MARKER, "Failed to enable HLA time regulation\n[REASON]", e);
+			LOGGER.error("Failed to enable HLA time regulation\n[REASON]", e);
 			System.exit(1);
 		}
 	}
@@ -89,7 +86,7 @@ public final class VegaTimeManager
 		
 		try
 		{
-			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 			TimeQueryReturn galtQuery = rtiAmbassador.queryGALT();
 			HLAinteger64Time galt = (HLAinteger64Time) galtQuery.time;
 			long hltb = (long) ((Math.floor(galt.getValue() / leastCommonTimeStep) + 1) * leastCommonTimeStep);
@@ -99,7 +96,7 @@ public final class VegaTimeManager
 		}
 		catch (Exception e)
 		{
-			LOGGER.error(HLA_MARKER, "Failed to compute the HLA logical time boundary (HLTB)\n[REASON]", e);
+			LOGGER.error("Failed to compute the HLA logical time boundary (HLTB)\n[REASON]", e);
 			System.exit(1);
 		}
 
@@ -117,13 +114,13 @@ public final class VegaTimeManager
 		
 		try
 		{
-			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 			rtiAmbassador.timeAdvanceRequest(nextTimeStep);
 			ExecutionLatch.enable();
 		}
 		catch (Exception e)
 		{
-			LOGGER.error(HLA_MARKER, "Failed to request time advance to the next time step\n[REASON]", e);
+			LOGGER.error("Failed to request time advance to the next time step\n[REASON]", e);
 			System.exit(1);
 		}
 	}

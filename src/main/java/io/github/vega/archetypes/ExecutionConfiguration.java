@@ -31,21 +31,30 @@
 
 package io.github.vega.archetypes;
 
+import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 
 import io.github.vega.components.ExCOComponent;
 import io.github.vega.core.IEntityArchetype;
-import io.github.vega.core.World;
+import io.github.vega.utils.FrameworkObjects;
 
-public class ExecutionConfiguration implements IEntityArchetype
+/**
+ * The archetypal representation of the SpaceFOM ExecutionConfiguration object used to assemble it upon discovery from the RTI.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0
+ */
+public final class ExecutionConfiguration implements IEntityArchetype
 {
 	@Override
 	public Entity createEntity()
 	{
-		Entity exCO = World.createEntity();
-		ExCOComponent exCOComponent = World.createComponent(ExCOComponent.class);
+		Engine engine = FrameworkObjects.getEngine();
 		
-		World.addComponent(exCO, exCOComponent);
+		Entity exCO = engine.createEntity();
+		ExCOComponent exCOComponent = engine.createComponent(ExCOComponent.class);
+		
+		exCO.add(exCOComponent);
 		
 		return exCO;
 	}

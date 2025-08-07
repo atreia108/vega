@@ -33,11 +33,10 @@ package io.github.vega.core;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.MarkerManager;
 
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.PooledEngine;
 
 import hla.rti1516e.CallbackModel;
 import hla.rti1516e.RTIambassador;
@@ -49,23 +48,27 @@ import io.github.vega.converters.ExCOConverter;
 import io.github.vega.converters.MTRConverter;
 import io.github.vega.data.ExecutionMode;
 import io.github.vega.utils.ExecutionLatch;
-import io.github.vega.utils.HLASharingModel;
+import io.github.vega.utils.FrameworkObjects;
 import io.github.vega.utils.ProjectLoader;
-import io.github.vega.utils.ProjectRegistry;
 import io.github.vega.utils.ProjectSettings;
 
-public abstract class VegaSimulationBase
+/**
+ * The base class for simulations using the Vega framework. It implements the SpaceFOM late joiner initialization
+ * and execution sequences.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0
+ */
+public abstract class VegaSimulation
 {
 	protected static final Logger LOGGER = LogManager.getLogger();
-	protected static final Marker SPACEFOM_INIT_MARKER = MarkerManager.getMarker("SPACEFOM_INIT");
-	protected static final Marker HLA_MARKER = MarkerManager.getMarker("HLA");
 	
+	protected final PooledEngine engine = FrameworkObjects.getEngine();
 	protected ExCOComponent exCOComponent;
 
-	public VegaSimulationBase(String projectFilePath)
+	public VegaSimulation(String projectFilePath)
 	{
 		new ProjectLoader(projectFilePath);
-		World.setupEngine();
 	}
 
 	// This method is called during the "Register Federate Object Instances" step of
@@ -86,50 +89,50 @@ public abstract class VegaSimulationBase
 
 		connect();
 
-		LOGGER.info(SPACEFOM_INIT_MARKER, "({}/{}) Subscribing to the ExecutionConfiguration (ExCO) object class", ++currentStep, TOTAL_STEPS);
+		LOGGER.info("({}/{}) Subscribing to the ExecutionConfiguration (ExCO) object class", ++currentStep, TOTAL_STEPS);
 		subscribeExCO();
-		LOGGER.info(SPACEFOM_INIT_MARKER, "Subscribed to the ExCO object class");
+		LOGGER.info("Subscribed to the ExCO object class");
 
-		LOGGER.info(SPACEFOM_INIT_MARKER, "({}/{}) Declaring the ModeTransitionRequest (MTR) interaction class", ++currentStep, TOTAL_STEPS);
+		LOGGER.info("({}/{}) Declaring the ModeTransitionRequest (MTR) interaction class", ++currentStep, TOTAL_STEPS);
 		publishMTR();
-		LOGGER.info(SPACEFOM_INIT_MARKER, "MTR interaction class has been declared");
+		LOGGER.info("MTR interaction class has been declared");
 
-		LOGGER.info(SPACEFOM_INIT_MARKER, "({}/{}) Waiting to discover the ExCO object instance", ++currentStep, TOTAL_STEPS);
+		LOGGER.info("({}/{}) Waiting to discover the ExCO object instance", ++currentStep, TOTAL_STEPS);
 		ExecutionLatch.enable();
-		LOGGER.info(SPACEFOM_INIT_MARKER, "Discovered ExCO object instance");
+		LOGGER.info("Discovered ExCO object instance");
 	
-		LOGGER.info(SPACEFOM_INIT_MARKER, "({}/{}) Waiting to receive the latest values of the ExCO object instance", ++currentStep, TOTAL_STEPS);
+		LOGGER.info("({}/{}) Waiting to receive the latest values of the ExCO object instance", ++currentStep, TOTAL_STEPS);
 		ExecutionLatch.enable();
 		getExCOData();
-		LOGGER.info(SPACEFOM_INIT_MARKER, "Latest values for ExCO have been received");
+		LOGGER.info("Latest values for ExCO have been received");
 
-		LOGGER.info(SPACEFOM_INIT_MARKER, "({}/{}) Publishing all object and interaction classes used by this federate", ++currentStep, TOTAL_STEPS);
+		LOGGER.info("({}/{}) Publishing all object and interaction classes used by this federate", ++currentStep, TOTAL_STEPS);
 		publishAllObjectClasses();
 		publishAllInteractionClasses();
-		LOGGER.info(SPACEFOM_INIT_MARKER, "All object and interaction classes used by this federate have been published");
+		LOGGER.info("All object and interaction classes used by this federate have been published");
 
-		LOGGER.info(SPACEFOM_INIT_MARKER, "({}/{}) Registering federate object instances", ++currentStep, TOTAL_STEPS);
+		LOGGER.info("({}/{}) Registering federate object instances", ++currentStep, TOTAL_STEPS);
 		onInit();
 
-		int registeredInstancesCount = VegaObjectManager.getRegisteredInstancesCount();
+		int registeredInstancesCount = HLAObjectManager.getRegisteredInstancesCount();
 		String verb = registeredInstancesCount == 1 ? " was" : "s were";
-		LOGGER.info(SPACEFOM_INIT_MARKER, "{} object instance{} successfully registered", registeredInstancesCount, verb);
+		LOGGER.info("{} object instance{} successfully registered", registeredInstancesCount, verb);
 
-		LOGGER.info(SPACEFOM_INIT_MARKER, "({}/{}) Subscribing to all object and interaction classes used by this federate", ++currentStep, TOTAL_STEPS);
+		LOGGER.info("({}/{}) Subscribing to all object and interaction classes used by this federate", ++currentStep, TOTAL_STEPS);
 		subscribeAllObjectClasses();
 		subscribeAllInteractionClasses();
-		LOGGER.info(SPACEFOM_INIT_MARKER, "All object and interaction classes used by this federate have been subscribed to");
+		LOGGER.info("All object and interaction classes used by this federate have been subscribed to");
 
 		if (ProjectRegistry.requiredObjects != null)
 		{
-			LOGGER.info(SPACEFOM_INIT_MARKER, "({}/{}) Waiting for all required object instances to be discovered", ++currentStep, TOTAL_STEPS);
+			LOGGER.info("({}/{}) Waiting for all required object instances to be discovered", ++currentStep, TOTAL_STEPS);
 			ExecutionLatch.enable();
-			LOGGER.info(SPACEFOM_INIT_MARKER, "All required object instances were discovered");
+			LOGGER.info("All required object instances were discovered");
 		}
 		
-		LOGGER.info(SPACEFOM_INIT_MARKER, "({}/{}) Aligning simulation timeline with the HLA federation", ++currentStep, TOTAL_STEPS);
+		LOGGER.info("({}/{}) Aligning simulation timeline with the HLA federation", ++currentStep, TOTAL_STEPS);
 		setupTimeManagement();
-		LOGGER.info(SPACEFOM_INIT_MARKER, "Simulation timeline is now in sync with the federation");
+		LOGGER.info("Simulation timeline is now in sync with the federation");
 
 		LOGGER.info("Starting execution of the simulation");
 		tick();
@@ -141,7 +144,7 @@ public abstract class VegaSimulationBase
 		final String archetypeName = "io.github.vega.archetypes.ExecutionConfiguration";
 		final String converterName = "io.github.vega.converters.ExCOConverter";
 
-		VegaObjectClass exCoClass = new VegaObjectClass(className, archetypeName, false);
+		ObjectClassProfile exCoClass = new ObjectClassProfile(className, archetypeName, false);
 		final IMultiDataConverter exCoConverter = new ExCOConverter();
 		final IEntityArchetype exCoArchetype = new ExecutionConfiguration();
 
@@ -170,7 +173,7 @@ public abstract class VegaSimulationBase
 		final String archetypeName = "io.github.vega.archetypes.ModeTransitionRequest";
 		final String converterName = "io.github.vega.converters.MTRConverter";
 
-		VegaInteractionClass mtrClass = new VegaInteractionClass(className, archetypeName, HLASharingModel.PUBLISH_SUBSCRIBE, false);
+		InteractionClassProfile mtrClass = new InteractionClassProfile(className, archetypeName, HLASharingModel.PUBLISH_SUBSCRIBE, false);
 		final IMultiDataConverter mtrConverter = new MTRConverter();
 		final ModeTransitionRequest mtrArchetype = new ModeTransitionRequest();
 
@@ -192,7 +195,7 @@ public abstract class VegaSimulationBase
 
 	private void publishAllObjectClasses()
 	{
-		for (VegaObjectClass objectClass : ProjectRegistry.objectClasses)
+		for (ObjectClassProfile objectClass : ProjectRegistry.objectClassProfiles)
 		{
 			if (!objectClass.isPublished)
 				objectClass.publish();
@@ -201,7 +204,7 @@ public abstract class VegaSimulationBase
 
 	private static void publishAllInteractionClasses()
 	{
-		for (VegaInteractionClass interactionClass : ProjectRegistry.interactionClasses)
+		for (InteractionClassProfile interactionClass : ProjectRegistry.interactionClassProfiles)
 		{
 			if (!interactionClass.isPublished)
 				interactionClass.publish();
@@ -210,7 +213,7 @@ public abstract class VegaSimulationBase
 
 	public static void subscribeAllObjectClasses()
 	{
-		for (VegaObjectClass objectClass : ProjectRegistry.objectClasses)
+		for (ObjectClassProfile objectClass : ProjectRegistry.objectClassProfiles)
 		{
 			if (!objectClass.isSubscribed)
 				objectClass.subscribe();
@@ -219,7 +222,7 @@ public abstract class VegaSimulationBase
 
 	private void subscribeAllInteractionClasses()
 	{
-		for (VegaInteractionClass interactionClass : ProjectRegistry.interactionClasses)
+		for (InteractionClassProfile interactionClass : ProjectRegistry.interactionClassProfiles)
 		{
 			if (!interactionClass.isSubscribed)
 				interactionClass.subscribe();
@@ -228,9 +231,9 @@ public abstract class VegaSimulationBase
 
 	private void setupTimeManagement()
 	{
-		VegaTimeManager.enableTimeConstrained();
-		VegaTimeManager.enableTimeRegulation();
-		VegaTimeManager.advanceTime();
+		HLATimeManager.enableTimeConstrained();
+		HLATimeManager.enableTimeRegulation();
+		HLATimeManager.advanceTime();
 	}
 
 	private void tick()
@@ -244,7 +247,7 @@ public abstract class VegaSimulationBase
 			if (currentMode == ExecutionMode.EXEC_MODE_RUNNING && nextMode == ExecutionMode.EXEC_MODE_RUNNING)
 			{
 				onRun();
-				VegaTimeManager.advanceTime();
+				HLATimeManager.advanceTime();
 			}
 			else if (currentMode == ExecutionMode.EXEC_MODE_RUNNING && nextMode == ExecutionMode.EXEC_MODE_SHUTDOWN)
 			{
@@ -256,37 +259,37 @@ public abstract class VegaSimulationBase
 
 	public void connect()
 	{
-		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+		RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 
 		try
 		{
-			rtiAmbassador.connect(new VegaFederateAmbassador(), CallbackModel.HLA_IMMEDIATE);
+			rtiAmbassador.connect(new SpaceFomFederateAmbassador(), CallbackModel.HLA_IMMEDIATE);
 			if (ProjectSettings.FOM_MODULES != null)
 				rtiAmbassador.joinFederationExecution(ProjectSettings.FEDERATE_NAME, ProjectSettings.FEDERATION_NAME, ProjectSettings.FOM_MODULES);
 			else
 				rtiAmbassador.joinFederationExecution(ProjectSettings.FEDERATE_NAME, ProjectSettings.FEDERATION_NAME);
 
-			LOGGER.info(HLA_MARKER, "Joined the HLA federation <" + ProjectSettings.FEDERATION_NAME + "> with the name \"" + ProjectSettings.FEDERATE_NAME + "\"");
+			LOGGER.info("Joined the HLA federation <" + ProjectSettings.FEDERATION_NAME + "> with the name \"" + ProjectSettings.FEDERATE_NAME + "\"");
 		}
 		catch (Exception e)
 		{
-			LOGGER.error(HLA_MARKER, "Failed to join the HLA federation <" + ProjectSettings.FEDERATION_NAME + ">\n[REASON]", e);
+			LOGGER.error("Failed to join the HLA federation <" + ProjectSettings.FEDERATION_NAME + ">\n[REASON]", e);
 			System.exit(1);
 		}
 	}
 
 	public void disconnect()
 	{
-		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+		RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 
 		try
 		{
 			rtiAmbassador.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST);
-			LOGGER.info(HLA_MARKER, "Federate was successfully terminated");
+			LOGGER.info("Federate was successfully terminated");
 		}
 		catch (Exception e)
 		{
-			LOGGER.error(HLA_MARKER, "Federate termination attempt failed unexpectedly\n[REASON]", e);
+			LOGGER.error("Federate termination attempt failed unexpectedly\n[REASON]", e);
 		}
 		
 		System.exit(1);

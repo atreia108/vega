@@ -36,7 +36,7 @@ import com.badlogic.ashley.core.Entity;
 import hla.rti1516e.encoding.EncoderFactory;
 import io.github.vega.core.IMultiDataConverter;
 
-public class MTRConverter implements IMultiDataConverter
+public final class MTRConverter implements IMultiDataConverter
 {
 
 	@Override

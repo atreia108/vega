@@ -29,7 +29,7 @@
  * 
  */
 
-package io.github.vega.utils;
+package io.github.vega.core;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,19 +45,15 @@ import com.badlogic.ashley.core.Entity;
 
 import hla.rti1516e.ObjectInstanceHandle;
 import io.github.vega.components.HLAObjectComponent;
-import io.github.vega.core.IDataConverter;
-import io.github.vega.core.IEntityArchetype;
-import io.github.vega.core.IMultiDataConverter;
-import io.github.vega.core.VegaInteractionClass;
-import io.github.vega.core.VegaObjectClass;
+import io.github.vega.utils.ProjectSettings;
 
-public record ProjectRegistry()
+public final record ProjectRegistry()
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	public static Set<String> requiredObjects;
-	public static Set<VegaObjectClass> objectClasses = new HashSet<VegaObjectClass>();
-	public static Set<VegaInteractionClass> interactionClasses = new HashSet<VegaInteractionClass>();
+	public static Set<ObjectClassProfile> objectClassProfiles = new HashSet<ObjectClassProfile>();
+	public static Set<InteractionClassProfile> interactionClassProfiles = new HashSet<InteractionClassProfile>();
 	public static Map<String, IEntityArchetype> archetypes = new HashMap<String, IEntityArchetype>();
 	public static Map<String, IDataConverter> dataConverters = new HashMap<String, IDataConverter>();
 	public static Map<String, IMultiDataConverter> multiDataConverters = new HashMap<String, IMultiDataConverter>();
@@ -75,14 +71,14 @@ public record ProjectRegistry()
 		archetypes.put(archetypeName, archetype);
 	}
 
-	public static void addObjectClass(VegaObjectClass objectClass)
+	public static void addObjectClass(ObjectClassProfile objectClass)
 	{
-		objectClasses.add(objectClass);
+		objectClassProfiles.add(objectClass);
 	}
 
-	public static void addInteractionClass(VegaInteractionClass interactionClass)
+	public static void addInteractionClass(InteractionClassProfile interactionClass)
 	{
-		interactionClasses.add(interactionClass);
+		interactionClassProfiles.add(interactionClass);
 	}
 
 	public static void addDataConverter(String converterName, IDataConverter converter)
@@ -95,9 +91,9 @@ public record ProjectRegistry()
 		multiDataConverters.put(converterName, multiConverter);
 	}
 
-	public static VegaObjectClass getObjectClass(String name)
+	public static ObjectClassProfile getObjectClass(String name)
 	{
-		Optional<VegaObjectClass> query = objectClasses.stream().filter(o -> o.name.equals(name)).findAny();
+		Optional<ObjectClassProfile> query = objectClassProfiles.stream().filter(o -> o.name.equals(name)).findAny();
 
 		if (query.isEmpty())
 			return null;
@@ -105,9 +101,9 @@ public record ProjectRegistry()
 			return query.get();
 	}
 
-	public static VegaInteractionClass getInteractionClass(String name)
+	public static InteractionClassProfile getInteractionClass(String name)
 	{
-		Optional<VegaInteractionClass> query = interactionClasses.stream().filter(i -> i.name.equals(name)).findAny();
+		Optional<InteractionClassProfile> query = interactionClassProfiles.stream().filter(i -> i.name.equals(name)).findAny();
 
 		if (query.isEmpty())
 			return null;
@@ -229,11 +225,11 @@ public record ProjectRegistry()
 		System.out.println("HLA Object Classes");
 		System.out.println(SEPARATOR_STYLE_1);
 
-		if (objectClasses.isEmpty())
+		if (objectClassProfiles.isEmpty())
 			System.out.println("None");
 		else
 		{
-			for (VegaObjectClass objectClass : objectClasses)
+			for (ObjectClassProfile objectClass : objectClassProfiles)
 			{
 				System.out.println("<" + objectClass.name + ">");
 				System.out.println("Archetype: " + trimClassName(objectClass.archetypeName));
@@ -268,11 +264,11 @@ public record ProjectRegistry()
 		System.out.println("HLA Interaction Classes");
 		System.out.println(SEPARATOR_STYLE_1);
 
-		if (interactionClasses.isEmpty())
+		if (interactionClassProfiles.isEmpty())
 			System.out.println("None");
 		else
 		{
-			for (VegaInteractionClass interactionClass : interactionClasses)
+			for (InteractionClassProfile interactionClass : interactionClassProfiles)
 			{
 				String pubSub = HLASharingModel.toString(interactionClass.sharingModel);
 				System.out.println("<" + interactionClass.name + ">" + " [" + pubSub + "]");
@@ -342,11 +338,8 @@ public record ProjectRegistry()
 
 	private static String trimClassName(String fullClassName)
 	{
-		if (fullClassName.isEmpty())
-		{
-			LOGGER.warn("Encountered blank canonical name for a class during an attempt to trim it to its simple name. Using NULL as fallback value instead");
-			return "NULL";
-		}
+		if (fullClassName == null || fullClassName.isEmpty())
+			return "NONE";
 
 		String[] partition = fullClassName.split("\\.");
 		int len = partition.length;

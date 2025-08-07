@@ -47,9 +47,9 @@ import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.encoding.EncoderFactory;
 import io.github.vega.components.HLAObjectComponent;
-import io.github.vega.utils.ProjectRegistry;
+import io.github.vega.utils.FrameworkObjects;
 
-public final class VegaObjectManager
+public final class HLAObjectManager
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Marker SIMUL_MARKER = MarkerManager.getMarker("SIMUL");
@@ -86,8 +86,8 @@ public final class VegaObjectManager
 			LOGGER.warn("Omitted registration for the entity <{}>\n[REASON] Got NULL instead of a valid HLA object class name for this entity");
 		}
 
-		Object nameReservationSemaphore = VegaCallbackManager.getNameReservationSemaphore();
-		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+		Object nameReservationSemaphore = HLACallbackManager.getNameReservationSemaphore();
+		RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 
 		try
 		{
@@ -97,14 +97,14 @@ public final class VegaObjectManager
 				awaitReservation();
 			}
 
-			boolean nameReservationStatus = VegaCallbackManager.getNameReservationStatus();
+			boolean nameReservationStatus = HLACallbackManager.getNameReservationStatus();
 			if (!nameReservationStatus)
 			{
 				LOGGER.warn("Failed to reserve the name <{}>. The corresponding HLA object instance for this entity was not created", objectComponent.instanceName);
 				return false;
 			}
 
-			VegaObjectClass objectClass = ProjectRegistry.getObjectClass(objectComponent.className);
+			ObjectClassProfile objectClass = ProjectRegistry.getObjectClass(objectComponent.className);
 			ObjectClassHandle classHandle = objectClass.classHandle;
 
 			ObjectInstanceHandle instanceHandle = rtiAmbassador.registerObjectInstance(classHandle, objectComponent.instanceName);
@@ -124,7 +124,7 @@ public final class VegaObjectManager
 
 	private static void awaitReservation()
 	{
-		Object nameReservationSemaphore = VegaCallbackManager.getNameReservationSemaphore();
+		Object nameReservationSemaphore = HLACallbackManager.getNameReservationSemaphore();
 
 		try
 		{
@@ -160,7 +160,7 @@ public final class VegaObjectManager
 			return false;
 		}
 
-		RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+		RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 		try
 		{
 			rtiAmbassador.deleteObjectInstance(objectComponent.instanceHandle, null);
@@ -178,7 +178,7 @@ public final class VegaObjectManager
 	public static boolean updateInstance(Entity entity)
 	{
 		HLAObjectComponent objectComponent = null;
-		VegaObjectClass objectClass = null;
+		ObjectClassProfile objectClass = null;
 
 		if (ProjectRegistry.isRemoteEntity(entity))
 		{
@@ -203,7 +203,7 @@ public final class VegaObjectManager
 		
 		try
 		{
-			RTIambassador rtiAmbassador = VegaRTIAmbassador.instance();
+			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 			AttributeHandleValueMap instanceAttributes = getObjectInstanceAttributes(entity, objectClass, rtiAmbassador);
 
 			if ((instanceAttributes == null) || (instanceAttributes.size() == 0))
@@ -225,7 +225,7 @@ public final class VegaObjectManager
 		}
 	}
 
-	private static AttributeHandleValueMap getObjectInstanceAttributes(Entity entity, VegaObjectClass objectClass, RTIambassador rtiAmbassador)
+	private static AttributeHandleValueMap getObjectInstanceAttributes(Entity entity, ObjectClassProfile objectClass, RTIambassador rtiAmbassador)
 	{
 		AttributeHandleValueMap attributeValues = null;
 		int numberOfAttributes = objectClass.getNumberOfPublisheableAttributes();
@@ -233,7 +233,7 @@ public final class VegaObjectManager
 		if (numberOfAttributes < 1)
 			return attributeValues;
 
-		EncoderFactory encoderFactory = VegaEncoderFactory.instance();
+		EncoderFactory encoderFactory = FrameworkObjects.getEncoderFactory();
 		try
 		{
 			attributeValues = rtiAmbassador.getAttributeHandleValueMapFactory().create(numberOfAttributes);

@@ -31,21 +31,30 @@
 
 package io.github.vega.archetypes;
 
+import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 
 import io.github.vega.components.MTRComponent;
 import io.github.vega.core.IEntityArchetype;
-import io.github.vega.core.World;
+import io.github.vega.utils.FrameworkObjects;
 
-public class ModeTransitionRequest implements IEntityArchetype
+/**
+ * The archetypal representation of the SpaceFOM ModeTransitionRequest interaction used to assemble it when received from the RTI.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0
+ */
+public final class ModeTransitionRequest implements IEntityArchetype
 {
 	@Override
 	public Entity createEntity()
 	{
-		Entity modeTransitionRequest = World.createEntity();
-		MTRComponent mtrComponent = World.createComponent(MTRComponent.class);
+		Engine engine = FrameworkObjects.getEngine();
 		
-		World.addComponent(modeTransitionRequest, mtrComponent);
+		Entity modeTransitionRequest = engine.createEntity();
+		MTRComponent mtrComponent = engine.createComponent(MTRComponent.class);
+		
+		modeTransitionRequest.add(mtrComponent);
 		
 		return modeTransitionRequest;
 	}

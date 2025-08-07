@@ -31,37 +31,24 @@
 
 package io.github.vega.core;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import hla.rti1516e.RTIambassador;
-import hla.rti1516e.RtiFactory;
-import hla.rti1516e.RtiFactoryFactory;
-
-public class VegaRTIAmbassador
+public enum HLASharingModel
 {
-	private static final Logger LOGGER = LogManager.getLogger();
+	PUBLISH_ONLY,
+	PUBLISH_SUBSCRIBE,
+	SUBSCRIBE_ONLY;
 	
-	private static RTIambassador rtiAmbassador;
-
-	private VegaRTIAmbassador()
+	public static String toString(HLASharingModel pubSub)
 	{
-		try
+		switch (pubSub)
 		{
-			RtiFactory rtiFactory = RtiFactoryFactory.getRtiFactory();
-			rtiAmbassador = rtiFactory.getRtiAmbassador();
+			case PUBLISH_ONLY:
+				return "Publish";
+			case PUBLISH_SUBSCRIBE:
+				return "Publish/Subscribe";
+			case SUBSCRIBE_ONLY:
+				return "Subscribe";
+			default:
+				return "None";
 		}
-		catch (Exception e)
-		{
-			LOGGER.error("[REASON]", e);
-			System.exit(1);
-		}
-	}
-
-	synchronized public static RTIambassador instance()
-	{
-		if (rtiAmbassador == null)
-			new VegaRTIAmbassador();
-		return rtiAmbassador;
 	}
 }

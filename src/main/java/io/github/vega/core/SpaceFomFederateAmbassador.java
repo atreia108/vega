@@ -42,62 +42,62 @@ import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.TransportationTypeHandle;
 import hla.rti1516e.exceptions.FederateInternalError;
 
-public class VegaFederateAmbassador extends NullFederateAmbassador
+public class SpaceFomFederateAmbassador extends NullFederateAmbassador
 {
 	@Override
 	public void discoverObjectInstance(final ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass, String objectName)
 	{
-		VegaCallbackManager.discoverObjectInstance(theObject, theObjectClass, objectName);
+		HLACallbackManager.discoverObjectInstance(theObject, theObjectClass, objectName);
 	}
 	
 	@Override
 	public void removeObjectInstance(ObjectInstanceHandle theObject, byte[] userSuppliedTag, OrderType sentOrdering, SupplementalRemoveInfo removeInfo) throws FederateInternalError
 	{
-		VegaCallbackManager.removeObjectInstance(theObject);
+		HLACallbackManager.removeObjectInstance(theObject);
 	}
 
 	@Override
 	public void reflectAttributeValues(ObjectInstanceHandle theObject, AttributeHandleValueMap theAttributes, byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport, SupplementalReflectInfo reflectInfo) throws FederateInternalError
 	{
-		VegaCallbackManager.reflectAttributeValues(theObject, theAttributes);
+		HLACallbackManager.reflectAttributeValues(theObject, theAttributes);
 	}
 
 	@Override
 	public void objectInstanceNameReservationSucceeded(String objectName)
 	{
-		VegaCallbackManager.objectInstanceNameReservationSucceeded(objectName);
+		HLACallbackManager.objectInstanceNameReservationSucceeded(objectName);
 	}
 
 	@Override
 	public void objectInstanceNameReservationFailed(String objectName)
 	{
-		VegaCallbackManager.objectInstanceNameReservationFailed(objectName);
+		HLACallbackManager.objectInstanceNameReservationFailed(objectName);
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void timeConstrainedEnabled(LogicalTime time) throws FederateInternalError
 	{
-		VegaCallbackManager.timeConstrainedEnabled(time);
+		HLACallbackManager.timeConstrainedEnabled(time);
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void timeRegulationEnabled(LogicalTime time) throws FederateInternalError
 	{
-		VegaCallbackManager.timeRegulationEnabled(time);
+		HLACallbackManager.timeRegulationEnabled(time);
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void timeAdvanceGrant(LogicalTime theTime) throws FederateInternalError
 	{
-		VegaCallbackManager.timeAdvanceGrant(theTime);
+		HLACallbackManager.timeAdvanceGrant(theTime);
 	}
 	
 	@Override
 	public void receiveInteraction(InteractionClassHandle interactionClass, ParameterHandleValueMap theParameters, byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport, SupplementalReceiveInfo receiveInfo) throws FederateInternalError
 	{
-		VegaCallbackManager.receiveInteraction(interactionClass, theParameters);
+		HLACallbackManager.receiveInteraction(interactionClass, theParameters);
 	}
 }

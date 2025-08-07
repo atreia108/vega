@@ -36,7 +36,7 @@ import com.badlogic.gdx.utils.Pool.Poolable;
 
 import io.github.vega.data.ExecutionMode;
 
-public class ExCOComponent implements Component, Poolable
+public final class ExCOComponent implements Component, Poolable
 {
 	public String rootFrameName = null;
 	public ExecutionMode currentExecutionMode = null;

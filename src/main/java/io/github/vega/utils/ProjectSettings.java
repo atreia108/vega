@@ -33,7 +33,7 @@ package io.github.vega.utils;
 
 import java.net.URL;
 
-public record ProjectSettings()
+public final record ProjectSettings()
 {
 	public static String HOST_NAME;
 	public static String PORT_NUMBER;

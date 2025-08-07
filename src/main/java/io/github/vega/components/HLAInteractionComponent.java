@@ -34,7 +34,7 @@ package io.github.vega.components;
 import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.utils.Pool.Poolable;
 
-public class HLAInteractionComponent implements Component, Poolable
+public final class HLAInteractionComponent implements Component, Poolable
 {
 	public String className = null;
 	

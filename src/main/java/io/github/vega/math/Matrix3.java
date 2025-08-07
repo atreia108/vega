@@ -1,3 +1,5 @@
+package io.github.vega.math;
+
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
  * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
@@ -29,26 +31,7 @@
  * 
  */
 
-package io.github.vega.utils;
-
-public enum HLASharingModel
+public final class Matrix3
 {
-	PUBLISH_ONLY,
-	PUBLISH_SUBSCRIBE,
-	SUBSCRIBE_ONLY;
-	
-	public static String toString(HLASharingModel pubSub)
-	{
-		switch (pubSub)
-		{
-			case PUBLISH_ONLY:
-				return "Publish";
-			case PUBLISH_SUBSCRIBE:
-				return "Publish/Subscribe";
-			case SUBSCRIBE_ONLY:
-				return "Subscribe";
-			default:
-				return "None";
-		}
-	}
+
 }

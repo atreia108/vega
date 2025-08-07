@@ -36,16 +36,26 @@ import java.util.concurrent.CountDownLatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class ExecutionLatch
+/**
+ * A global CountDownLatch object to resume/pause simulation execution.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0
+ */
+public final class ExecutionLatch
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	private static CountDownLatch latch;
 
+	/**
+	 * Enables the execution latch causing program execution to halt at that point. Some other operation (possibly on another thread)
+	 * has to disable it for the program to resume past that point.
+	 */
 	public static void enable()
 	{
 		if (isActive())
-			LOGGER.warn("The execution latch cannot be enabled until the currently executing operation is terminated.");
+			LOGGER.warn("The execution latch cannot be enabled because it is waiting for some operation to terminate and disable it.");
 
 		latch = new CountDownLatch(1);
 
@@ -60,21 +70,24 @@ public class ExecutionLatch
 		}
 	}
 
-	public static boolean disable()
+	/**
+	 * Disables the execution latch causing the program to resume from where the latch was previously enabled.
+	 * @return
+	 */
+	public static void disable()
 	{
 		if (!isActive())
-		{
-			LOGGER.warn("Cannot disable the execution latch since it has yet to be enabled.");
-			return false;
-		}
+			LOGGER.warn("The execution latch cannot be disabled since it has not been enabled yet.");
 		else
 		{
 			latch.countDown();
 			latch = null;
-			return true;
 		}
 	}
 
+	/**
+	 * Returns the status of the execution latch.
+	 */
 	public static boolean isActive()
 	{
 		if (latch != null)
