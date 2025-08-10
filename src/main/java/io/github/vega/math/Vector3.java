@@ -38,7 +38,6 @@ package io.github.vega.math;
  * @author Andrew Spencer and David Hammen (Odyssey Space Research, Summer 2008)
  * @author Edwin Z. Crues <edwin.z.crues@nasa.gov> (NASA JSC ER7, December 2010)
  *         [Java version]
- * @version 0.0
  */
 public final class Vector3
 {
@@ -46,11 +45,8 @@ public final class Vector3
 	// Function: Vector3::initialize
 	// Purpose: (Zero-fill vector, vec[i] = 0.0)
 	// *************************************************************************
-	
-	/**
-	 * Construct a zero-filled vector.
-	 */
-	public static final double[] initialize(double[] vec)
+	public static final double[] initialize( // Return: -- Zero-filled vector
+			double[] vec) // Out: -- Zero-filled vector
 	{
 		vec[0] = vec[1] = vec[2] = 0.0;
 		return vec;
@@ -61,14 +57,9 @@ public final class Vector3
 	// Purpose: (Construct unit vector,
 	// vec[i] = delta_ij (delta_ij is the Kronecker delta))
 	// *************************************************************************
-	
-	/**
-	 * Construct a unit vector.
-	 * @param index The unit index where 0, 1, 2, = x, y, z hat
-	 * @param vec The vector to be operated on
-	 * @return A unit vector
-	 */
-	public static final double[] unit(int index, double[] vec)
+	public static final double[] unit( // Return: -- Unit vector
+			int index, // In: -- Unit index: 0,1,2=x,y,z hat
+			double[] vec) // Out: -- Unit vector
 	{
 		vec[0] = vec[1] = vec[2] = 0.0;
 		vec[index] = 1.0;
@@ -79,14 +70,9 @@ public final class Vector3
 	// Function: Vector3::fill
 	// Purpose: (Construct a vector from scalar, vec[i] = scalar)
 	// *************************************************************************
-	
-	/**
-	 * Construct a vector from a scalar value.
-	 * @param scalar The scalar value to be used
-	 * @param vec The vector to be operated on
-	 * @return A filled vector
-	 */
-	public static final double[] fill(final double scalar, double[] vec)
+	public static final double[] fill( // Return: -- Filled vector
+			final double scalar, // In: -- Scalar
+			double[] vec) // Out: -- Filled vector
 	{
 		vec[0] = vec[1] = vec[2] = scalar;
 		return vec;
@@ -97,14 +83,9 @@ public final class Vector3
 	// Purpose: (Zero-out small components of a vector,
 	// vec[i] = 0 if abs(vec[i]) < limit)
 	// *************************************************************************
-	
-	/**
-	 * Zero-out the small components of a vector.
-	 * @param limit
-	 * @param vec The vector to be operated on
-	 * @return The supplied vector in a truncated form
-	 */
-	public static final double[] zero_small(final double limit, double[] vec)
+	public static final double[] zero_small( // Return: -- Truncated vector
+			final double limit, // In: -- Limit
+			double[] vec) // Inout: -- Truncated vector
 	{
 
 		if (Math.abs(vec[0]) < limit)
@@ -130,15 +111,9 @@ public final class Vector3
 	// Purpose: (Copy vector contents,
 	// copy[i] = vec[i])
 	// *************************************************************************
-	
-	/**
-	 * Copy the contents of a vector.
-	 * 
-	 * @param vec The source vector
-	 * @param copy The vector to copy the source vector's contents into
-	 * @return The copied vector
-	 */
-	public static final double[] copy(final double[] vec, double[] copy)
+	public static final double[] copy( // Return: -- Copied vector
+			final double[] vec, // In: -- Source vector
+			double[] copy) // Out: -- Copied vector
 	{
 		copy[0] = vec[0];
 		copy[1] = vec[1];
@@ -151,13 +126,6 @@ public final class Vector3
 	// Function: Vector3::dot
 	// Purpose: (Compute vector inner product, result = sum_i vec1[i] * vec2[i])
 	// *************************************************************************
-	
-	/**
-	 * Compute the vector inner product.
-	 * @param vec2 The second vector
-	 * @param vec1 The first vector
-	 * @return The inner product
-	 */
 	public static final double dot( // Return: -- Inner product
 			final double[] vec2, // In: -- Vector 2
 			final double[] vec1) // In: -- Vector 1
@@ -170,13 +138,8 @@ public final class Vector3
 	// Purpose: (Compute square of vector magnitude,
 	// result = dot(vec,vec), but protects against underflow)
 	// *************************************************************************
-	
-	/**
-	 * Compute square of the vector magnitude.
-	 * @param vec The vector to be operated on
-	 * @return The inner product (protected against underflow)
-	 */
-	public static final double vmagsq(final double[] vec)
+	public static final double vmagsq( // Return: -- Inner product
+			final double[] vec) // In: -- Vector
 	{
 		double magsq = 0.0;
 
@@ -191,13 +154,8 @@ public final class Vector3
 	// Function: Vector3::vmag
 	// Purpose: (Compute vector magnitude, result = sqrt(vmagsq(vec)))
 	// *************************************************************************
-	
-	/**
-	 * Compute the magnitude of a vector.
-	 * @param vec The vector to be operated on
-	 * @return The vector magnitude
-	 */
-	public static final double vmag(final double[] vec)
+	public static final double vmag( // Return: -- Vector magnitude
+			final double[] vec) // In: -- Vector
 	{
 		return Math.sqrt(vmagsq(vec));
 	}
@@ -206,13 +164,8 @@ public final class Vector3
 	// Function: Vector3::normalize
 	// Purpose: (Make vector a unit vector in-place, vec = vec * 1/vmag(vec))
 	// *************************************************************************
-	
-	/**
-	 * Make a unit vector in-place.
-	 * @param vec The vector to be operated on
-	 * @return The normalized vector
-	 */
-	public static final double[] normalize(double[] vec)
+	public static final double[] normalize( // Return: -- Normalized vector
+			double[] vec) // Inout: -- Vector
 	{
 		double mag = vmag(vec);
 
@@ -245,14 +198,9 @@ public final class Vector3
 	// Function: Vector3::scale
 	// Purpose: (Scale a vector in-place, vec[i] = scalar)
 	// *************************************************************************
-	
-	/**
-	 * Scale a vector in-place.
-	 * @param scalar The scalar to be operated on
-	 * @param vec The vector to be scaled
-	 * @return The scaled vector
-	 */
-	public static final double[] scale(final double scalar, double[] vec)
+	public static final double[] scale( // Return: -- Scaled vector
+			final double scalar, // In: -- Scalar
+			double[] vec) // Inout: -- Scaled vector
 	{
 		vec[0] *= scalar;
 		vec[1] *= scalar;
@@ -265,15 +213,10 @@ public final class Vector3
 	// Function: Vector3::scale
 	// Purpose: (Scale a vector, prod[i] = vec[i] * scalar)
 	// *************************************************************************
-	
-	/**
-	 * Scale a vector.
-	 * @param vec The source vector
-	 * @param scalar The scalar quantity
-	 * @param prod The scaled vector
-	 * @return The scaled vector
-	 */
-	public static final double[] scale(final double[] vec, final double scalar, double[] prod)
+	public static final double[] scale( // Return: -- Scaled vector
+			final double[] vec, // In: -- Source vector
+			final double scalar, // In: -- Scalar
+			double[] prod) // Out: -- Scaled vector
 	{
 		prod[0] = vec[0] * scalar;
 		prod[1] = vec[1] * scalar;
@@ -286,12 +229,6 @@ public final class Vector3
 	// Function: Vector3::negate
 	// Purpose: (Negate vector in-place, vec[i] = -vec[i])
 	// *************************************************************************
-	
-	/**
-	 * Negate the vector in-place.
-	 * @param vec The vector to be operated on
-	 * @return The negated vector
-	 */
 	public static final double[] negate( // Return: -- Negated vector
 			double[] vec) // Inout: -- Vector
 	{
@@ -306,13 +243,6 @@ public final class Vector3
 	// Function: Vector3::negate
 	// Purpose: (Negate vector, copy[i] = -vec[i])
 	// *************************************************************************
-	
-	/**
-	 * Negate a vector.
-	 * @param vec The source vector
-	 * @param copy The vector for the result to be copied into
-	 * @return The negated vector
-	 */
 	public static final double[] negate( // Return: -- Negated vector
 			final double[] vec, // In: -- Source vector
 			double[] copy) // Out: -- Negated vector
@@ -328,14 +258,6 @@ public final class Vector3
 	// Function: Vector3::transform
 	// Purpose: (Transform a column vector, prod[i] = tmat[i][j]*vec[j])
 	// *************************************************************************
-	
-	/**
-	 * Transform a column vector.
-	 * @param tmat Transformation matrix
-	 * @param vec Source vector
-	 * @param prod The vector where the transformation operations occur
-	 * @return A transformed vector
-	 */
 	public static final double[] transform( // Return: -- Transformed vector
 			final double[][] tmat, // In: -- Transformation matrix
 			final double[] vec, // In: -- Source vector
@@ -687,11 +609,8 @@ public final class Vector3
 	// Function: Vector3::print
 	// Purpose: (Print vector to standard error)
 	// *************************************************************************
-	
-	/**
-	 * Print the vector to standard error.
-	 */
-	public static final void print(final double[] vec)
+	public static final void print( // Return: -- Void
+			final double[] vec) // In: -- Matrix to print
 	{
 		String row = vec[0] + ", " + vec[1] + ", " + vec[2];
 		System.out.println(row);

@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -60,6 +60,12 @@ import io.github.vega.data.ExecutionMode;
 import io.github.vega.utils.ExecutionLatch;
 import io.github.vega.utils.FrameworkObjects;
 
+/**
+ * Handles callbacks passed on from the RTI federate service thread.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public final class HLACallbackManager
 {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -237,15 +243,6 @@ public final class HLACallbackManager
 		
 		if (instanceName.equals("ExCO") && !exCOInitialized)
 		{
-			// Entity exCO = ProjectRegistry.getRemoteEntityByName("ExCO");
-			// ComponentMapper<ExCOComponent> exComponentMapper = ComponentMapper.getFor(ExCOComponent.class);
-			// ExCOComponent exCOComponent = exComponentMapper.get(exCO);
-			
-			// System.out.println("Frame: " + exCOComponent.rootFrameName);
-			// System.out.println("LCTS: " + exCOComponent.leastCommonTimeStep);
-			// System.out.println("Current Mode: " + exCOComponent.currentExecutionMode);
-			// System.out.println("Next Mode: " + exCOComponent.nextExecutionMode);
-			
 			exCOInitialized = true;
 			ExecutionLatch.disable();
 		}

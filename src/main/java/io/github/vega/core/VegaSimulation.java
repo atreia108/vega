@@ -36,7 +36,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.core.PooledEngine;
 
 import hla.rti1516e.CallbackModel;
 import hla.rti1516e.RTIambassador;
@@ -53,17 +52,16 @@ import io.github.vega.utils.ProjectLoader;
 import io.github.vega.utils.ProjectSettings;
 
 /**
- * The base class for simulations using the Vega framework. It implements the SpaceFOM late joiner initialization
- * and execution sequences.
+ * The base class for simulations using the Vega framework. It implements the
+ * SpaceFOM late joiner initialization and execution sequences.
  * 
  * @author Hridyanshu Aatreya
- * @since 1.0
+ * @since 1.0.0
  */
 public abstract class VegaSimulation
 {
 	protected static final Logger LOGGER = LogManager.getLogger();
-	
-	protected final PooledEngine engine = FrameworkObjects.getEngine();
+
 	protected ExCOComponent exCOComponent;
 
 	public VegaSimulation(String projectFilePath)
@@ -71,16 +69,23 @@ public abstract class VegaSimulation
 		new ProjectLoader(projectFilePath);
 	}
 
-	// This method is called during the "Register Federate Object Instances" step of
-	// the SpaceFOM late joiner initialization p.80. It is anticipated that users
-	// will initialize the entities and systems they plan to use in here.
+	/**
+	 * Called during the "Register Federate Object Instances" step of the SpaceFOM
+	 * late joiner initialization p.80. It is anticipated that users will initialize
+	 * the entities and systems they plan to use in here.
+	 */
 	protected abstract void onInit();
 
+	/**
+	 *  Called whenever the run mode is EXEC_MODE_RUNNING.
+	 */
 	protected abstract void onRun();
 
+	/**
+	 * Called as soon as the switch to EXEC_MODE_SHUTDOWN happens. Any final task to
+	 * be performed right before shutdown should happen here.
+	 */
 	protected abstract void onShutdown();
-
-	// protected abstract void onFreeze();
 
 	protected void init()
 	{
@@ -89,18 +94,18 @@ public abstract class VegaSimulation
 
 		connect();
 
-		LOGGER.info("({}/{}) Subscribing to the ExecutionConfiguration (ExCO) object class", ++currentStep, TOTAL_STEPS);
+		LOGGER.debug("({}/{}) Subscribing to the ExecutionConfiguration (ExCO) object class", ++currentStep, TOTAL_STEPS);
 		subscribeExCO();
-		LOGGER.info("Subscribed to the ExCO object class");
+		LOGGER.debug("Subscribed to the ExCO object class");
 
-		LOGGER.info("({}/{}) Declaring the ModeTransitionRequest (MTR) interaction class", ++currentStep, TOTAL_STEPS);
+		LOGGER.debug("({}/{}) Declaring the ModeTransitionRequest (MTR) interaction class", ++currentStep, TOTAL_STEPS);
 		publishMTR();
-		LOGGER.info("MTR interaction class has been declared");
+		LOGGER.debug("MTR interaction class has been declared");
 
 		LOGGER.info("({}/{}) Waiting to discover the ExCO object instance", ++currentStep, TOTAL_STEPS);
 		ExecutionLatch.enable();
 		LOGGER.info("Discovered ExCO object instance");
-	
+
 		LOGGER.info("({}/{}) Waiting to receive the latest values of the ExCO object instance", ++currentStep, TOTAL_STEPS);
 		ExecutionLatch.enable();
 		getExCOData();
@@ -129,7 +134,7 @@ public abstract class VegaSimulation
 			ExecutionLatch.enable();
 			LOGGER.info("All required object instances were discovered");
 		}
-		
+
 		LOGGER.info("({}/{}) Aligning simulation timeline with the HLA federation", ++currentStep, TOTAL_STEPS);
 		setupTimeManagement();
 		LOGGER.info("Simulation timeline is now in sync with the federation");
@@ -185,7 +190,7 @@ public abstract class VegaSimulation
 
 		mtrClass.declare();
 	}
-	
+
 	private void getExCOData()
 	{
 		final Entity exCO = ProjectRegistry.getRemoteEntityByName("ExCO");
@@ -238,12 +243,12 @@ public abstract class VegaSimulation
 
 	private void tick()
 	{
-		
+
 		while (true)
 		{
 			ExecutionMode currentMode = exCOComponent.currentExecutionMode;
 			ExecutionMode nextMode = exCOComponent.nextExecutionMode;
-			
+
 			if (currentMode == ExecutionMode.EXEC_MODE_RUNNING && nextMode == ExecutionMode.EXEC_MODE_RUNNING)
 			{
 				onRun();
@@ -291,7 +296,7 @@ public abstract class VegaSimulation
 		{
 			LOGGER.error("Federate termination attempt failed unexpectedly\n[REASON]", e);
 		}
-		
+
 		System.exit(1);
 	}
 }

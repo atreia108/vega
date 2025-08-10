@@ -31,12 +31,18 @@
 
 package io.github.vega.core;
 
+/**
+ * Enum representation of the different types of data sharing mode for HLA
+ * object class attributes and interactions: <tt>Publish</tt>,
+ * <tt>Subscribe</tt>, and <tt>PublishSubscribe</tt>.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public enum HLASharingModel
 {
-	PUBLISH_ONLY,
-	PUBLISH_SUBSCRIBE,
-	SUBSCRIBE_ONLY;
-	
+	PUBLISH_ONLY, PUBLISH_SUBSCRIBE, SUBSCRIBE_ONLY;
+
 	public static String toString(HLASharingModel pubSub)
 	{
 		switch (pubSub)
@@ -44,7 +50,7 @@ public enum HLASharingModel
 			case PUBLISH_ONLY:
 				return "Publish";
 			case PUBLISH_SUBSCRIBE:
-				return "Publish/Subscribe";
+				return "PublishSubscribe";
 			case SUBSCRIBE_ONLY:
 				return "Subscribe";
 			default:

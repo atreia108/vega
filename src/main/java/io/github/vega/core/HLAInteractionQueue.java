@@ -13,11 +13,18 @@ import com.badlogic.ashley.core.Entity;
 import io.github.vega.components.HLAInteractionComponent;
 import io.github.vega.utils.FrameworkObjects;
 
+/**
+ * The interaction queue holds all incoming interactions from the RTI into an <tt>ArrayList</tt>.
+ * New interactions are added to the queue at each time step of the simulation.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public final class HLAInteractionQueue
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	private static ComponentMapper<HLAInteractionComponent> INTERACTION_MAPPER = ComponentMapper.getFor(HLAInteractionComponent.class);
+	private static ComponentMapper<HLAInteractionComponent> INTERACTION_MAPPER = FrameworkObjects.getHLAInteractionComponentMapper();
 	private static ArrayList<Entity> interactionQueue = new ArrayList<Entity>();
 
 	protected static void addInteraction(Entity entity)
@@ -48,6 +55,13 @@ public final class HLAInteractionQueue
 			return true;
 	}
 	
+	/**
+	 * Gets all interactions currently in the queue.
+	 * Note that once you have read from the list returned by this method,
+	 * you must call {@link #free(ArrayList)} to prevent the ECS object pool
+	 * from completely filled up.
+	 * @see #filterByClassName(String)
+	 */
 	public static ArrayList<Entity> poll()
 	{
 		ArrayList<Entity> interactionQueueCopy = new ArrayList<Entity>(); 
@@ -67,6 +81,13 @@ public final class HLAInteractionQueue
 		return interactionQueueCopy;
 	}
 	
+	/**
+	 * Gets all interactions matching a specific class.
+	 * Note that once you have read from the list returned by this method,
+	 * you must call {@link #free(ArrayList)} to prevent the ECS object pool
+	 * from completely filled up.
+	 * @param interactionClassName HLA interaction class name to be used as filter.
+	 */
 	public static ArrayList<Entity> filterByClassName(String interactionClassName)
 	{
 		ArrayList<Entity> interactionQueueCopy = new ArrayList<Entity>(); 
@@ -91,7 +112,20 @@ public final class HLAInteractionQueue
 		return interactionQueueCopy;
 	}
 	
+	/**
+	 * Clears the interaction queue. Use with caution as this
+	 * removes all interactions entirely.
+	 */
+	public static void clear()
+	{
+		interactionQueue.clear();
+	}
 	
+	/**
+	 * A utility method to safely dispose of a queue containing a subset
+	 * of interactions acquired from this class.
+	 * @param queue the <tt>ArrayList</tt> of interactions to be freed.
+	 */
 	public static void free(ArrayList<Entity> queue)
 	{
 		Engine engine = FrameworkObjects.getEngine();

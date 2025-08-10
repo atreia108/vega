@@ -5,7 +5,6 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 
 import hla.rti1516e.InteractionClassHandle;
@@ -16,14 +15,31 @@ import hla.rti1516e.encoding.EncoderFactory;
 import io.github.vega.components.HLAInteractionComponent;
 import io.github.vega.utils.FrameworkObjects;
 
+/**
+ * The <tt>HLAInteractionManager</tt> class enables sending interactions to the RTI.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public final class HLAInteractionManager
 {
 	private static final Logger LOGGER = LogManager.getLogger();
-	private static final ComponentMapper<HLAInteractionComponent> INTERACTION_MAPPER = ComponentMapper.getFor(HLAInteractionComponent.class);
 	
+	/**
+	 * Creates an interaction from a valid entity to be sent to the RTI.
+	 * A valid entity in this case:
+	 * <ul>
+	 * 	<li> Contains an HLAInteractionComponent.
+	 * 	<li> The className field in the component is set to an interaction class defined in the simulation's project file.
+	 *  <li> The interaction class in question was previously declared as publish/subscribe or both to the RTI.
+	 * </ul>
+	 * Invalid entities are rejected and the interaction is not sent.
+	 * @param entity entity representing the interaction.
+	 * @return outcome of the operation as a true or false value.
+	 */
 	public static boolean sendInteraction(Entity entity)
 	{
-		HLAInteractionComponent interactionComponent = INTERACTION_MAPPER.get(entity);
+		HLAInteractionComponent interactionComponent = FrameworkObjects.getHLAInteractionComponentMapper().get(entity);
 		InteractionClassProfile interactionClass = null ;
 
 		if (interactionComponent == null || (interactionClass = ProjectRegistry.getInteractionClass(interactionComponent.className)) == null)
@@ -60,7 +76,7 @@ public final class HLAInteractionManager
 		}
 		
 	}
-
+	
 	private static ParameterHandleValueMap getInteractionParameters(Entity entity, InteractionClassProfile interactionClass, RTIambassador rtiAmbassador)
 	{
 		ParameterHandleValueMap parameterHandleValueMap = null;
@@ -111,8 +127,7 @@ public final class HLAInteractionManager
 	/**
 	 * Deletes all components from the entity that represents the HLA interaction to free them up for
 	 * use by other entities.
-	 * @param interaction The entity representing the HLA interaction that is to be freed
-	 * @since 1.0
+	 * @param interaction entity representing the HLA interaction that is to be freed.
 	 */
 	private static void clearInteraction(Entity interaction)
 	{
