@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -46,6 +46,15 @@ import io.github.vega.components.ExCOComponent;
 import io.github.vega.core.IMultiDataConverter;
 import io.github.vega.data.ExecutionMode;
 
+/**
+ * This converter is used for translating the data in
+ * {@link io.github.vega.components.ExCOComponent ExCOComponent} to the
+ * respective attributes of the <code>ExecutionConfiguration</code> object class
+ * and vice versa.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public final class ExCOConverter implements IMultiDataConverter
 {
 	private static final Logger LOGGER = LogManager.getLogger();

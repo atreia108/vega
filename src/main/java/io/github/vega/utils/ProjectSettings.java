@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -33,6 +33,12 @@ package io.github.vega.utils;
 
 import java.net.URL;
 
+/**
+ * The stored settings to be used retrieved from the simulation's project file.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public final record ProjectSettings()
 {
 	public static String HOST_NAME;
@@ -48,6 +54,9 @@ public final record ProjectSettings()
 	
 	private static final String SEPARATOR_STYLE_1 = "========================================";
 
+	/**
+	 * Print a summary of the settings for this project to standard output.
+	 */
 	public static void print()
 	{
 		System.out.println(SEPARATOR_STYLE_1);

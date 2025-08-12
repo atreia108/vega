@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -35,8 +35,32 @@ import com.badlogic.ashley.core.Entity;
 
 import hla.rti1516e.encoding.EncoderFactory;
 
+/**
+ * <p>
+ * This interface should be used to provide instructions to the framework for
+ * how data from components should be translated to a single fixed HLA data
+ * type. It is also applicable conversely when writing translated data from the
+ * RTI back into components.
+ * </p>
+ * 
+ * <p>
+ * The HLA uses object-oriented design: under this model, objects and
+ * interactions are classes which have fixed attributes/parameters. Vega on the
+ * other hand, employs the Entity Component System (ECS) architecture, which
+ * falls under data-oriented design (DoD). In ECS, entities contain components
+ * which can store multiple fields of data. These do not directly correspond to
+ * the single field (attribute/parameter) of a class.
+ * </p>
+ * 
+ * 
+ * @see io.github.vega.core.IMultiDataConverter
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public interface IDataConverter
 {
 	public void decode(Entity entity, EncoderFactory encoder, byte[] buffer);
+
 	public byte[] encode(Entity entity, EncoderFactory encoder);
 }

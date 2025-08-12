@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -34,10 +34,17 @@ package io.github.vega.components;
 import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.utils.Pool.Poolable;
 
+/**
+ * This component should be attached to an entity that is to be treated as an
+ * HLA interaction.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public final class HLAInteractionComponent implements Component, Poolable
 {
 	public String className = null;
-	
+
 	@Override
 	public void reset()
 	{

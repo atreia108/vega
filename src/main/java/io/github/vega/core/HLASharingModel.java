@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -33,8 +33,8 @@ package io.github.vega.core;
 
 /**
  * Enum representation of the different types of data sharing mode for HLA
- * object class attributes and interactions: <tt>Publish</tt>,
- * <tt>Subscribe</tt>, and <tt>PublishSubscribe</tt>.
+ * object class attributes and interactions: <code>Publish</code>,
+ * <code>Subscribe</code>, and <code>PublishSubscribe</code>.
  * 
  * @author Hridyanshu Aatreya
  * @since 1.0.0

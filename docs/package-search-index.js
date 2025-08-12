@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"io.github.vega.archetypes"},{"l":"io.github.vega.components"},{"l":"io.github.vega.converters"},{"l":"io.github.vega.core"},{"l":"io.github.vega.data"},{"l":"io.github.vega.math"},{"l":"io.github.vega.utils"}];updateSearchResults();

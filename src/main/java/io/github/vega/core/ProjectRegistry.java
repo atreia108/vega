@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -47,6 +47,13 @@ import hla.rti1516e.ObjectInstanceHandle;
 import io.github.vega.components.HLAObjectComponent;
 import io.github.vega.utils.ProjectSettings;
 
+/**
+ * The registry is effectively a database for storing associations of object and
+ * interaction class profiles, data converters, and remote HLA entities.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public final record ProjectRegistry()
 {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -58,9 +65,8 @@ public final record ProjectRegistry()
 	public static Map<String, IDataConverter> dataConverters = new HashMap<String, IDataConverter>();
 	public static Map<String, IMultiDataConverter> multiDataConverters = new HashMap<String, IMultiDataConverter>();
 	
-	// private static BidiMap<Entity, ObjectInstanceHandle> remoteEntityMap = new DualHashBidiMap<Entity, ObjectInstanceHandle>();
 	private static Set<Entity> remoteEntitySet = new HashSet<Entity>();
-	
+
 	private static final ComponentMapper<HLAObjectComponent> OBJECT_COMPONENT_MAPPER = ComponentMapper.getFor(HLAObjectComponent.class);
 
 	private static final String SEPARATOR_STYLE_1 = "========================================";
@@ -125,12 +131,12 @@ public final record ProjectRegistry()
 	{
 		return multiDataConverters.get(converterName);
 	}
-	
+
 	public static void addRemoteEntity(Entity entity)
 	{
 		remoteEntitySet.add(entity);
 	}
-	
+
 	public static boolean removeRemoteEntity(Entity entity)
 	{
 		if (remoteEntitySet.remove(entity))
@@ -138,43 +144,43 @@ public final record ProjectRegistry()
 		else
 			return false;
 	}
-	
+
 	public static boolean removeRemoteEntityByHandle(ObjectInstanceHandle instanceHandle)
 	{
 		Entity remoteEntity = getRemoteEntityByHandle(instanceHandle);
-		
+
 		if (removeRemoteEntity(remoteEntity))
 			return true;
 		else
 			return false;
 	}
-	
+
 	public static Entity getRemoteEntityByName(String objectInstanceName)
 	{
 		for (Entity entity : remoteEntitySet)
 		{
 			HLAObjectComponent objectComponent = OBJECT_COMPONENT_MAPPER.get(entity);
-			
+
 			if (objectComponent != null && objectComponent.instanceName.equals(objectInstanceName))
 				return entity;
 		}
-		
+
 		return null;
 	}
-	
+
 	public static Entity getRemoteEntityByHandle(ObjectInstanceHandle instanceHandle)
 	{
 		for (Entity entity : remoteEntitySet)
 		{
 			HLAObjectComponent objectComponent = OBJECT_COMPONENT_MAPPER.get(entity);
-			
+
 			if (objectComponent != null && (objectComponent.instanceHandle == instanceHandle))
 				return entity;
 		}
-		
+
 		return null;
 	}
-	
+
 	public static boolean isRemoteEntity(Entity entity)
 	{
 		if (remoteEntitySet.contains(entity))
@@ -182,7 +188,10 @@ public final record ProjectRegistry()
 		else
 			return false;
 	}
-	
+
+	/**
+	 * Print a summary of the registry's data for this project to standard output.
+	 */
 	public static void print()
 	{
 		System.out.println(SEPARATOR_STYLE_1);

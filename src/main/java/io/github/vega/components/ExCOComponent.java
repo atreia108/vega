@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -36,13 +36,20 @@ import com.badlogic.gdx.utils.Pool.Poolable;
 
 import io.github.vega.data.ExecutionMode;
 
+/**
+ * The component type for storing data corresponding to the attributes of the
+ * SpaceFOM ExecutionConfiguration object instance as an ECS component.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public final class ExCOComponent implements Component, Poolable
 {
 	public String rootFrameName = null;
 	public ExecutionMode currentExecutionMode = null;
 	public ExecutionMode nextExecutionMode = null;
 	public long leastCommonTimeStep = 0L;
-	
+
 	@Override
 	public void reset()
 	{

@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -58,35 +58,44 @@ import io.github.vega.utils.ProjectSettings;
  * @author Hridyanshu Aatreya
  * @since 1.0.0
  */
-public abstract class VegaSimulation
+public abstract class AVegaSimulation
 {
 	protected static final Logger LOGGER = LogManager.getLogger();
 
 	protected ExCOComponent exCOComponent;
 
-	public VegaSimulation(String projectFilePath)
+	public AVegaSimulation(String projectFilePath)
 	{
 		new ProjectLoader(projectFilePath);
 	}
 
 	/**
 	 * Called during the "Register Federate Object Instances" step of the SpaceFOM
-	 * late joiner initialization p.80. It is anticipated that users will initialize
-	 * the entities and systems they plan to use in here.
+	 * late joiner initialization. It is anticipated that users will initialize the
+	 * entities and systems they plan to use in here.
 	 */
 	protected abstract void onInit();
 
 	/**
-	 *  Called whenever the run mode is EXEC_MODE_RUNNING.
+	 * Called whenever the federation execution's run mode is
+	 * <code>EXEC_MODE_RUNNING</code>.
 	 */
 	protected abstract void onRun();
 
 	/**
-	 * Called as soon as the switch to EXEC_MODE_SHUTDOWN happens. Any final task to
-	 * be performed right before shutdown should happen here.
+	 * Called as soon as the switch to <code>EXEC_MODE_SHUTDOWN</code> happens. Any
+	 * final internal tasks to be performed right before shutdown should happen
+	 * here. Note, however, that attempts to communicate with other federates at
+	 * this stage will likely fail because they would be in the process of leaving
+	 * the federation themselves.
 	 */
 	protected abstract void onShutdown();
 
+	/**
+	 * Late joiner initialization steps for the simulation. This method must be
+	 * called to start the simulation. It can be overridden to implement custom
+	 * initialization sequences.
+	 */
 	protected void init()
 	{
 		final int TOTAL_STEPS = 9;
@@ -262,6 +271,9 @@ public abstract class VegaSimulation
 		}
 	}
 
+	/**
+	 * Connect to the RTI and join the SpaceFOM federation execution.
+	 */
 	public void connect()
 	{
 		RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
@@ -283,6 +295,9 @@ public abstract class VegaSimulation
 		}
 	}
 
+	/**
+	 * Resign from the SpaceFOM federation execution.
+	 */
 	public void disconnect()
 	{
 		RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();

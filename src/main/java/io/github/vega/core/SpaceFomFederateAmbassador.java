@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -42,6 +42,14 @@ import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.TransportationTypeHandle;
 import hla.rti1516e.exceptions.FederateInternalError;
 
+/**
+ * The federate ambassador used by Vega simulations. It simply redirects all
+ * operations to the {@link io.github.vega.core.HLACallbackManager
+ * HLACallbackManager} and does not perform any actual tasks of its own.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public class SpaceFomFederateAmbassador extends NullFederateAmbassador
 {
 	@Override
@@ -49,7 +57,7 @@ public class SpaceFomFederateAmbassador extends NullFederateAmbassador
 	{
 		HLACallbackManager.discoverObjectInstance(theObject, theObjectClass, objectName);
 	}
-	
+
 	@Override
 	public void removeObjectInstance(ObjectInstanceHandle theObject, byte[] userSuppliedTag, OrderType sentOrdering, SupplementalRemoveInfo removeInfo) throws FederateInternalError
 	{
@@ -94,7 +102,7 @@ public class SpaceFomFederateAmbassador extends NullFederateAmbassador
 	{
 		HLACallbackManager.timeAdvanceGrant(theTime);
 	}
-	
+
 	@Override
 	public void receiveInteraction(InteractionClassHandle interactionClass, ParameterHandleValueMap theParameters, byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport, SupplementalReceiveInfo receiveInfo) throws FederateInternalError
 	{

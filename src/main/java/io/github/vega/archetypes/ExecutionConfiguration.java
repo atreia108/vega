@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -42,7 +42,7 @@ import io.github.vega.utils.FrameworkObjects;
  * The archetypal representation of the SpaceFOM ExecutionConfiguration object used to assemble it upon discovery from the RTI.
  * 
  * @author Hridyanshu Aatreya
- * @since 1.0
+ * @since 1.0.0
  */
 public final class ExecutionConfiguration implements IEntityArchetype
 {

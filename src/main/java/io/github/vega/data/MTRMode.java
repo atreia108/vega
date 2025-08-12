@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -31,19 +31,25 @@
 
 package io.github.vega.data;
 
+/**
+ * An enum representation of the various modes that can be transitioned to in
+ * the SpaceFOM i.e., <code>MTR_GOTO_RUN</code>, <code>MTR_GOTO_FREEZE</code>,
+ * and <code>MTR_GOTO_SHUTDOWN</code>.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public enum MTRMode
 {
-	MTR_GOTO_RUN((short) 2),
-	MTR_GOTO_FREEZE((short) 3),
-	MTR_GOTO_SHUTDOWN((short) 4);
-	
+	MTR_GOTO_RUN((short) 2), MTR_GOTO_FREEZE((short) 3), MTR_GOTO_SHUTDOWN((short) 4);
+
 	private short mtrValue;
-	
+
 	MTRMode(short value)
 	{
 		mtrValue = value;
 	}
-	
+
 	public static MTRMode get(short value)
 	{
 		for (MTRMode mode : MTRMode.values())
@@ -51,7 +57,7 @@ public enum MTRMode
 			if (mode.mtrValue == value)
 				return mode;
 		}
-		
+
 		return null;
 	}
 }

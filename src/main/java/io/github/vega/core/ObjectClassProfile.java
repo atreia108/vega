@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -47,6 +47,23 @@ import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.RTIambassador;
 import io.github.vega.utils.FrameworkObjects;
 
+/**
+ * <p>
+ * A (meta-object) representation of an HLA object class that is to be used in
+ * the simulation. The profile of an object class is used for mapping data
+ * converters and attribute handles of the class; necessary when creating and
+ * updating an instance of the object class from an ECS entity.
+ * </p>
+ * 
+ * <p>
+ * Like the {@link io.github.vega.core.InteractionClassProfile InteractionClassProfile}, it is generated at runtime from the
+ * simulation project file and subsequently stored in the
+ * {@link io.github.vega.core.ProjectRegistry ProjectRegistry}.
+ * </p>
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public final class ObjectClassProfile
 {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -151,7 +168,7 @@ public final class ObjectClassProfile
 	{
 		return attributeHandleMap.get(attributeName);
 	}
-	
+
 	public String getAttributeNameForHandle(AttributeHandle attributeHandle)
 	{
 		return attributeHandleMap.getKey(attributeHandle);
@@ -358,12 +375,12 @@ public final class ObjectClassProfile
 		isSubscribed = true;
 		LOGGER.info("The HLA object class <{}> was successfully subscribed to", name);
 	}
-	
+
 	public int getNumberOfPublisheableAttributes()
 	{
 		return publicationHandleSet.size();
 	}
-	
+
 	public int getNumberOfSubscribeableAttributes()
 	{
 		return subscriptionHandleSet.size();

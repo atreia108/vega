@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -53,6 +53,14 @@ import io.github.vega.core.InteractionClassProfile;
 import io.github.vega.core.ObjectClassProfile;
 import io.github.vega.core.ProjectRegistry;
 
+/**
+ * Loader capable of parsing files that conform to the Vega Simulation Project
+ * Format (VSPF). The project file is passed to the constructor of
+ * {@link io.github.vega.core.AVegaSimulation AVegaSimulation} which in turn calls this class to load it.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public final class ProjectLoader
 {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -381,12 +389,12 @@ public final class ProjectLoader
 			if (elementNameCheck(nextElement, "Attribute"))
 				loadObjectAttribute(nextElement, objectClass);
 		}
-		
+
 		// This is when an archetype becomes a necessity for the Object Class.
 		if (objectClass.getSubscribeableAttributeNames().size() > 0)
 			setObjectClassArchetype(objectClassElement, objectClass);
 	}
-	
+
 	private void setObjectClassArchetype(Element objectClassElement, ObjectClassProfile objectClass)
 	{
 		String archetypeName = objectClassElement.attributeValue("Archetype");
@@ -400,7 +408,7 @@ public final class ProjectLoader
 
 		if (!archetypeCreated(archetypeName))
 			createArchetype(archetypeName);
-		
+
 		objectClass.archetypeName = archetypeName;
 	}
 
@@ -561,7 +569,7 @@ public final class ProjectLoader
 				LOGGER.warn("Skipping duplicate definition for the HLA interaction class <{}>", className);
 				return;
 			}
-			
+
 			String sharingIntentValue = interactionClassElement.attributeValue("Sharing");
 			nullOrEmptyAttribute("InteractionClass", "Sharing", sharingIntentValue);
 			HLASharingModel sharingModel = sharingModelValue(sharingIntentValue);
@@ -612,7 +620,7 @@ public final class ProjectLoader
 			if (elementNameCheck(nextElement, "Parameter"))
 				createInteractionParameter(nextElement, interactionClass);
 		}
-		
+
 		if (interactionClass.sharingModel == HLASharingModel.PUBLISH_SUBSCRIBE || interactionClass.sharingModel == HLASharingModel.SUBSCRIBE_ONLY)
 			setInteractionClassArchetype(interactionClassElement, interactionClass);
 	}
@@ -671,7 +679,7 @@ public final class ProjectLoader
 			interactionClass.addMultiConverter(parameterName, converterClassName, triggerValue);
 		}
 	}
-	
+
 	private void setInteractionClassArchetype(Element interactionClassElement, InteractionClassProfile interactionClass)
 	{
 		String archetypeName = interactionClassElement.attributeValue("Archetype");
@@ -685,7 +693,7 @@ public final class ProjectLoader
 
 		if (!archetypeCreated(archetypeName))
 			createArchetype(archetypeName);
-		
+
 		interactionClass.archetypeName = archetypeName;
 	}
 
@@ -715,7 +723,7 @@ public final class ProjectLoader
 		{
 			LOGGER.warn("No parameters are specified for the simulation engine. Using default values instead.");
 			loadEngineElementDefaults();
-			
+
 			setupEngine();
 			return;
 		}
@@ -759,7 +767,7 @@ public final class ProjectLoader
 
 		boundsCheck("MinEntities", "MaxEntities", ProjectSettings.MIN_ENTITIES, ProjectSettings.MAX_ENTITIES);
 		boundsCheck("MinComponents", "MaxComponents", ProjectSettings.MIN_COMPONENTS, ProjectSettings.MAX_COMPONENTS);
-		
+
 		setupEngine();
 	}
 
@@ -791,7 +799,7 @@ public final class ProjectLoader
 			System.exit(1);
 		}
 	}
-	
+
 	private void setupEngine()
 	{
 		FrameworkObjects.setEngineParameters(ProjectSettings.MIN_ENTITIES, ProjectSettings.MAX_ENTITIES, ProjectSettings.MIN_COMPONENTS, ProjectSettings.MAX_COMPONENTS);

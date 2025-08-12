@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -36,12 +36,20 @@ import com.badlogic.gdx.utils.Pool.Poolable;
 
 import hla.rti1516e.ObjectInstanceHandle;
 
+/**
+ * This component should be attached to an entity that is to be treated as an
+ * HLA object instance. The <code>instanceName</code> field should not be
+ * modified as that is managed by the framework.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public final class HLAObjectComponent implements Component, Poolable
 {
 	public String className = null;
 	public String instanceName = null;
 	public ObjectInstanceHandle instanceHandle = null;
-	
+
 	@Override
 	public void reset()
 	{

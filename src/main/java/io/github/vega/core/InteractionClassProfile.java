@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -44,6 +44,23 @@ import hla.rti1516e.ParameterHandle;
 import hla.rti1516e.RTIambassador;
 import io.github.vega.utils.FrameworkObjects;
 
+/**
+ * <p>
+ * A (meta-object) representation of an HLA interaction class that is to be used
+ * in the simulation. The profile of an interaction class is used for mapping
+ * data converters and parameter handles of the class; necessary when
+ * creating an interaction of the class from an ECS entity.
+ * </p>
+ * 
+ * <p>
+ * Like the {@link io.github.vega.core.ObjectClassProfile ObjectClassProfile}, it is generated at runtime from the
+ * simulation project file and subsequently stored in the
+ * {@link io.github.vega.core.ProjectRegistry ProjectRegistry}.
+ * </p>
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public final class InteractionClassProfile
 {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -177,7 +194,7 @@ public final class InteractionClassProfile
 		else
 			return false;
 	}
-	
+
 	public void declare()
 	{
 		if (sharingModel == HLASharingModel.PUBLISH_ONLY)
@@ -205,7 +222,7 @@ public final class InteractionClassProfile
 		{
 			if (classHandle == null)
 				classHandle = rtiAmbassador.getInteractionClassHandle(name);
-			
+
 			if (parameterHandleMap.isEmpty())
 			{
 				for (String parameterName : parameterNames)
@@ -214,7 +231,7 @@ public final class InteractionClassProfile
 					addParameterHandle(parameterName, parameterHandle);
 				}
 			}
-			
+
 			rtiAmbassador.publishInteractionClass(classHandle);
 		}
 		catch (Exception e)
@@ -222,7 +239,7 @@ public final class InteractionClassProfile
 			LOGGER.error("Failed to publish the HLA interaction class <{}>\n[REASON]", name, e);
 			System.exit(1);
 		}
-		
+
 		isPublished = true;
 		LOGGER.info("The HLA interaction class <{}> was successfully published", name);
 	}
@@ -241,7 +258,7 @@ public final class InteractionClassProfile
 		{
 			if (classHandle == null)
 				classHandle = rtiAmbassador.getInteractionClassHandle(name);
-			
+
 			if (parameterHandleMap.isEmpty())
 			{
 				for (String parameterName : parameterNames)
@@ -250,7 +267,7 @@ public final class InteractionClassProfile
 					addParameterHandle(parameterName, parameterHandle);
 				}
 			}
-			
+
 			rtiAmbassador.subscribeInteractionClass(classHandle);
 		}
 		catch (Exception e)
@@ -258,16 +275,16 @@ public final class InteractionClassProfile
 			LOGGER.error("Failed to subscribe to the HLA interaction class <{}>\n[REASON]", name, e);
 			System.exit(1);
 		}
-		
+
 		isSubscribed = true;
 		LOGGER.info("The HLA interaction class <{}> was successfully subscribed to", name);
 	}
-	
+
 	public Map<String, ParameterHandle> getParameterHandleMap()
 	{
 		return parameterHandleMap;
 	}
-	
+
 	public int getNumberOfParameters()
 	{
 		return parameterNames.size();

@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -48,9 +48,13 @@ import io.github.vega.components.HLAObjectComponent;
 import io.github.vega.utils.FrameworkObjects;
 
 /**
- * The <tt>HLAObjectManager</tt> enables the creation, update, and destruction of instances of an HLA object class.
- * In Vega, an ECS entity corresponds to an HLA object instance. The {@link IDataConverter} and {@link IMultiDataConverter}
- * {@link IEntityArchetype} interfaces form part of a conversion layer to translate between the HLA's object-oriented design
+ * The <code>HLAObjectManager</code> enables the creation, update, and
+ * destruction of instances of an HLA object class. In Vega, an ECS entity
+ * corresponds to an HLA object instance. The
+ * {@link io.github.vega.core.IDataConverter IDataConverter} and
+ * {@link io.github.vega.core.IMultiDataConverter IMultiDataConverter}
+ * {@link io.github.vega.core.IEntityArchetype IEntityArchetype} interfaces form part
+ * of a conversion layer to translate between the HLA's object-oriented design
  * and data-oriented design.
  * 
  * @author Hridyanshu Aatreya
@@ -62,14 +66,16 @@ public final class HLAObjectManager
 
 	private static final ComponentMapper<HLAObjectComponent> OBJECT_MAPPER = FrameworkObjects.getHLAObjectComponentMapper();
 	private static int registeredInstancesCount = 0;
-	
+
 	/**
-	 * Registers an HLA object instance for a valid entity.
-	 * A valid entity in this case:
+	 * Registers an HLA object instance for a valid entity. A valid entity in this
+	 * case:
 	 * <ul>
-	 * 	<li> Contains an HLAObjectComponent.
-	 *  <li> The className field in the component is set to an object class defined in the simulation's project file.
-	 *  <li> The instanceName field in the component contains a name (non-conflicting with other objects) for the instance.
+	 * <li>Contains an HLAObjectComponent.
+	 * <li>The className field in the component is set to an object class defined in
+	 * the simulation's project file.
+	 * <li>The instanceName field in the component contains a name (non-conflicting
+	 * with other objects) for the instance.
 	 * </ul>
 	 * Invalid entities are rejected and the object is not registered.
 	 * 
@@ -91,13 +97,13 @@ public final class HLAObjectManager
 			LOGGER.warn("Omitted registration for the entity <{}>\n[REASON] It has already been registered as an object instance", objectComponent.instanceName);
 			return false;
 		}
-		
+
 		if (objectComponent.instanceName == null)
 		{
 			LOGGER.warn("Omitted registration for the entity <{}>\n[REASON] Got NULL instead of a valid instance name for this entity");
 			return false;
 		}
-		
+
 		if (objectComponent.className == null)
 		{
 			LOGGER.warn("Omitted registration for the entity <{}>\n[REASON] Got NULL instead of a valid HLA object class name for this entity");
@@ -158,7 +164,9 @@ public final class HLAObjectManager
 	}
 
 	/**
-	 * Destroys the entity's corresponding object instance (if it exists) at the RTI.
+	 * Destroys the entity's corresponding object instance (if it exists) at the
+	 * RTI.
+	 * 
 	 * @param entity entity representing the object instance.
 	 * @return outcome of the operation as a true or false value.
 	 */
@@ -198,7 +206,9 @@ public final class HLAObjectManager
 	}
 
 	/**
-	 * Updates the entity's corresponding object instance (if it exists) at the RTI with the latest values.
+	 * Updates the entity's corresponding object instance (if it exists) at the RTI
+	 * with the latest values.
+	 * 
 	 * @param entity the entity to be updated.
 	 * @return outcome of the operation as a true or false value.
 	 */
@@ -227,7 +237,7 @@ public final class HLAObjectManager
 			LOGGER.warn("Failed to send update for the entity <{}>\n[REASON] The object instance handle for this entity is NULL and therefore unknown");
 			return false;
 		}
-		
+
 		try
 		{
 			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
@@ -294,9 +304,10 @@ public final class HLAObjectManager
 
 		return attributeValues;
 	}
-	
+
 	/**
-	 * Returns the number of object instances that have been registered with the RTI by the simulation.
+	 * Returns the number of object instances that have been registered with the RTI
+	 * by the simulation.
 	 */
 	public static int getRegisteredInstancesCount()
 	{

@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -36,10 +36,19 @@ import com.badlogic.gdx.utils.Pool.Poolable;
 
 import io.github.vega.data.MTRMode;
 
+/**
+ * The component type for storing data corresponding to the SpaceFOM
+ * <code>ModeTransitionRequest</code> interaction. It should be attached to an
+ * entity representing an MTR interaction and sent to the RTI in order to elicit
+ * a change in the federation execution mode.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public final class MTRComponent implements Component, Poolable
 {
 	public MTRMode executionMode = null;
-	
+
 	@Override
 	public void reset()
 	{

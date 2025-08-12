@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -33,6 +33,26 @@ package io.github.vega.core;
 
 import com.badlogic.ashley.core.Entity;
 
+/**
+ * <p>
+ * An archetype essentially includes instructions for producing an entity with
+ * the set of components needed in the simulation.
+ * </p>
+ * 
+ * <p>
+ * This is required for HLA object and interaction classes that are of the
+ * sharing model <code>Subscribe</code> and <code>PublishSubscribe</code>. In
+ * the case of object instances, the framework requires them to know how their
+ * ECS equivalents are to be represented in the simulation world. Similarly for
+ * interactions, these are necessary so that their ECS equivalents acquire the
+ * messages in a recognizable form.
+ * </p>
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
+
+@FunctionalInterface
 public interface IEntityArchetype
 {
 	public Entity createEntity();

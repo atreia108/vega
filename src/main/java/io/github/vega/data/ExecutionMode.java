@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -31,20 +31,26 @@
 
 package io.github.vega.data;
 
+/**
+ * An enum representation of the various execution modes supported in the
+ * SpaceFOM i.e., <code>EXEC_MODE_INITIALIZATING</code>,
+ * <code>EXEC_MODE_RUNNING</code>, <code>EXEC_MODE_FREEZE</code>, and
+ * <code>EXEC_MODE_SHUTDOWN</code>.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public enum ExecutionMode
 {
-	EXEC_MODE_INITIALIZING((short) 1),
-	EXEC_MODE_RUNNING((short) 2),
-	EXEC_MODE_FREEZE((short) 3),
-	EXEC_MODE_SHUTDOWN((short) 4);
-	
+	EXEC_MODE_INITIALIZING((short) 1), EXEC_MODE_RUNNING((short) 2), EXEC_MODE_FREEZE((short) 3), EXEC_MODE_SHUTDOWN((short) 4);
+
 	private short value;
-	
+
 	private ExecutionMode(short value)
 	{
 		this.value = value;
 	}
-	
+
 	public static ExecutionMode get(short value)
 	{
 		for (ExecutionMode execMode : ExecutionMode.values())
@@ -52,10 +58,10 @@ public enum ExecutionMode
 			if (execMode.value == value)
 				return execMode;
 		}
-		
+
 		return null;
 	}
-	
+
 	public short getValue()
 	{
 		return value;

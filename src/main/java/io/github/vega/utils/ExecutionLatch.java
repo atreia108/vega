@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -40,7 +40,7 @@ import org.apache.logging.log4j.Logger;
  * A global CountDownLatch object to resume/pause simulation execution.
  * 
  * @author Hridyanshu Aatreya
- * @since 1.0
+ * @since 1.0.0
  */
 public final class ExecutionLatch
 {
@@ -72,7 +72,6 @@ public final class ExecutionLatch
 
 	/**
 	 * Disables the execution latch causing the program to resume from where the latch was previously enabled.
-	 * @return
 	 */
 	public static void disable()
 	{
@@ -87,6 +86,7 @@ public final class ExecutionLatch
 
 	/**
 	 * Returns the status of the execution latch.
+	 * @return A boolean value indicating the status of the latch.
 	 */
 	public static boolean isActive()
 	{

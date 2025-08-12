@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -35,8 +35,44 @@ import com.badlogic.ashley.core.Entity;
 
 import hla.rti1516e.encoding.EncoderFactory;
 
+/**
+ * <p>
+ * This interface should be used to provide instructions to the framework for
+ * how data from components should be translated to a varying number of HLA data
+ * types. They are also applicable conversely when writing translated data from
+ * the RTI back into components. The "trigger" parameter in the interface's
+ * methods are included to help signify which case is being dealt with. Take for
+ * example, when the trigger is 0, the string field is to be read from Component
+ * A whereas if the trigger is 1, the same would be read from another Component
+ * B. It is anticipated that a switch statement will be used inside the encode
+ * and decode methods to handle different cases.
+ * </p>
+ * 
+ * <p>
+ * For instance, it is highly desirable to use a single converter for all
+ * attributes/parameters that are of the type HLAunicodeString. If a
+ * <code>IDataConverter</code> is used, multiple converters are needed because
+ * the source string is spread across different components, requiring the
+ * creation of an inordinate number of converters.
+ * </p>
+ * 
+ * <p>
+ * This model is extremely powerful in the sense that it can be used for many
+ * HLA class attributes/parameters at once. An entire project could potentially
+ * use a single class that implements this interface for all of its conversion
+ * processes. Keep in mind that multi-converters should be kept as simple as
+ * possible, since burdening a single converter to manage too many attributes
+ * risks increase its complexity.
+ * </p>
+ * 
+ * @see io.github.vega.core.IDataConverter
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public interface IMultiDataConverter
 {
 	public void decode(Entity entity, EncoderFactory encoder, byte[] buffer, int trigger);
+
 	public byte[] encode(Entity entity, EncoderFactory encoder, int trigger);
 }

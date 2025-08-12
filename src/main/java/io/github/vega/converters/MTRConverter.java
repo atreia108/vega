@@ -1,6 +1,6 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
- * Copyright (c) 2025 Hridyanshu Aatreya <2200096@brunel.ac.uk>
+ * Copyright (c) 2025 Hridyanshu Aatreya <Hridyanshu.Aatreya2@brunel.ac.uk>
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without 
@@ -36,6 +36,15 @@ import com.badlogic.ashley.core.Entity;
 import hla.rti1516e.encoding.EncoderFactory;
 import io.github.vega.core.IMultiDataConverter;
 
+/**
+ * This converter can be used to translate the data in
+ * {@link io.github.vega.components.MTRComponent MTRComponent} to the respective
+ * parameters of the <code>ModeTransitionRequest</code> interaction class and
+ * vice versa.
+ * 
+ * @author Hridyanshu Aatreya
+ * @since 1.0.0
+ */
 public final class MTRConverter implements IMultiDataConverter
 {
 

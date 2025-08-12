@@ -69,7 +69,7 @@ import io.github.vega.utils.FrameworkObjects;
 public final class HLACallbackManager
 {
 	private static final Logger LOGGER = LogManager.getLogger();
-	
+
 	private static final String EXCO_CLASS_NAME = "HLAobjectRoot.ExecutionConfiguration";
 	private static boolean exCOInitialized = false;
 
@@ -77,7 +77,7 @@ public final class HLACallbackManager
 
 	private static final Object NAME_RESERVATION_SEMAPHORE = new Object();
 	private static boolean nameReservationStatus;
-	
+
 	static
 	{
 		Set<String> requiredObjects = ProjectRegistry.requiredObjects;
@@ -91,7 +91,7 @@ public final class HLACallbackManager
 		ObjectClassProfile objectClass = null;
 		IEntityArchetype archetype = null;
 		Entity entity = null;
-		
+
 		try
 		{
 			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
@@ -102,54 +102,54 @@ public final class HLACallbackManager
 			LOGGER.warn("The newly discovered object instance \"{}\" was discarded\n[REASON] Failed to acquire name of its associated object class", objectName);
 			return;
 		}
-		
+
 		if ((objectClass = ProjectRegistry.getObjectClass(className)) == null)
 		{
 			LOGGER.warn("The newly discovered object instance \"{}\" was discarded\n[REASON] Failed to acquire name of its associated object class", objectName);
 			return;
 		}
-		
+
 		if ((archetype = ProjectRegistry.getArchetype(objectClass.archetypeName)) == null)
 		{
 			LOGGER.warn("The newly discovered object instance \"{}\" was discarded\n[REASON]The archetype <{}> defined for the HLA object class <{}> is not defined", objectName, objectClass.name, objectClass.archetypeName);
 			return;
 		}
-		
+
 		if ((entity = archetype.createEntity()) == null)
 		{
 			LOGGER.error("The newly discovered object instance \"{}\" was discarded\n[REASON] The archetype produced NULL instead of a valid entity", objectName);
 			return;
 		}
-		
+
 		ProjectRegistry.addRemoteEntity(entity);
-		
+
 		if (objectsPendingDiscovery != null && objectsPendingDiscovery.contains(objectName))
 		{
 			LOGGER.info("Discovered a new object instance \"{}\" of the class <{}>", objectName, className);
 			objectsPendingDiscovery.remove(objectName);
-			
+
 			if (objectsPendingDiscovery.isEmpty() && ExecutionLatch.isActive())
 				ExecutionLatch.disable();
 		}
-		
+
 		createRemoteEntity(className, objectName, theObject, entity);
 		requestLatestAttributeValues(theObject, objectName, objectClass);
-		
+
 		if (className.equals(EXCO_CLASS_NAME) && !exCOInitialized)
 			ExecutionLatch.disable();
 	}
-	
+
 	private static void createRemoteEntity(String className, String objectName, ObjectInstanceHandle instanceHandle, Entity entity)
 	{
 		Engine engine = FrameworkObjects.getEngine();
-		
+
 		HLAObjectComponent objectComponent = engine.createComponent(HLAObjectComponent.class);
 		objectComponent.className = className;
 		objectComponent.instanceName = objectName;
 		objectComponent.instanceHandle = instanceHandle;
 		entity.add(objectComponent);
 	}
-	
+
 	private static void requestLatestAttributeValues(ObjectInstanceHandle instanceHandle, String instanceName, ObjectClassProfile objectClass)
 	{
 		AttributeHandleSet attributeHandles = objectClass.getSubscribeableAttributeHandles();
@@ -165,27 +165,28 @@ public final class HLACallbackManager
 			System.exit(1);
 		}
 	}
-	
+
 	protected static void removeObjectInstance(ObjectInstanceHandle theObject)
 	{
 		if (!exCOExists())
 		{
 			final Entity exCO = ProjectRegistry.getRemoteEntityByName("ExCO");
 			ExCOComponent exCOComponent = FrameworkObjects.getExCOComponentMapper().get(exCO);
-			
+
 			exCOComponent.nextExecutionMode = ExecutionMode.EXEC_MODE_SHUTDOWN;
 		}
-			
+
 		if (!ProjectRegistry.removeRemoteEntityByHandle(theObject))
 		{
 			LOGGER.warn("Failed to remove the requested object instance <{}>\n[REASON] It is absent from the registry and may have been deleted previously", theObject);
 			return;
 		}
 	}
-	
+
 	// The change in ExCO execution mode to SHUTDOWN is faster than we can detect.
 	// Therefore, this method helps us determine if ExCO is still present or not
-	// i.e., it will throw an exception because the ExCO object will have disappeared
+	// i.e., it will throw an exception because the ExCO object will have
+	// disappeared
 	// when SpaceMaster leaves the federation. We manually set the [next] execution
 	// mode to SHUTDOWN ourselves and have the simulation loop terminate normally.
 	private static boolean exCOExists()
@@ -196,7 +197,7 @@ public final class HLACallbackManager
 			rtiAmbassador.getObjectInstanceHandle("ExCO");
 			return true;
 		}
-		catch (Exception e) 
+		catch (Exception e)
 		{
 			return false;
 		}
@@ -207,7 +208,7 @@ public final class HLACallbackManager
 		String className = null;
 		ObjectClassHandle classHandle = null;
 		String instanceName = null;
-		
+
 		try
 		{
 			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
@@ -215,39 +216,39 @@ public final class HLACallbackManager
 			classHandle = rtiAmbassador.getKnownObjectClassHandle(theObject);
 			className = rtiAmbassador.getObjectClassName(classHandle);
 		}
-		catch (Exception e) 
+		catch (Exception e)
 		{
 			if (instanceName != null)
 				LOGGER.warn("New values for the object instance \"{}\" were discarded\n[REASON]", e);
 			else
 				LOGGER.warn("New values for the object instance <{}> were discarded\nREASON]", e);
-			
+
 			return;
 		}
-		
+
 		ObjectClassProfile objectClass = null;
 		if ((objectClass = ProjectRegistry.getObjectClass(className)) == null)
 		{
 			LOGGER.warn("New values for the object instance \"{}\" were discarded\n[REASON] Associated object class for this instance was not found", instanceName);
 			return;
 		}
-		
+
 		Entity entity = null;
 		if ((entity = ProjectRegistry.getRemoteEntityByHandle(theObject)) == null)
 		{
 			LOGGER.warn("New values for the object instance \"{}\" were discarded\n[REASON] The entity associated with this object instance was not found", instanceName);
 			return;
 		}
-		
+
 		updateObjectInstance(entity, instanceName, objectClass, theAttributes);
-		
+
 		if (instanceName.equals("ExCO") && !exCOInitialized)
 		{
 			exCOInitialized = true;
 			ExecutionLatch.disable();
 		}
 	}
-	
+
 	private static void updateObjectInstance(Entity entity, String instanceName, ObjectClassProfile objectClass, AttributeHandleValueMap latestValues)
 	{
 		EncoderFactory encoderFactory = FrameworkObjects.getEncoderFactory();
@@ -318,38 +319,38 @@ public final class HLACallbackManager
 		HLATimeManager.setPresentTime((HLAinteger64Time) theTime);
 		ExecutionLatch.disable();
 	}
-	
+
 	protected static void receiveInteraction(InteractionClassHandle interactionClass, ParameterHandleValueMap theParameters)
 	{
 		try
 		{
 			RTIambassador rtiAmbassador = FrameworkObjects.getRtiAmbassador();
 			Engine engine = FrameworkObjects.getEngine();
-			
+
 			String className = rtiAmbassador.getInteractionClassName(interactionClass);
-			
+
 			InteractionClassProfile interactionClassType = null;
 			if ((interactionClassType = ProjectRegistry.getInteractionClass(className)) == null)
 			{
 				LOGGER.error("Incoming interaction was discarded because the class <{}> is unrecognized", className);
 				return;
 			}
-			
+
 			IEntityArchetype archetype = ProjectRegistry.getArchetype(interactionClassType.archetypeName);
 			Entity interaction = null;
-			
+
 			if ((interaction = archetype.createEntity()) == null)
 			{
 				LOGGER.error("An incoming interaction could not be processed the archetype <{}> returned NULL instead of an entity", archetype);
 				return;
 			}
-			
+
 			unpackInteractionData(interaction, interactionClassType, theParameters);
-			
+
 			HLAInteractionComponent interactionComponent = engine.createComponent(HLAInteractionComponent.class);
 			interactionComponent.className = className;
 			interaction.add(interactionComponent);
-			
+
 			HLAInteractionQueue.addInteraction(interaction);
 		}
 		catch (Exception e)
@@ -357,17 +358,17 @@ public final class HLACallbackManager
 			LOGGER.warn("Incoming interaction was discarded\n[REASON]", e);
 		}
 	}
-	
+
 	private static void unpackInteractionData(Entity entity, InteractionClassProfile interactionClass, ParameterHandleValueMap parameterHandleValueMap)
 	{
 		for (String parameterName : interactionClass.parameterNames)
 		{
 			EncoderFactory encoderFactory = FrameworkObjects.getEncoderFactory();
-			
+
 			ParameterHandle parameterHandle = interactionClass.getParameterHandle(parameterName);
 			byte[] encodedValue = parameterHandleValueMap.get(parameterHandle);
 			String converterName = null;
-			
+
 			if (interactionClass.parameterUsesMultiConverter(parameterName))
 			{
 				converterName = interactionClass.getParameterMultiConverterName(parameterName);
