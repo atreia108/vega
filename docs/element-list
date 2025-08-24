@@ -1,7 +1,7 @@
-io.github.vega.archetypes
-io.github.vega.components
-io.github.vega.converters
-io.github.vega.core
-io.github.vega.data
-io.github.vega.math
-io.github.vega.utils
+io.github.atreia108.vega.archetypes
+io.github.atreia108.vega.components
+io.github.atreia108.vega.converters
+io.github.atreia108.vega.core
+io.github.atreia108.vega.data
+io.github.atreia108.vega.math
+io.github.atreia108.vega.utils

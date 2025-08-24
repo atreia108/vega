@@ -56,11 +56,13 @@
 			<artifactId>ashley</artifactId>
 			<version>1.7.3</version>
 		</dependency>
+		<!--
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
 			<version>4.5.0</version>
 		</dependency>
+		-->
 	</dependencies>
 
 	<build>
@@ -137,6 +139,17 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!--
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.11.3</version>
+				<configuration>
+					<show>private</show>
+					<nohelp>true</nohelp>
+				</configuration>
+			</plugin>
+			-->
 		</plugins>
 	</build>
 </project>
