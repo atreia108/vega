@@ -38,7 +38,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.badlogic.ashley.core.ComponentMapper;
-import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 
 import io.github.atreia108.vega.components.HLAInteractionComponent;
@@ -59,13 +58,13 @@ public final class HLAInteractionQueue
 	private static ComponentMapper<HLAInteractionComponent> INTERACTION_MAPPER = VegaUtilities.interactionComponentMapper();
 	private static ArrayList<Entity> interactionQueue = new ArrayList<Entity>();
 
-	protected static void addInteraction(Entity entity)
+	protected static void add(Entity entity)
 	{
 		HLAInteractionComponent interactionComponent = INTERACTION_MAPPER.get(entity);
 
 		try
 		{
-			if (!checkInteraction(interactionComponent))
+			if (!check(interactionComponent))
 			{
 				LOGGER.warn("The HLAInteractionComponent of the entity <{}> contains an invalid HLA interaction class name \"{}\"", entity, interactionComponent.className);
 				return;
@@ -79,7 +78,7 @@ public final class HLAInteractionQueue
 		}
 	}
 
-	private static boolean checkInteraction(HLAInteractionComponent interactionComponent)
+	private static boolean check(HLAInteractionComponent interactionComponent)
 	{
 		if (ProjectRegistry.getInteractionClass(interactionComponent.className) == null)
 			return false;
@@ -92,7 +91,7 @@ public final class HLAInteractionQueue
 	 * from the list returned by this method, you must call {@link #free(ArrayList)}
 	 * to prevent the ECS object pool from completely filled up.
 	 * 
-	 * @see #filterByClassName(String)
+	 * @see #filter(String)
 	 */
 	public static ArrayList<Entity> poll()
 	{
@@ -106,7 +105,7 @@ public final class HLAInteractionQueue
 				Entity interaction = iterator.next();
 				interactionQueueCopy.add(interaction);
 
-				iterator.remove();
+				// iterator.remove();
 			}
 		}
 
@@ -120,7 +119,7 @@ public final class HLAInteractionQueue
 	 * 
 	 * @param interactionClassName HLA interaction class name to be used as filter.
 	 */
-	public static ArrayList<Entity> filterByClassName(String interactionClassName)
+	public static ArrayList<Entity> filter(String interactionClassName)
 	{
 		ArrayList<Entity> interactionQueueCopy = new ArrayList<Entity>();
 
@@ -136,7 +135,7 @@ public final class HLAInteractionQueue
 				if (interactionComponent.className.equals(interactionClassName))
 				{
 					interactionQueueCopy.add(interaction);
-					iterator.remove();
+					// iterator.remove();
 				}
 			}
 		}
@@ -150,23 +149,41 @@ public final class HLAInteractionQueue
 	 */
 	public static void clear()
 	{
+		free(poll());
 		interactionQueue.clear();
 	}
 
 	/**
-	 * A utility method to safely dispose of a queue containing a subset of
-	 * interactions acquired from this class.
+	 * A utility method to safely dispose of a queue of entities representing miscellaneous interactions.
 	 * 
-	 * @param queue the <code>ArrayList</code> of interactions to be freed.
+	 * @param queue The <code>ArrayList</code> of interactions to be freed.
 	 */
 	public static void free(ArrayList<Entity> queue)
 	{
-		Engine engine = VegaUtilities.engine();
-
 		queue.forEach((entity) ->
 		{
 			entity.removeAll();
-			engine.removeEntity(entity);
+			remove(entity);
 		});
+	}
+	
+	/**
+	 * A utility method to safely dispose of a single entity representing an HLA interaction.
+	 * 
+	 * @param entity The entity to be freed.
+	 */
+	public static void free(Entity entity)
+	{
+		entity.removeAll();
+		remove(entity);
+	}
+	
+	private static void remove(Entity entity)
+	{
+		synchronized (interactionQueue)
+		{
+			if (interactionQueue.contains(entity))
+				interactionQueue.remove(entity);
+		}
 	}
 }

@@ -121,7 +121,6 @@ public final class InteractionClassProfile
 
 	public String getParameterConverterName(String parameterName)
 	{
-		System.out.println(parameterConverterNameMap);
 		return parameterConverterNameMap.get(parameterName);
 	}
 

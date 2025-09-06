@@ -31,9 +31,12 @@
 
 package io.github.atreia108.vega.core;
 
+import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.AttributeHandleValueMap;
+import hla.rti1516e.FederateHandle;
 import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.LogicalTime;
+import hla.rti1516e.MessageRetractionHandle;
 import hla.rti1516e.NullFederateAmbassador;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
@@ -59,13 +62,47 @@ public class SpaceFomFederateAmbassador extends NullFederateAmbassador
 	}
 
 	@Override
+	public void discoverObjectInstance(ObjectInstanceHandle theObject, ObjectClassHandle theObjectClass, String objectName, FederateHandle producingFederate) throws FederateInternalError
+	{
+		HLACallbackManager.discoverObjectInstance(theObject, theObjectClass, objectName);
+	}
+
+	@Override
 	public void removeObjectInstance(ObjectInstanceHandle theObject, byte[] userSuppliedTag, OrderType sentOrdering, SupplementalRemoveInfo removeInfo) throws FederateInternalError
+	{
+		HLACallbackManager.removeObjectInstance(theObject);
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public void removeObjectInstance(ObjectInstanceHandle theObject, byte[] userSuppliedTag, OrderType sentOrdering, LogicalTime theTime, OrderType receivedOrdering, MessageRetractionHandle retractionHandle, SupplementalRemoveInfo removeInfo) throws FederateInternalError
+	{
+		HLACallbackManager.removeObjectInstance(theObject);
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public void removeObjectInstance(ObjectInstanceHandle theObject, byte[] userSuppliedTag, OrderType sentOrdering, LogicalTime theTime, OrderType receivedOrdering, SupplementalRemoveInfo removeInfo) throws FederateInternalError
 	{
 		HLACallbackManager.removeObjectInstance(theObject);
 	}
 
 	@Override
 	public void reflectAttributeValues(ObjectInstanceHandle theObject, AttributeHandleValueMap theAttributes, byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport, SupplementalReflectInfo reflectInfo) throws FederateInternalError
+	{
+		HLACallbackManager.reflectAttributeValues(theObject, theAttributes);
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public void reflectAttributeValues(ObjectInstanceHandle theObject, AttributeHandleValueMap theAttributes, byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport, LogicalTime theTime, OrderType receivedOrdering, MessageRetractionHandle retractionHandle, SupplementalReflectInfo reflectInfo) throws FederateInternalError
+	{
+		HLACallbackManager.reflectAttributeValues(theObject, theAttributes);
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public void reflectAttributeValues(ObjectInstanceHandle theObject, AttributeHandleValueMap theAttributes, byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport, LogicalTime theTime, OrderType receivedOrdering, SupplementalReflectInfo reflectInfo) throws FederateInternalError
 	{
 		HLACallbackManager.reflectAttributeValues(theObject, theAttributes);
 	}
@@ -103,9 +140,29 @@ public class SpaceFomFederateAmbassador extends NullFederateAmbassador
 		HLACallbackManager.timeAdvanceGrant(theTime);
 	}
 
+	@SuppressWarnings("rawtypes")
+	@Override
+	public void receiveInteraction(InteractionClassHandle interactionClass, ParameterHandleValueMap theParameters, byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport, LogicalTime theTime, OrderType receivedOrdering, SupplementalReceiveInfo receiveInfo) throws FederateInternalError
+	{
+		HLACallbackManager.receiveInteraction(interactionClass, theParameters);
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public void receiveInteraction(InteractionClassHandle interactionClass, ParameterHandleValueMap theParameters, byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport, LogicalTime theTime, OrderType receivedOrdering, MessageRetractionHandle retractionHandle, SupplementalReceiveInfo receiveInfo) throws FederateInternalError
+	{
+		HLACallbackManager.receiveInteraction(interactionClass, theParameters);
+	}
+
 	@Override
 	public void receiveInteraction(InteractionClassHandle interactionClass, ParameterHandleValueMap theParameters, byte[] userSuppliedTag, OrderType sentOrdering, TransportationTypeHandle theTransport, SupplementalReceiveInfo receiveInfo) throws FederateInternalError
 	{
 		HLACallbackManager.receiveInteraction(interactionClass, theParameters);
+	}
+
+	@Override
+	public void provideAttributeValueUpdate(ObjectInstanceHandle theObject, AttributeHandleSet theAttributes, byte[] userSuppliedTag) throws FederateInternalError
+	{
+		HLACallbackManager.provideAttributeValueUpdate(theObject, theAttributes);
 	}
 }

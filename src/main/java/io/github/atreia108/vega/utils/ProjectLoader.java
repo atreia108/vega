@@ -109,6 +109,7 @@ public final class ProjectLoader
 	{
 		// Items to be loaded into project settings
 		loadSimulationElement();
+		loadEngineElement();
 		loadRtiConfigElement();
 		loadFomModulesElement();
 
@@ -116,7 +117,6 @@ public final class ProjectLoader
 		loadRequiredObjectsElement();
 		loadObjectClassesElement();
 		loadInteractionClassesElement();
-		loadEngineElement();
 	}
 
 	private void loadSimulationElement()

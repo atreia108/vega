@@ -50,8 +50,13 @@ import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.ParameterHandle;
 import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.RTIambassador;
+import hla.rti1516e.encoding.DecoderException;
 import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.exceptions.FederateInternalError;
+import hla.rti1516e.exceptions.FederateNotExecutionMember;
+import hla.rti1516e.exceptions.NotConnected;
+import hla.rti1516e.exceptions.ObjectInstanceNotKnown;
+import hla.rti1516e.exceptions.RTIinternalError;
 import hla.rti1516e.time.HLAinteger64Time;
 import io.github.atreia108.vega.components.ExCOComponent;
 import io.github.atreia108.vega.components.HLAInteractionComponent;
@@ -126,9 +131,8 @@ public final class HLACallbackManager
 					return;
 				}
 
-				// ProjectRegistry.addRemoteEntity(entity);
 				HLAObjectManager.addRemoteEntity(entity);
-				HLAObjectManager.entityMapping.put(theObject, objectName);
+				HLAObjectManager.put(theObject, objectName);
 
 				if (objectsPendingDiscovery != null && objectsPendingDiscovery.contains(objectName))
 				{
@@ -157,9 +161,10 @@ public final class HLACallbackManager
 		objectComponent.className = className;
 		objectComponent.instanceName = objectName;
 		// objectComponent.instanceHandle = instanceHandle;
-		
-		HLAObjectManager.entityMapping.put(instanceHandle, objectName);
-		
+
+		HLAObjectManager.put(instanceHandle, objectName);
+		HLAObjectManager.addRemoteEntity(entity);
+
 		entity.add(objectComponent);
 	}
 
@@ -183,23 +188,17 @@ public final class HLACallbackManager
 	{
 		if (!exCOExists())
 		{
-			// final Entity exCO = ProjectRegistry.getRemoteEntityByName("ExCO");
 			Entity exCO = HLAObjectManager.getRemoteEntity("ExCO");
 			ExCOComponent exCOComponent = VegaUtilities.exCOComponentMapper().get(exCO);
 
 			exCOComponent.nextExecutionMode = ExecutionMode.EXEC_MODE_SHUTDOWN;
-		}
-
-		
-		
-		/*
-		if (!ProjectRegistry.removeRemoteEntityByHandle(theObject))
-		{
-			LOGGER.warn("Failed to remove the requested object instance <{}>\n[REASON] It is absent from the registry and may have been deleted previously", theObject);
+			
+			// We know it's ExCO that was deleted.
 			return;
 		}
-		*/
 		
+		String instanceName = HLAObjectManager.translate(theObject);
+		HLAObjectManager.destroyRemoteEntity(instanceName);
 	}
 
 	// The change in ExCO execution mode to SHUTDOWN is faster than we can detect.
@@ -243,9 +242,9 @@ public final class HLACallbackManager
 				catch (Exception e)
 				{
 					if (instanceName != null)
-						LOGGER.warn("New values for the object instance \"{}\" were discarded\n[REASON]", e);
+						LOGGER.warn("New values for the object instance \"{}\" were discarded: ", e);
 					else
-						LOGGER.warn("New values for the object instance <{}> were discarded\nREASON]", e);
+						LOGGER.warn("New values for the object instance <{}> were discarded: ", e);
 
 					return;
 				}
@@ -258,14 +257,12 @@ public final class HLACallbackManager
 				}
 
 				/*
-				Entity entity = null;
-				if ((entity = ProjectRegistry.getRemoteEntityByHandle(theObject)) == null)
-				{
-					LOGGER.warn("New values for the object instance \"{}\" were discarded: The entity associated with this object instance was not found", instanceName);
-					return;
-				}
-				*/
-				
+				 * Entity entity = null; if ((entity =
+				 * ProjectRegistry.getRemoteEntityByHandle(theObject)) == null) { LOGGER.
+				 * warn("New values for the object instance \"{}\" were discarded: The entity associated with this object instance was not found"
+				 * , instanceName); return; }
+				 */
+
 				Entity entity = null;
 				if ((entity = HLAObjectManager.getRemoteEntity(instanceName)) == null)
 				{
@@ -273,8 +270,14 @@ public final class HLACallbackManager
 					return;
 				}
 
-				updateObjectInstance(entity, instanceName, objectClass, theAttributes);
-
+				try
+				{
+					updateRemoteEntityAttributes(entity, instanceName, objectClass, theAttributes);
+				}
+				catch (DecoderException e)
+				{
+					LOGGER.error("Error encountered while attempting to decode attributes for the object instance \"{}\"", instanceName);
+				}
 				if (instanceName.equals("ExCO") && !exCOInitialized)
 				{
 					exCOInitialized = true;
@@ -284,7 +287,7 @@ public final class HLACallbackManager
 		}.start();
 	}
 
-	private static void updateObjectInstance(Entity entity, String instanceName, ObjectClassProfile objectClass, AttributeHandleValueMap latestValues)
+	private static void updateRemoteEntityAttributes(Entity entity, String instanceName, ObjectClassProfile objectClass, AttributeHandleValueMap latestValues) throws DecoderException
 	{
 		EncoderFactory encoderFactory = VegaUtilities.encoderFactory();
 
@@ -294,7 +297,7 @@ public final class HLACallbackManager
 
 			if (!latestValues.containsKey(attributeHandle))
 			{
-				LOGGER.warn("New values for the object instance from the RTI \"{}\" is missing ", instanceName);
+				LOGGER.warn("Updated values from the RTI for object instance \"{}\" does not include the attribute \"{}\"", instanceName, attributeName);
 				return;
 			}
 
@@ -391,7 +394,7 @@ public final class HLACallbackManager
 					interactionComponent.className = className;
 					interaction.add(interactionComponent);
 
-					HLAInteractionQueue.addInteraction(interaction);
+					HLAInteractionQueue.add(interaction);
 				}
 				catch (Exception e)
 				{
@@ -401,7 +404,7 @@ public final class HLACallbackManager
 		}.start();
 	}
 
-	private static void unpackInteractionData(Entity entity, InteractionClassProfile interactionClass, ParameterHandleValueMap parameterHandleValueMap)
+	private static void unpackInteractionData(Entity entity, InteractionClassProfile interactionClass, ParameterHandleValueMap parameterHandleValueMap) throws DecoderException
 	{
 		for (String parameterName : interactionClass.parameterNames)
 		{
@@ -424,6 +427,26 @@ public final class HLACallbackManager
 				IDataConverter dataConverter = ProjectRegistry.getDataConverter(converterName);
 				dataConverter.decode(entity, encoderFactory, encodedValue);
 			}
+		}
+	}
+
+	protected static void provideAttributeValueUpdate(ObjectInstanceHandle theObject, AttributeHandleSet theAttributes)
+	{
+		RTIambassador ambassador = VegaUtilities.rtiAmbassador();
+
+		try
+		{
+			String instanceName = ambassador.getObjectInstanceName(theObject);
+			Entity entity = HLAObjectManager.getLocalEntity(instanceName);
+
+			if (entity != null)
+				HLAObjectManager.sendInstanceUpdate(entity);
+			else
+				LOGGER.warn("Failed to provide latest attribute values for \"{}\" as its corresponding entity was not found", instanceName);
+		}
+		catch (ObjectInstanceNotKnown | FederateNotExecutionMember | NotConnected | RTIinternalError e)
+		{
+			LOGGER.error("Failed to provide attribute value update to the RTI: ", e);
 		}
 	}
 

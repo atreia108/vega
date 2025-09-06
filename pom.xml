@@ -56,11 +56,51 @@
 			<artifactId>ashley</artifactId>
 			<version>1.7.3</version>
 		</dependency>
+		<dependency>
+			<groupId>com.badlogicgames.gdx</groupId>
+			<artifactId>gdx</artifactId>
+			<version>1.13.5</version>
+		</dependency>
+
+		<!-- Local Repository Dependencies - TO BE USED WHEN BUILDING JAVADOCS
+		ONLY -->
+		<!-- Link RTI JARs via manual build path entries and not Maven. Shipping
+		them in the Shaded JAR could lead to RTI mismatches and an increase in the size of the shaded JAR. -->
 		<!--
 		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-collections4</artifactId>
-			<version>4.5.0</version>
+			<groupId>se.pitch</groupId>
+			<artifactId>booster1516</artifactId>
+			<version>5.5.12</version>
+		</dependency>
+		<dependency>
+			<groupId>se.pitch</groupId>
+			<artifactId>prti1516-dlc</artifactId>
+			<version>5.5.12</version>
+		</dependency>
+		<dependency>
+			<groupId>se.pitch</groupId>
+			<artifactId>prti1516e</artifactId>
+			<version>5.5.12</version>
+		</dependency>
+		<dependency>
+			<groupId>se.pitch</groupId>
+			<artifactId>prti1516e-cpp</artifactId>
+			<version>5.5.12</version>
+		</dependency>
+		<dependency>
+			<groupId>se.pitch</groupId>
+			<artifactId>prti1516e-hla4cpp</artifactId>
+			<version>5.5.12</version>
+		</dependency>
+		<dependency>
+			<groupId>se.pitch</groupId>
+			<artifactId>prti1516-hla4</artifactId>
+			<version>5.5.12</version>
+		</dependency>
+		<dependency>
+			<groupId>se.pitch</groupId>
+			<artifactId>prticore</artifactId>
+			<version>5.5.12</version>
 		</dependency>
 		-->
 	</dependencies>
@@ -139,7 +179,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!--
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
@@ -149,7 +188,6 @@
 					<nohelp>true</nohelp>
 				</configuration>
 			</plugin>
-			-->
 		</plugins>
 	</build>
 </project>

@@ -34,8 +34,6 @@ package io.github.atreia108.vega.components;
 import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.utils.Pool.Poolable;
 
-import hla.rti1516e.ObjectInstanceHandle;
-
 /**
  * This component should be attached to an entity that is to be treated as an
  * HLA object instance.

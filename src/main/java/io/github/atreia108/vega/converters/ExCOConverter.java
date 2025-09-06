@@ -102,7 +102,7 @@ public final class ExCOConverter implements IMultiDataConverter
 		}
 		catch (DecoderException e)
 		{
-			LOGGER.error("Failed to decode the root_frame_name field of the ExCO object instance\n[REASON]", e);
+			LOGGER.error("Failed to decode the root_frame_name attribute of the ExCO object instance: ", e);
 			System.exit(1);
 		}
 	}
@@ -118,7 +118,7 @@ public final class ExCOConverter implements IMultiDataConverter
 		}
 		catch (DecoderException e)
 		{
-			LOGGER.error("Failed to decode the current_execution_mode field of the ExCO object instance\n[REASON]", e);
+			LOGGER.error("Failed to decode the current_execution_mode field of the ExCO object instance: ", e);
 			System.exit(1);
 		}
 	}
@@ -134,7 +134,7 @@ public final class ExCOConverter implements IMultiDataConverter
 		}
 		catch (DecoderException e)
 		{
-			LOGGER.error("Failed to decode the next_execution_mode field of the ExCO object instance\n[REASON]", e);
+			LOGGER.error("Failed to decode the next_execution_mode attribute of the ExCO object instance: ", e);
 			System.exit(1);
 		}
 	}
@@ -150,7 +150,7 @@ public final class ExCOConverter implements IMultiDataConverter
 		}
 		catch (DecoderException e)
 		{
-			LOGGER.error("Failed to decode the least_common_time_step field of the ExCO object instance\n[REASON]", e);
+			LOGGER.error("Failed to decode the least_common_time_step attribute of the ExCO object instance: ", e);
 			System.exit(1);
 		}
 	}

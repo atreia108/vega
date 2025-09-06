@@ -31,7 +31,9 @@
 
 package io.github.atreia108.vega.core;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
@@ -48,7 +50,6 @@ import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.encoding.EncoderFactory;
 import io.github.atreia108.vega.components.HLAObjectComponent;
-import io.github.atreia108.vega.utils.EntityMapping;
 import io.github.atreia108.vega.utils.VegaUtilities;
 
 /**
@@ -57,9 +58,9 @@ import io.github.atreia108.vega.utils.VegaUtilities;
  * corresponds to an HLA object instance. The
  * {@link io.github.atreia108.vega.core.IDataConverter IDataConverter} and
  * {@link io.github.atreia108.vega.core.IMultiDataConverter IMultiDataConverter}
- * {@link io.github.atreia108.vega.core.IEntityArchetype IEntityArchetype} interfaces form part
- * of a conversion layer to translate between the HLA's object-oriented design
- * and data-oriented design.
+ * {@link io.github.atreia108.vega.core.IEntityArchetype IEntityArchetype}
+ * interfaces form part of a conversion layer to translate between the HLA's
+ * object-oriented design and data-oriented design.
  * 
  * @author Hridyanshu Aatreya
  * @since 1.0.0
@@ -69,78 +70,15 @@ public final class HLAObjectManager
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	private static final ComponentMapper<HLAObjectComponent> objectMapper = VegaUtilities.objectComponentMapper();
-	
-	private static final Set<Entity> remoteEntities = new HashSet<Entity>();
-	
-	public static final EntityMapping entityMapping = new EntityMapping();
-	
+
+	private static final Set<Entity> remoteEntitySet = new HashSet<Entity>();
+	private static final Set<Entity> localEntitySet = new HashSet<Entity>();
+
+	private static final Map<ObjectInstanceHandle, String> entityMap = new HashMap<ObjectInstanceHandle, String>();
+	private static final Map<String, ObjectInstanceHandle> inverseEntityMap = new HashMap<String, ObjectInstanceHandle>();
+
 	public static int registeredInstancesCount = 0;
 
-	/*
-	public static boolean registerInstance(Entity entity)
-	{
-		HLAObjectComponent objectComponent = objectMapper.get(entity);
-
-		if (ProjectRegistry.isRemoteEntity(entity))
-		{
-			LOGGER.warn("Omitted registration for the entity <{}>\n[REASON] An object instance for this entity already exists as a REMOTE entity", objectComponent.instanceName);
-			return false;
-		}
-
-		if (objectComponent.instanceHandle != null)
-		{
-			LOGGER.warn("Omitted registration for the entity <{}>\n[REASON] It has already been registered as an object instance", objectComponent.instanceName);
-			return false;
-		}
-
-		if (objectComponent.instanceName == null)
-		{
-			LOGGER.warn("Omitted registration for the entity <{}>\n[REASON] Got NULL instead of a valid instance name for this entity");
-			return false;
-		}
-
-		if (objectComponent.className == null)
-		{
-			LOGGER.warn("Omitted registration for the entity <{}>\n[REASON] Got NULL instead of a valid HLA object class name for this entity");
-		}
-
-		Object nameReservationSemaphore = HLACallbackManager.getNameReservationSemaphore();
-		RTIambassador rtiAmbassador = VegaUtilities.rtiAmbassador();
-
-		try
-		{
-			synchronized (nameReservationSemaphore)
-			{
-				rtiAmbassador.reserveObjectInstanceName(objectComponent.instanceName);
-				awaitReservation();
-			}
-
-			boolean nameReservationStatus = HLACallbackManager.getNameReservationStatus();
-			if (!nameReservationStatus)
-			{
-				LOGGER.warn("Failed to reserve the name <{}>. The corresponding HLA object instance for this entity was not created", objectComponent.instanceName);
-				return false;
-			}
-
-			ObjectClassProfile objectClass = ProjectRegistry.getObjectClass(objectComponent.className);
-			ObjectClassHandle classHandle = objectClass.classHandle;
-
-			ObjectInstanceHandle instanceHandle = rtiAmbassador.registerObjectInstance(classHandle, objectComponent.instanceName);
-			objectComponent.instanceHandle = instanceHandle;
-
-			LOGGER.info("Created the HLA object instance \"{}\" of the class <{}>", objectComponent.instanceName, objectComponent.className);
-			registeredInstancesCount += 1;
-		}
-		catch (Exception e)
-		{
-			LOGGER.warn("Failed to reserve the name <{}>. The corresponding HLA object instance for this entity was not created\n[REASON]", objectComponent.instanceName, e);
-			return false;
-		}
-
-		return false;
-	}
-	*/
-	
 	/**
 	 * Registers an HLA object instance for a valid entity. A valid entity in this
 	 * case:
@@ -159,54 +97,56 @@ public final class HLAObjectManager
 	public static boolean registerInstance(Entity entity)
 	{
 		HLAObjectComponent objectComponent = objectMapper.get(entity);
-		
+
 		if (objectComponent == null || objectComponent.className == null || objectComponent.instanceName == null)
 		{
 			LOGGER.warn("Object instance registration aborted: <NullPointerException> The entity ({}) is potentially missing an HLAObjectComponent or one (or more) fields in the component is NULL.", entity);
 			return false;
 		}
-		
+
 		if (isRemoteEntity(entity))
 		{
 			LOGGER.warn("Registration of the object instance \"{}\" aborted: The supplied entity ({}) is already a registered entity that is owned by another federate.", objectComponent.instanceName, entity);
 			return false;
 		}
-		
+
 		Object nameReservationSemaphore = HLACallbackManager.getNameReservationSemaphore();
 		RTIambassador rtiAmbassador = VegaUtilities.rtiAmbassador();
-		
+
 		synchronized (nameReservationSemaphore)
 		{
 			try
 			{
 				rtiAmbassador.reserveObjectInstanceName(objectComponent.instanceName);
 				awaitReservation();
-				
+
 				boolean nameReservationStatus = HLACallbackManager.getNameReservationStatus();
 				if (!nameReservationStatus)
 				{
 					LOGGER.error("Registration of an object instance with the name \"{}\" failed.", objectComponent.instanceName);
 					return false;
 				}
-				
+
 				ObjectClassProfile objectClass = ProjectRegistry.getObjectClass(objectComponent.className);
-				
+
 				if (objectClass == null)
 				{
 					LOGGER.warn("Registration of the object instance \"{}\" was aborted: The HLA object class \"{}\" does not match anything that was published/subscribed at runtime.", objectComponent.instanceName, objectComponent.className);
 					return false;
 				}
-				
+
 				if (objectClass.getNumberOfPublisheableAttributes() < 1)
 				{
 					LOGGER.warn("Registration of the object instance \"{}\" was aborted: The associated object class has no publishable attributes.");
 					return false;
 				}
-				
+
 				ObjectClassHandle classHandle = objectClass.classHandle;
-				
+
 				ObjectInstanceHandle instanceHandle = rtiAmbassador.registerObjectInstance(classHandle, objectComponent.instanceName);
-				entityMapping.put(instanceHandle, objectComponent.instanceName);
+				put(instanceHandle, objectComponent.instanceName);
+
+				localEntitySet.add(entity);
 			}
 			catch (Exception e)
 			{
@@ -214,12 +154,12 @@ public final class HLAObjectManager
 				return false;
 			}
 		}
-		
+
 		LOGGER.info("A new object instance \"{}\" of the class \"{}\" was successfully registered.", objectComponent.instanceName, objectComponent.className, entity);
 		registeredInstancesCount++;
 		return true;
 	}
-	
+
 	/**
 	 * Updates the entity's corresponding object instance (if it exists) at the RTI
 	 * with the latest values.
@@ -227,45 +167,45 @@ public final class HLAObjectManager
 	 * @param entity the entity to be updated.
 	 * @return outcome of the operation as a true or false value.
 	 */
-	public static boolean updateInstance(Entity entity)
+	public static boolean sendInstanceUpdate(Entity entity)
 	{
 		HLAObjectComponent objectComponent = objectMapper.get(entity);
 		ObjectClassProfile objectClass = ProjectRegistry.getObjectClass(objectComponent.className);
-		
+
 		if (objectComponent == null || objectComponent.className == null || objectComponent.instanceName == null)
 		{
 			LOGGER.warn("Object instance registration aborted: <NullPointerException> The supplied entity ({}) is potentially missing an HLAObjectComponent or one (or more) fields in the component is NULL.", entity);
 			return false;
 		}
-		
+
 		if (isRemoteEntity(entity))
 		{
-			LOGGER.warn("Update attempt for the object instance \"{}\" aborted: The supplied entity ({}) is read-only as it is owned by another federate.");
+			LOGGER.warn("Update attempt for the object instance \"{}\" aborted: The supplied entity ({}) is read-only as it is owned by another federate.", objectComponent.instanceName, entity);
 			return false;
 		}
-		
-		if (!entityMapping.hasEntity(objectComponent.instanceName))
+
+		if (!has(objectComponent.instanceName))
 		{
 			LOGGER.warn("Update attempt for the object instance \"{}\" aborted: No handle exists for this object instance. It may have been deleted previously or never registered in the first place.", objectComponent.instanceName);
 			return false;
 		}
-		
+
 		if (objectClass == null)
 		{
 			LOGGER.warn("Update attempt for the object instance \"{}\" aborted: The object class \"{}\" associated with this instance was not found.", objectComponent.instanceName, objectComponent.className);
 			return false;
 		}
-				
+
 		RTIambassador rtiAmbassador = VegaUtilities.rtiAmbassador();
 		AttributeHandleValueMap instanceAttributeValues = getPublishableInstanceAttributes(entity, objectClass, rtiAmbassador);
-		
+
 		if ((instanceAttributeValues == null) || (instanceAttributeValues.size() == 0))
 		{
 			LOGGER.warn("Update attempt for the object instance \"{}\" aborted: No publishable object instance attributes were found.", objectComponent.instanceName);
 			return false;
 		}
-		
-		ObjectInstanceHandle instanceHandle = entityMapping.translate(objectComponent.instanceName);
+
+		ObjectInstanceHandle instanceHandle = translate(objectComponent.instanceName);
 		try
 		{
 			rtiAmbassador.updateAttributeValues(instanceHandle, instanceAttributeValues, null);
@@ -275,10 +215,10 @@ public final class HLAObjectManager
 			LOGGER.error("Update attempt for the object instance \"{}\" failed: ", e);
 			return false;
 		}
-		
+
 		return true;
 	}
-	
+
 	/**
 	 * Destroys the entity's corresponding object instance (if it exists) at the
 	 * RTI.
@@ -289,49 +229,53 @@ public final class HLAObjectManager
 	public static boolean destroyInstance(Entity entity)
 	{
 		HLAObjectComponent objectComponent = objectMapper.get(entity);
-		
+
 		if (objectComponent == null || objectComponent.className == null || objectComponent == null)
 		{
 			LOGGER.warn("Object instance deletion aborted: <NullPointerException> The supplied entity ({}) is potentially missing an HLAObjectComponent or one (or more) fields in the component is NULL.", entity);
 			return false;
 		}
-		
+
 		if (isRemoteEntity(entity))
 		{
 			LOGGER.warn("Deletion of object instance \"{}\" aborted: The supplied entity ({}) is read-only as it is owned by another federate.");
 			return false;
 		}
-		
-		if (!entityMapping.hasEntity(objectComponent.instanceName))
+
+		if (!has(objectComponent.instanceName))
 		{
 			LOGGER.warn("Deletion of object instance \"{}\" aborted: No handle exists for this object instance. It may have been deleted previously or never registered in the first place.", objectComponent.instanceName);
 			return false;
 		}
-		
+
 		RTIambassador rtiAmbassador = VegaUtilities.rtiAmbassador();
 		try
 		{
-			ObjectInstanceHandle instanceHandle = entityMapping.translate(objectComponent.instanceName);
+			ObjectInstanceHandle instanceHandle = translate(objectComponent.instanceName);
 			rtiAmbassador.deleteObjectInstance(instanceHandle, null);
-			
+
 			// Cleanup entity data remains in the simulation.
-			entityMapping.remove(instanceHandle);
+			remove(instanceHandle);
 		}
 		catch (Exception e)
 		{
 			LOGGER.error("Deletion of the object instance \"{}\" failed: ", e);
 			return false;
 		}
-		
+
 		return true;
 	}
-	
+
+	/**
+	 * Verifies whether an entity is remote or not.
+	 * @param entity The entity
+	 */
 	public static boolean isRemoteEntity(Entity entity)
 	{
-		for (Entity e : remoteEntities)
+		for (Entity e : remoteEntitySet)
 			if (e == entity)
 				return true;
-		
+
 		return false;
 	}
 
@@ -353,97 +297,10 @@ public final class HLAObjectManager
 		}
 	}
 
-	/*
-	public static boolean destroyInstance(Entity entity)
-	{
-		HLAObjectComponent objectComponent = null;
-
-		if (ProjectRegistry.isRemoteEntity(entity))
-		{
-			LOGGER.warn("Failed to destroy object instance for the entity <{}>\n[REASON] This is a remote entity and cannot be destroyed since the federate does not have the required privileges to do so", entity);
-			return false;
-		}
-		else if ((objectComponent = objectMapper.get(entity)) == null)
-		{
-			LOGGER.warn("Failed to destroy object instance for the entity <{}>\n[REASON] Its lacks an HLAObjectComponent and may not be a registered HLA object instance", entity);
-			return false;
-		}
-		else if (objectComponent.instanceHandle == null)
-		{
-			LOGGER.warn("Failed to destroy object instance for the entity <{}>\n[REASON] This entity is missing its associated object instance");
-			return false;
-		}
-
-		RTIambassador rtiAmbassador = VegaUtilities.rtiAmbassador();
-		try
-		{
-			rtiAmbassador.deleteObjectInstance(objectComponent.instanceHandle, null);
-		}
-		catch (Exception e)
-		{
-			LOGGER.warn("Failed to destroy object instance for the entity <{}>\n[REASON]", e);
-			return false;
-		}
-
-		--registeredInstancesCount;
-		return true;
-	}
-	*/
-	
-	/*
-	public static boolean updateInstance(Entity entity)
-	{
-		HLAObjectComponent objectComponent = null;
-		ObjectClassProfile objectClass = null;
-
-		if (ProjectRegistry.isRemoteEntity(entity))
-		{
-			LOGGER.warn("Failed to send update for the entity <{}>\n[REASON] This is a remote entity and cannot be updated by the federate as it does not have the required privileges to do so", entity);
-			return false;
-		}
-		else if ((objectComponent = objectMapper.get(entity)) == null)
-		{
-			LOGGER.warn("Failed to send update for the entity <{}>\n[REASON] It lacks an HLAObjectComponent and may not be a registered HLA object instance", entity);
-			return false;
-		}
-		else if ((objectClass = ProjectRegistry.getObjectClass(objectComponent.className)) == null)
-		{
-			LOGGER.warn("Failed to send update for the entity <{}>\n[REASON] The HLA object class of this entity \"{}\" is unrecognized", objectComponent.className);
-			return false;
-		}
-		else if (objectComponent.instanceHandle == null)
-		{
-			LOGGER.warn("Failed to send update for the entity <{}>\n[REASON] The object instance handle for this entity is NULL and therefore unknown");
-			return false;
-		}
-
-		try
-		{
-			RTIambassador rtiAmbassador = VegaUtilities.rtiAmbassador();
-			AttributeHandleValueMap instanceAttributes = getObjectInstanceAttributes(entity, objectClass, rtiAmbassador);
-
-			if ((instanceAttributes == null) || (instanceAttributes.size() == 0))
-			{
-				LOGGER.warn("Failed to send update for the entity <{}>\n[REASON] No object instance attributes were found for this entity", entity);
-				return false;
-			}
-			else
-			{
-				rtiAmbassador.updateAttributeValues(objectComponent.instanceHandle, instanceAttributes, null);
-				LOGGER.info("An update was sent for the entity <{}>", entity);
-				return true;
-			}
-		}
-		catch (Exception e)
-		{
-			LOGGER.warn("Failed to send update for the entity <{}>\n[REASON]", e);
-			return false;
-		}
-	}
-	*/
-	
 	private static AttributeHandleValueMap getPublishableInstanceAttributes(Entity entity, ObjectClassProfile objectClass, RTIambassador rtiAmbassador)
 	{
+		HLAObjectComponent objectComponent = VegaUtilities.objectComponentMapper().get(entity);
+
 		AttributeHandleValueMap attributeValues = null;
 		int numberOfAttributes = objectClass.getNumberOfPublisheableAttributes();
 
@@ -459,19 +316,29 @@ public final class HLAObjectManager
 			for (AttributeHandle attributeHandle : attributeHandles)
 			{
 				String attributeName = objectClass.getAttributeNameForHandle(attributeHandle);
-				String dataConverterName = objectClass.getAttributeConverterName(attributeName);
+
 				byte[] encodedValue = null;
 
 				if (objectClass.attributeUsesMultiConverter(attributeName))
 				{
-					IMultiDataConverter multiDataConverter = ProjectRegistry.getMultiConverter(dataConverterName);
-					int trigger = objectClass.getAttributeConverterTrigger(attributeName, dataConverterName);
+					String multiDataConverterName = objectClass.getAttributeMultiConverterName(attributeName);
+					IMultiDataConverter multiDataConverter = ProjectRegistry.getMultiConverter(multiDataConverterName);
+					int trigger = objectClass.getAttributeConverterTrigger(attributeName, multiDataConverterName);
 					encodedValue = multiDataConverter.encode(entity, encoderFactory, trigger);
 				}
 				else
 				{
+					String dataConverterName = objectClass.getAttributeConverterName(attributeName);
 					IDataConverter dataConverter = ProjectRegistry.getDataConverter(dataConverterName);
 					encodedValue = dataConverter.encode(entity, encoderFactory);
+				}
+
+				// Cause for concern - it would very impolite of us to send NULL data for a
+				// field to the RTI!
+				if (encodedValue == null)
+				{
+					LOGGER.warn("Aborted attempt to send updated values for the object instance \"{}\"  of class \"{}\": NULL encoded data detected for one of its fields", objectComponent.instanceName, objectComponent.className);
+					throw new Exception();
 				}
 
 				attributeValues.put(attributeHandle, encodedValue);
@@ -479,35 +346,96 @@ public final class HLAObjectManager
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("RTI ambassador failed to provide a AttributeHandleValueMap for packing object instance data\n[REASON]", e);
+			LOGGER.error("Failed while trying to pack object instance attribute values: ", e);
 		}
 
 		return attributeValues;
 	}
-	
-	protected static void addRemoteEntity(Entity remoteEntity)
+
+	protected static void addRemoteEntity(Entity entity)
 	{
-		remoteEntities.add(remoteEntity);
+		remoteEntitySet.add(entity);
 	}
-	
-	public static Entity getRemoteEntity(String name)
+
+	/**
+	 * Find the corresponding entity of a remote object instance (owned by another federate).
+	 * 
+	 * @param instanceName Name of the object instance.
+	 */
+	public static Entity getRemoteEntity(String instanceName)
 	{
-		for (Entity e : remoteEntities)
+		for (Entity e : remoteEntitySet)
 		{
-			var objectComponent = objectMapper.get(e);
-			if (objectComponent.instanceName.equals(name))
+			HLAObjectComponent objectComponent = objectMapper.get(e);
+			if (objectComponent.instanceName.equals(instanceName))
 				return e;
 		}
-		
+
 		return null;
 	}
 	
-	protected static void removeRemoteEntity(String name)
+	/**
+	 * Returns a set containing copies of all remote entities available to the federate.
+	 */
+	public static Set<Entity> getAllRemoteEntities()
 	{
-		var remoteEntity = getRemoteEntity(name);
-		remoteEntities.remove(remoteEntity);
+		Set<Entity> result = new HashSet<Entity>();
+		remoteEntitySet.forEach((entity) -> result.add(entity));
 		
-		ObjectInstanceHandle entityHandle = entityMapping.translate(name);
-		entityMapping.remove(entityHandle);
+		return result;
+	}
+
+	public static Entity getLocalEntity(String instanceName)
+	{
+		for (Entity e : localEntitySet)
+		{
+			HLAObjectComponent objectComponent = objectMapper.get(e);
+			if (objectComponent.instanceName.equals(instanceName))
+				return e;
+		}
+
+		return null;
+	}
+
+	protected static void destroyRemoteEntity(String instanceName)
+	{
+		Entity entity = getRemoteEntity(instanceName);
+		entity.removeAll();
+		remoteEntitySet.remove(entity);
+
+		ObjectInstanceHandle entityHandle = translate(instanceName);
+		remove(entityHandle);
+	}
+
+	protected static void put(ObjectInstanceHandle handle, String instanceName)
+	{
+		entityMap.put(handle, instanceName);
+		inverseEntityMap.put(instanceName, handle);
+	}
+
+	protected static boolean has(ObjectInstanceHandle handle)
+	{
+		return entityMap.containsKey(handle);
+	}
+
+	protected static boolean has(String instanceName)
+	{
+		return inverseEntityMap.containsKey(instanceName);
+	}
+
+	protected static String translate(ObjectInstanceHandle handle)
+	{
+		return entityMap.get(handle);
+	}
+
+	protected static ObjectInstanceHandle translate(String instanceName)
+	{
+		return inverseEntityMap.get(instanceName);
+	}
+
+	protected static void remove(ObjectInstanceHandle handle)
+	{
+		inverseEntityMap.remove(entityMap.get(handle));
+		entityMap.remove(handle);
 	}
 }

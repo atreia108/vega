@@ -47,7 +47,8 @@ import io.github.atreia108.vega.components.HLAInteractionComponent;
 import io.github.atreia108.vega.utils.VegaUtilities;
 
 /**
- * The <code>HLAInteractionManager</code> class enables sending interactions to the RTI.
+ * The <code>HLAInteractionManager</code> class enables sending interactions to
+ * the RTI.
  * 
  * @author Hridyanshu Aatreya
  * @since 1.0.0
@@ -55,27 +56,36 @@ import io.github.atreia108.vega.utils.VegaUtilities;
 public final class HLAInteractionManager
 {
 	private static final Logger LOGGER = LogManager.getLogger();
-	
+
 	/**
-	 * Creates an interaction from a valid entity to be sent to the RTI.
-	 * A valid entity in this case:
+	 * Creates an interaction from a valid entity to be sent to the RTI. A valid
+	 * entity in this case:
 	 * <ul>
-	 * 	<li> Contains an HLAInteractionComponent.
-	 * 	<li> The className field in the component is set to an interaction class defined in the simulation's project file.
-	 *  <li> The interaction class in question was previously declared as publish/subscribe or both to the RTI.
+	 * <li>Contains an HLAInteractionComponent.
+	 * <li>The className field in the component is set to an interaction class
+	 * defined in the simulation's project file.
+	 * <li>The interaction class in question was previously declared as
+	 * publish/subscribe or both to the RTI.
 	 * </ul>
 	 * Invalid entities are rejected and the interaction is not sent.
+	 * 
 	 * @param entity entity representing the interaction.
 	 * @return outcome of the operation as a true or false value.
 	 */
 	public static boolean sendInteraction(Entity entity)
 	{
 		HLAInteractionComponent interactionComponent = VegaUtilities.interactionComponentMapper().get(entity);
-		InteractionClassProfile interactionClass = null ;
 
-		if (interactionComponent == null || (interactionClass = ProjectRegistry.getInteractionClass(interactionComponent.className)) == null)
+		if (interactionComponent == null || interactionComponent.className == null)
 		{
-			LOGGER.warn("Failed to send the interaction <{}> because either its HLAInteractionComponent is NULL or the interaction class associated with it is invalid", entity);
+			LOGGER.warn("Attempt to send the interaction <{}> was aborted: (NullPointerException) The HLAInteractionComponent or one (or more) its fields is NULL.", entity);
+			return false;
+		}
+
+		InteractionClassProfile interactionClass = ProjectRegistry.getInteractionClass(interactionComponent.className);
+		if (interactionClass == null)
+		{
+			LOGGER.warn("Attempt to send the interaction <{}> was aborted: The class associated with it ({}) was not found.", entity, interactionComponent.className);
 			return false;
 		}
 
@@ -88,26 +98,28 @@ public final class HLAInteractionManager
 
 			if ((parameterHandleValueMap == null) || (parameterHandleValueMap.size() == 0))
 			{
-				LOGGER.warn("Failed to send the interaction <{}> because no parameters could be found for this entity", entity);
+				LOGGER.warn("Attempt to send the interaction <{}> was aborted: No parameters were found for this entity.", entity);
 				return false;
 			}
 			else
 			{
 				rtiAmbassador.sendInteraction(classHandle, parameterHandleValueMap, null);
-				LOGGER.info("The interaction <{}> was successfully sent", entity);
-				
-				clearInteraction(entity);
+				LOGGER.info("The interaction <{}> was sent successfully.", entity);
+
+				// Deletes all components from the entity that represents the HLA interaction to
+				// free them up for use by other entities.
+				entity.removeAll();
 				return true;
 			}
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("RTI ambassador failed to create a ParameterHandleValueMap for packing data", e);
+			LOGGER.error("Failed to send interaction: ", e);
 			return false;
 		}
-		
+
 	}
-	
+
 	private static ParameterHandleValueMap getInteractionParameters(Entity entity, InteractionClassProfile interactionClass, RTIambassador rtiAmbassador)
 	{
 		ParameterHandleValueMap parameterHandleValueMap = null;
@@ -153,15 +165,5 @@ public final class HLAInteractionManager
 		}
 
 		return parameterHandleValueMap;
-	}
-	
-	/**
-	 * Deletes all components from the entity that represents the HLA interaction to free them up for
-	 * use by other entities.
-	 * @param interaction entity representing the HLA interaction that is to be freed.
-	 */
-	private static void clearInteraction(Entity interaction)
-	{
-		interaction.removeAll();
 	}
 }

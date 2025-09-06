@@ -37,9 +37,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import io.github.atreia108.vega.utils.ProjectSettings;
 
 /**
@@ -51,7 +48,7 @@ import io.github.atreia108.vega.utils.ProjectSettings;
  */
 public final record ProjectRegistry()
 {
-	private static final Logger LOGGER = LogManager.getLogger();
+	// private static final Logger LOGGER = LogManager.getLogger();
 
 	public static Set<String> requiredObjects;
 	public static Set<ObjectClassProfile> objectClassProfiles = new HashSet<ObjectClassProfile>();

@@ -33,6 +33,7 @@ package io.github.atreia108.vega.core;
 
 import com.badlogic.ashley.core.Entity;
 
+import hla.rti1516e.encoding.DecoderException;
 import hla.rti1516e.encoding.EncoderFactory;
 
 /**
@@ -60,7 +61,7 @@ import hla.rti1516e.encoding.EncoderFactory;
  */
 public interface IDataConverter
 {
-	public void decode(Entity entity, EncoderFactory encoderFactory, byte[] buffer);
+	public void decode(Entity entity, EncoderFactory encoderFactory, byte[] buffer) throws DecoderException;
 
 	public byte[] encode(Entity entity, EncoderFactory encoderFactory);
 }

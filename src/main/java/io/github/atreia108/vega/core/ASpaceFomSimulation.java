@@ -53,8 +53,8 @@ import io.github.atreia108.vega.utils.ProjectLoader;
 import io.github.atreia108.vega.utils.ProjectSettings;
 
 /**
- * The base class for simulations using the Vega framework. It implements the
- * SpaceFOM late joiner initialization and execution sequences.
+ * The base class for all SpaceFOM simulations using the Vega framework. It
+ * implements the SpaceFOM late joiner initialization and execution sequences.
  * 
  * @author Hridyanshu Aatreya
  * @since 1.0.0
@@ -62,7 +62,7 @@ import io.github.atreia108.vega.utils.ProjectSettings;
 public abstract class ASpaceFomSimulation
 {
 	protected static final Logger LOGGER = LogManager.getLogger();
-	
+
 	protected final PooledEngine engine;
 
 	protected ExCOComponent exCOComponent;
@@ -140,7 +140,7 @@ public abstract class ASpaceFomSimulation
 		subscribeAllObjectClasses();
 		subscribeAllInteractionClasses();
 		LOGGER.debug("All object and interaction classes used by this federate have been subscribed to");
-
+		
 		if (ProjectRegistry.requiredObjects != null)
 		{
 			LOGGER.debug("({}/{}) Waiting for all required object instances to be discovered", ++currentStep, TOTAL_STEPS);
@@ -206,7 +206,6 @@ public abstract class ASpaceFomSimulation
 
 	private void getExCOData()
 	{
-		// final Entity exCO = ProjectRegistry.getRemoteEntityByName("ExCO");
 		Entity exCO = HLAObjectManager.getRemoteEntity("ExCO");
 		final ComponentMapper<ExCOComponent> exCOMapper = ComponentMapper.getFor(ExCOComponent.class);
 		exCOComponent = exCOMapper.get(exCO);
