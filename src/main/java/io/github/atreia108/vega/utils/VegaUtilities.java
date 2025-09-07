@@ -44,7 +44,7 @@ import io.github.atreia108.vega.components.HLAInteractionComponent;
 import io.github.atreia108.vega.components.HLAObjectComponent;
 
 /**
- * A collection of objects that are used internally by the framework and are
+ * A collection of objects that are used internally by the framework and
  * generally available for use within Vega projects.
  * 
  * @author Hridyanshu Aatreya
@@ -91,21 +91,38 @@ public final record VegaUtilities()
 		return encoderFactory;
 	}
 
+	/**
+	 * Returns a copy of the ECS engine used by the simulation. It is imperative
+	 * that this exact copy instead of creating new engine instances since it is
+	 * managed by the framework.
+	 */
 	public static PooledEngine engine()
 	{
 		return engine;
 	}
 
+	/**
+	 * Returns a mapper for the
+	 * {@link io.github.atreia108.vega.components.HLAObjectComponent} type.
+	 */
 	public static ComponentMapper<HLAObjectComponent> objectComponentMapper()
 	{
 		return HLA_OBJECT_MAPPER;
 	}
 
+	/**
+	 * Returns a mapper for the
+	 * {@link io.github.atreia108.vega.components.HLAInteractionComponent} type.
+	 */
 	public static ComponentMapper<HLAInteractionComponent> interactionComponentMapper()
 	{
 		return HLA_INTERACTION_MAPPER;
 	}
 
+	/**
+	 * Returns a mapper for the {@link io.github.atreia108.vega.components.ExCOComponent}
+	 * type.
+	 */
 	public static ComponentMapper<ExCOComponent> exCOComponentMapper()
 	{
 		return SPACEFOM_EXCO_MAPPER;

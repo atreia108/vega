@@ -75,8 +75,8 @@ public abstract class ASpaceFomSimulation
 
 	/**
 	 * Called during the "Register Federate Object Instances" step of the SpaceFOM
-	 * late joiner initialization. It is anticipated that users will initialize the
-	 * entities and systems they plan to use in here.
+	 * late joiner initialization. It is anticipated that entities and systems will
+	 * be initialized here.
 	 */
 	protected abstract void onInit();
 
@@ -89,9 +89,7 @@ public abstract class ASpaceFomSimulation
 	/**
 	 * Called as soon as the switch to <code>EXEC_MODE_SHUTDOWN</code> happens. Any
 	 * final internal tasks to be performed right before shutdown should happen
-	 * here. Note, however, that attempts to communicate with other federates at
-	 * this stage will likely fail because they would be in the process of leaving
-	 * the federation themselves.
+	 * here.
 	 */
 	protected abstract void onShutdown();
 
@@ -140,7 +138,7 @@ public abstract class ASpaceFomSimulation
 		subscribeAllObjectClasses();
 		subscribeAllInteractionClasses();
 		LOGGER.debug("All object and interaction classes used by this federate have been subscribed to");
-		
+
 		if (ProjectRegistry.requiredObjects != null)
 		{
 			LOGGER.debug("({}/{}) Waiting for all required object instances to be discovered", ++currentStep, TOTAL_STEPS);

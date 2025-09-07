@@ -46,9 +46,9 @@ import io.github.atreia108.vega.utils.VegaUtilities;
 
 /**
  * <p>
- * A (meta-object) representation of an HLA interaction class. The profile of an
+ * Internal representation of an HLA interaction class. The profile of an
  * interaction class is used for mapping data converters and parameter handles
- * of the class; necessary when creating an interaction of the class from an ECS
+ * of the class; typically necessary when creating an interaction of the class from an ECS
  * entity.
  * </p>
  * 

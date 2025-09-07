@@ -44,9 +44,9 @@ import io.github.atreia108.vega.components.HLAInteractionComponent;
 import io.github.atreia108.vega.utils.VegaUtilities;
 
 /**
- * The interaction queue holds all incoming interactions from the RTI into an
- * <code>ArrayList</code>. New interactions are added to the queue at each time
- * step of the simulation.
+ * The interaction queue holds all interactions that were sent to the federate
+ * from the RTI. New interactions are added to the queue at each time step of
+ * the simulation.
  * 
  * @author Hridyanshu Aatreya
  * @since 1.0.0
@@ -154,7 +154,8 @@ public final class HLAInteractionQueue
 	}
 
 	/**
-	 * A utility method to safely dispose of a queue of entities representing miscellaneous interactions.
+	 * Safely dispose of a queue of entities representing miscellaneous
+	 * interactions.
 	 * 
 	 * @param queue The <code>ArrayList</code> of interactions to be freed.
 	 */
@@ -166,9 +167,9 @@ public final class HLAInteractionQueue
 			remove(entity);
 		});
 	}
-	
+
 	/**
-	 * A utility method to safely dispose of a single entity representing an HLA interaction.
+	 * Safely dispose of a single entity representing an HLA interaction.
 	 * 
 	 * @param entity The entity to be freed.
 	 */
@@ -177,7 +178,7 @@ public final class HLAInteractionQueue
 		entity.removeAll();
 		remove(entity);
 	}
-	
+
 	private static void remove(Entity entity)
 	{
 		synchronized (interactionQueue)

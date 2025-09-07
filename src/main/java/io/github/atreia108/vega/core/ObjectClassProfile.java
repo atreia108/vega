@@ -47,10 +47,10 @@ import io.github.atreia108.vega.utils.VegaUtilities;
 
 /**
  * <p>
- * A (meta-object) representation of an HLA object class. The profile of an
+ * Internal representation of an HLA object class. The profile of an
  * object class is used for mapping data converters and attribute handles of the
- * class; necessary when creating and updating an instance of the object class
- * from an ECS entity.
+ * class; typically necessary when creating and updating an instance of the
+ * object class from an ECS entity.
  * </p>
  * 
  * <p>
@@ -73,10 +73,10 @@ public final class ObjectClassProfile
 	public Set<String> attributeNames;
 
 	private Map<String, String> attributeConverterMap;
-	
+
 	private Map<String, AttributeHandle> attributeHandleMap;
 	private Map<AttributeHandle, String> inverseAttributeHandleMap;
-	
+
 	private Map<String, HLASharingModel> attributeSharingMap;
 	private Map<String, Map<String, Integer>> attributeMultiConverterMap;
 	private AttributeHandleSet publicationHandleSet;
@@ -102,7 +102,7 @@ public final class ObjectClassProfile
 
 		attributeHandleMap = new HashMap<String, AttributeHandle>();
 		inverseAttributeHandleMap = new HashMap<AttributeHandle, String>();
-		
+
 		attributeSharingMap = new HashMap<String, HLASharingModel>();
 
 		attributeMultiConverterMap = new HashMap<String, Map<String, Integer>>();

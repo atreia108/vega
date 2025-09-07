@@ -56,10 +56,10 @@ import io.github.atreia108.vega.utils.VegaUtilities;
  * The <code>HLAObjectManager</code> enables the creation, update, and
  * destruction of instances of an HLA object class. In Vega, an ECS entity
  * corresponds to an HLA object instance. The
- * {@link io.github.atreia108.vega.core.IDataConverter IDataConverter} and
+ * {@link io.github.atreia108.vega.core.IDataConverter IDataConverter},
  * {@link io.github.atreia108.vega.core.IMultiDataConverter IMultiDataConverter}
- * {@link io.github.atreia108.vega.core.IEntityArchetype IEntityArchetype}
- * interfaces form part of a conversion layer to translate between the HLA's
+ * and {@link io.github.atreia108.vega.core.IEntityArchetype IEntityArchetype}
+ * interfaces form part of a conversion layer that translates between the HLA's
  * object-oriented design and data-oriented design.
  * 
  * @author Hridyanshu Aatreya
@@ -268,6 +268,7 @@ public final class HLAObjectManager
 
 	/**
 	 * Verifies whether an entity is remote or not.
+	 * 
 	 * @param entity The entity
 	 */
 	public static boolean isRemoteEntity(Entity entity)
@@ -358,7 +359,8 @@ public final class HLAObjectManager
 	}
 
 	/**
-	 * Find the corresponding entity of a remote object instance (owned by another federate).
+	 * Find the corresponding entity of a remote object instance (owned by another
+	 * federate).
 	 * 
 	 * @param instanceName Name of the object instance.
 	 */
@@ -373,18 +375,25 @@ public final class HLAObjectManager
 
 		return null;
 	}
-	
+
 	/**
-	 * Returns a set containing copies of all remote entities available to the federate.
+	 * Returns a set containing copies of all remote entities available to the
+	 * federate.
 	 */
 	public static Set<Entity> getAllRemoteEntities()
 	{
 		Set<Entity> result = new HashSet<Entity>();
 		remoteEntitySet.forEach((entity) -> result.add(entity));
-		
+
 		return result;
 	}
 
+	/**
+	 * Finds and returns a local entity (an object instance originating from this
+	 * federate) if it exists.
+	 * 
+	 * @param instanceName The name of the object instance represented by the entity
+	 */
 	public static Entity getLocalEntity(String instanceName)
 	{
 		for (Entity e : localEntitySet)

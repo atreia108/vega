@@ -57,15 +57,6 @@ import hla.rti1516e.encoding.EncoderFactory;
  * creation of an inordinate number of converters.
  * </p>
  * 
- * <p>
- * This model is extremely powerful in the sense that it can be used for many
- * HLA class attributes/parameters at once. An entire project could potentially
- * use a single class that implements this interface for all of its conversion
- * processes. Keep in mind that multi-converters should be kept as simple as
- * possible, since burdening a single converter to manage too many attributes
- * risks increase its complexity.
- * </p>
- * 
  * @see io.github.atreia108.vega.core.IDataConverter
  * 
  * @author Hridyanshu Aatreya
