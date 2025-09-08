@@ -1,3 +1,5 @@
+.DS_Store
+
 # Compiled class file
 *.class
 
@@ -55,7 +57,7 @@ local.properties
 .cache-main
 .scala_dependencies
 .worksheet
-#.project
+.project
 
 target/
 pom.xml.tag
@@ -74,11 +76,3 @@ buildNumber.properties
 # .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
-
-# Vega project-specific items to ignore
-foms/SISO_SpaceFOM_datatypes.xml
-foms/SISO_SpaceFOM_entity.xml
-foms/SISO_SpaceFOM_environment.xml
-foms/SISO_SpaceFOM_management.xml
-foms/SISO_SpaceFOM_switches.xml
-libraries/*.jar

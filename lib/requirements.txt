@@ -1,0 +1,3 @@
+Dependencies:
+
+Pitch pRTI libraries (located under the lib folder where you installed the program): booster1516.jar, prti1516e.jar, prticore.jar
